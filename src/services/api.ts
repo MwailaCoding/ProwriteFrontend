@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Create axios instance with default config
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000',
+  baseURL: import.meta.env.VITE_API_URL || 'https://prowrite.pythonanywhere.com/',
   timeout: 30000, // Increased to 30 seconds for file uploads
   headers: {
     'Content-Type': 'application/json',
