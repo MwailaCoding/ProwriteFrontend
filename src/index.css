@@ -1,0 +1,54 @@
+/* Import template styles */
+@import './styles/templateStyles.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Responsive utilities */
+@layer utilities {
+  .text-responsive {
+    @apply text-sm sm:text-base lg:text-lg;
+  }
+  
+  .heading-responsive {
+    @apply text-xl sm:text-2xl lg:text-3xl xl:text-4xl;
+  }
+  
+  .container-responsive {
+    @apply px-4 sm:px-6 lg:px-8;
+  }
+  
+  .spacing-responsive {
+    @apply space-y-4 sm:space-y-6 lg:space-y-8;
+  }
+}
+
+/* Mobile-first responsive design */
+@media (max-width: 640px) {
+  .mobile-hidden {
+    display: none;
+  }
+  
+  .mobile-full {
+    width: 100%;
+  }
+  
+  .mobile-text-center {
+    text-align: center;
+  }
+}
+
+/* Tablet responsive design */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .tablet-hidden {
+    display: none;
+  }
+}
+
+/* Desktop responsive design */
+@media (min-width: 1025px) {
+  .desktop-hidden {
+    display: none;
+  }
+}
