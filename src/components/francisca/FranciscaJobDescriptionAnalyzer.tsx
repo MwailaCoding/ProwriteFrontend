@@ -77,7 +77,7 @@ const FranciscaJobDescriptionAnalyzer: React.FC<JobDescriptionAnalyzerProps> = (
     setError(null);
 
     try {
-      const response = await fetch('/api/francisca/job-description-analysis', {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://prowrite.pythonanywhere.com/api'}/francisca/job-description-analysis`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

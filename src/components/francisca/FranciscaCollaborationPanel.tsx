@@ -128,7 +128,7 @@ const FranciscaCollaborationPanel: React.FC<CollaborationPanelProps> = ({
     setError(null);
     
     try {
-      const response = await fetch('/api/francisca/collaboration/share', {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://prowrite.pythonanywhere.com/api'}/francisca/collaboration/share`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -167,7 +167,7 @@ const FranciscaCollaborationPanel: React.FC<CollaborationPanelProps> = ({
     setError(null);
     
     try {
-      const response = await fetch('/api/francisca/collaboration/add-collaborator', {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://prowrite.pythonanywhere.com/api'}/francisca/collaboration/add-collaborator`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -200,7 +200,7 @@ const FranciscaCollaborationPanel: React.FC<CollaborationPanelProps> = ({
     setError(null);
     
     try {
-      const response = await fetch('/api/francisca/collaboration/feedback', {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://prowrite.pythonanywhere.com/api'}/francisca/collaboration/feedback`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -244,7 +244,7 @@ const FranciscaCollaborationPanel: React.FC<CollaborationPanelProps> = ({
     setError(null);
     
     try {
-      const response = await fetch('/api/francisca/collaboration/version-control', {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://prowrite.pythonanywhere.com/api'}/francisca/collaboration/version-control`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

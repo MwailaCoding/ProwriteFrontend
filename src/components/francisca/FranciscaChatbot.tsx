@@ -396,7 +396,7 @@ const FranciscaChatbot: React.FC<FranciscaChatbotProps> = ({
     setIsAutoFilling(true);
     try {
       // Call the backend AI endpoint to generate comprehensive resume data
-      const response = await fetch('/api/francisca/ai/autofill', {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://prowrite.pythonanywhere.com/api'}/francisca/ai/autofill`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

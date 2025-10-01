@@ -161,7 +161,7 @@ export const AIContentGenerator: React.FC<AIContentGeneratorProps> = ({
         return;
       }
       
-      const response = await fetch('/api/ai/paragraph-suggestions', {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://prowrite.pythonanywhere.com/api'}/ai/paragraph-suggestions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

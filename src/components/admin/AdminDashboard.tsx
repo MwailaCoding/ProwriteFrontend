@@ -36,7 +36,7 @@ const AdminDashboard: React.FC = () => {
   const fetchDashboardData = async () => {
     try {
       console.log('Fetching dashboard data...');
-      const response = await fetch('/api/admin/stats', {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://prowrite.pythonanywhere.com/api'}/admin/stats`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
         }

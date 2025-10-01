@@ -962,7 +962,7 @@ const FranciscaDynamicForm: React.FC = () => {
     const fetchSchema = async () => {
       try {
         setSchemaLoading(true);
-        const response = await fetch('/api/francisca/schema');
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://prowrite.pythonanywhere.com/api'}/francisca/schema`);
         const result = await response.json();
         
         if (result.success) {

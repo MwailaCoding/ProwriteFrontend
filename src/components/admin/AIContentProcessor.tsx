@@ -260,7 +260,7 @@ const AIContentProcessor: React.FC = () => {
         }
       };
 
-      const response = await fetch('/api/resumes/generate', {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://prowrite.pythonanywhere.com/api'}/resumes/generate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

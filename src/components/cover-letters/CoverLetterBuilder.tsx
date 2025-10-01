@@ -532,7 +532,7 @@ export const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({
     setEnhancingParagraph(paragraphType);
     
     try {
-      const response = await fetch('/api/francisca/ai/enhance-paragraph', {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://prowrite.pythonanywhere.com/api'}/francisca/ai/enhance-paragraph`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -572,7 +572,7 @@ export const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({
 
   const generateSuggestions = async (paragraphType: 'introduction' | 'experience' | 'companyFit' | 'closing') => {
     try {
-      const response = await fetch('/api/francisca/ai/generate-suggestions', {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://prowrite.pythonanywhere.com/api'}/francisca/ai/generate-suggestions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

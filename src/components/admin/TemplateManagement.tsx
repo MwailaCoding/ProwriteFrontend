@@ -49,7 +49,7 @@ const TemplateManagement: React.FC = () => {
   const fetchTemplates = async () => {
     try {
       console.log('Fetching templates...');
-      const response = await fetch('/api/admin/templates', {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://prowrite.pythonanywhere.com/api'}/admin/templates`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
         }
@@ -118,7 +118,7 @@ const TemplateManagement: React.FC = () => {
     });
 
     try {
-      const response = await fetch('/api/admin/templates', {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://prowrite.pythonanywhere.com/api'}/admin/templates`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
