@@ -7,19 +7,16 @@ import {
   CheckCircle, 
   Clock, 
   AlertCircle,
-  Download,
-  Mail,
-  FileText,
+  Copy,
   Loader,
   RefreshCw,
-  ExternalLink,
-  Copy
+  ExternalLink
 } from 'lucide-react';
 import { Button } from '../common/Button';
 import { LoadingSpinner } from '../common/LoadingSpinner';
 import { toast } from 'react-hot-toast';
 
-interface MpesaPaymentModalProps {
+interface ManualPaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
   formData: any;
@@ -37,7 +34,18 @@ interface PaymentSubmission {
   message: string;
 }
 
-export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
+interface ValidationResult {
+  success: boolean;
+  message?: string;
+  error?: string;
+  error_code?: string;
+  fallback?: string;
+  submission_id?: number;
+  status?: string;
+  validation_method?: string;
+}
+
+export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
   isOpen,
   onClose,
   formData,
@@ -49,6 +57,8 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [submissionData, setSubmissionData] = useState<PaymentSubmission | null>(null);
   const [error, setError] = useState('');
+  const [retryCount, setRetryCount] = useState(0);
+  const [maxRetries] = useState(3);
 
   const amount = documentType === 'Francisca Resume' ? 500 : 300;
 
@@ -65,7 +75,7 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
         body: JSON.stringify({
           form_data: formData,
           document_type: documentType,
-          user_email: 'user@example.com'
+          user_email: 'user@example.com' // Get from auth context
         })
       });
 
@@ -84,6 +94,7 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
       setError('Failed to initiate payment');
       setCurrentStep('failed');
       toast.error('Failed to initiate payment');
+      console.error('Payment initiation error:', error);
     } finally {
       setIsLoading(false);
     }
@@ -115,11 +126,13 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
         })
       });
 
-      const data = await response.json();
+      const data: ValidationResult = await response.json();
       
       if (data.success) {
         setCurrentStep('processing');
         toast.success('Payment validated! Generating document...');
+        
+        // Start polling for completion
         pollForCompletion();
       } else {
         setError(data.error || 'Validation failed');
@@ -127,6 +140,7 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
         if (data.fallback === 'admin_confirmation') {
           toast.info('Payment will be confirmed by admin shortly');
           setCurrentStep('processing');
+          // Start polling for admin confirmation
           pollForCompletion();
         } else {
           toast.error(data.error || 'Validation failed');
@@ -135,6 +149,7 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
     } catch (error: any) {
       setError('Validation failed');
       toast.error('Validation failed');
+      console.error('Validation error:', error);
     } finally {
       setIsLoading(false);
     }
@@ -156,13 +171,22 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
               onSuccess(data.submission_id);
             }
           } else if (data.status === 'paid' || data.status === 'processing') {
+            // Still processing
             setTimeout(poll, 3000);
           } else if (data.status === 'pending_admin_confirmation') {
+            // Admin confirmation pending
             setTimeout(poll, 5000);
           }
         }
       } catch (error) {
         console.error('Polling error:', error);
+        setRetryCount(prev => prev + 1);
+        
+        if (retryCount >= maxRetries) {
+          toast.error('Unable to verify payment status. Please check your email or contact support.');
+        } else {
+          setTimeout(poll, 3000);
+        }
       }
     };
     
@@ -189,6 +213,17 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
     setCurrentStep('instructions');
     setSubmissionData(null);
     setError('');
+    setRetryCount(0);
+  };
+
+  const retryPayment = () => {
+    if (retryCount < maxRetries) {
+      setCurrentStep('instructions');
+      setRetryCount(prev => prev + 1);
+      setError('');
+    } else {
+      toast.error('Maximum retry attempts reached. Please contact support.');
+    }
   };
 
   useEffect(() => {
@@ -345,6 +380,12 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
           </>
         )}
       </Button>
+
+      {retryCount > 0 && (
+        <p className="text-xs text-gray-500 text-center">
+          Retry attempt: {retryCount}/{maxRetries}
+        </p>
+      )}
     </div>
   );
 
@@ -404,11 +445,13 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
       </p>
       <div className="space-y-2">
         <Button
-          onClick={() => setCurrentStep('instructions')}
+          onClick={retryPayment}
           className="w-full"
           variant="secondary"
+          disabled={retryCount >= maxRetries}
         >
-          Try Again
+          <RefreshCw className="w-5 h-5 mr-2" />
+          Try Again {retryCount > 0 && `(${retryCount}/${maxRetries})`}
         </Button>
         <Button
           onClick={onClose}
