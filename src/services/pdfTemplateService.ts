@@ -105,7 +105,7 @@ class PDFTemplateService {
   private baseUrl: string;
 
   constructor() {
-    this.baseUrl = 'http://localhost:5000';
+    this.baseUrl = import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'https://prowrite.pythonanywhere.com';
   }
 
   /**

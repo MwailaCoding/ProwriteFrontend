@@ -7,9 +7,7 @@ import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } f
 
 // Create axios instance
 const api: AxiosInstance = axios.create({
-  baseURL: process.env.NODE_ENV === 'production' 
-    ? 'https://Prowrite.pythonanywhere.com/api'
-    : 'http://localhost:5000/api',
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://prowrite.pythonanywhere.com/api',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
@@ -57,9 +55,7 @@ api.interceptors.response.use(
       try {
         // Try to refresh token
         const refreshResponse = await axios.post(
-          `${process.env.NODE_ENV === 'production' 
-            ? 'https://Prowrite.pythonanywhere.com/api'
-            : 'http://localhost:5000/api'}/auth/refresh`, 
+          `${import.meta.env.VITE_API_BASE_URL || 'https://prowrite.pythonanywhere.com/api'}/auth/refresh`, 
           {}, 
           {
             headers: {

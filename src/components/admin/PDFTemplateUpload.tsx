@@ -89,7 +89,7 @@ export const PDFTemplateUpload: React.FC = () => {
       });
 
       // Make API call to new clean endpoint
-      const response = await fetch('http://localhost:5000/api/upload-template-new', {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://prowrite.pythonanywhere.com/api'}/upload-template-new`, {
         method: 'POST',
         body: formData
       });

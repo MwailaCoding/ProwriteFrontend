@@ -91,7 +91,7 @@ const AIContentProcessor: React.FC = () => {
       // Step 1: Call real AI backend
       setProcessingStep('Analyzing PDF with OpenAI GPT-4...');
       const token = localStorage.getItem('adminToken');
-      const response = await fetch(`http://localhost:5000/api/admin/pdf-templates/${template.id}/process-new`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://prowrite.pythonanywhere.com/api'}/admin/pdf-templates/${template.id}/process-new`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

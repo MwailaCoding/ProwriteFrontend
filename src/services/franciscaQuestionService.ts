@@ -61,7 +61,7 @@ class FranciscaQuestionService {
   private baseURL: string;
 
   constructor() {
-    this.baseURL = 'http://localhost:5000/api';
+    this.baseURL = import.meta.env.VITE_API_BASE_URL || 'https://prowrite.pythonanywhere.com/api';
   }
 
   /**

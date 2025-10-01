@@ -58,7 +58,7 @@ class AuthService {
   private refreshCooldown: number = 5000; // 5 seconds cooldown
 
   constructor() {
-    this.baseURL = 'http://localhost:5000/api';
+    this.baseURL = import.meta.env.VITE_API_BASE_URL || 'https://prowrite.pythonanywhere.com/api';
     this.setupAxiosInterceptors();
   }
 

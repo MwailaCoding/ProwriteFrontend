@@ -18,7 +18,7 @@ const AdminLogin: React.FC = () => {
     try {
       console.log('Attempting admin login...');
       
-      const response = await fetch('http://localhost:5000/api/admin/login', {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://prowrite.pythonanywhere.com/api'}/admin/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

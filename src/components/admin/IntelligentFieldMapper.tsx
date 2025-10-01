@@ -45,7 +45,7 @@ const IntelligentFieldMapper: React.FC<FieldMapperProps> = ({ templateId, onMapp
     try {
       setLoading(true);
       // Load existing content areas if available
-      const response = await fetch(`http://localhost:5000/api/admin/pdf-templates/${templateId}`);
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://prowrite.pythonanywhere.com/api'}/admin/pdf-templates/${templateId}`);
       if (response.ok) {
         const data = await response.json();
         if (data.content_areas) {
@@ -62,7 +62,7 @@ const IntelligentFieldMapper: React.FC<FieldMapperProps> = ({ templateId, onMapp
   const analyzeTemplate = async () => {
     try {
       setAnalyzing(true);
-      const response = await fetch(`http://localhost:5000/api/admin/pdf-templates/${templateId}/analyze`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://prowrite.pythonanywhere.com/api'}/admin/pdf-templates/${templateId}/analyze`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
