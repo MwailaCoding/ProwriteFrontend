@@ -13,6 +13,7 @@ import { loginAsync, clearError, initializeAuth } from '../../store/authSlice';
 import { RootState, AppDispatch } from '../../store/store';
 import { Button } from '../../components/common/Button';
 import { Card } from '../../components/common/Card';
+import PasswordResetModal from '../../components/auth/PasswordResetModal';
 
 // Form data interface
 interface LoginFormData {
@@ -24,6 +25,7 @@ const LoginPage: React.FC = () => {
   // State
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPasswordResetModal, setShowPasswordResetModal] = useState(false);
   
   // Hooks
   const dispatch = useDispatch<AppDispatch>();
@@ -231,13 +233,22 @@ const LoginPage: React.FC = () => {
             
             <p className="text-sm text-gray-500">
               Forgot your password?{' '}
-              <button className="font-medium text-blue-600 hover:text-blue-500 transition-colors">
+              <button 
+                onClick={() => setShowPasswordResetModal(true)}
+                className="font-medium text-blue-600 hover:text-blue-500 transition-colors"
+              >
                 Reset it
               </button>
             </p>
           </div>
         </Card>
       </motion.div>
+      
+      {/* Password Reset Modal */}
+      <PasswordResetModal 
+        isOpen={showPasswordResetModal}
+        onClose={() => setShowPasswordResetModal(false)}
+      />
     </div>
   );
 };

@@ -12,6 +12,7 @@ import { LandingPage } from './pages/LandingPage';
 // Auth Pages
 import LoginPage from './pages/auth/LoginPageSimple';
 import RegisterPage from './pages/auth/RegisterPage';
+import ResetPasswordPage from './pages/auth/ResetPasswordPage';
 
 // User Pages
 import { DashboardPage } from './pages/dashboard/DashboardPage';
@@ -72,6 +73,7 @@ function App() {
               <RegisterPage />
             </ProtectedRoute>
           } />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
 
           {/* Protected Routes */}
           <Route path="/app" element={
