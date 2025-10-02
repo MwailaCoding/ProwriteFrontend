@@ -57,7 +57,9 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
     setError('');
     
     try {
-      const response = await fetch('/api/payments/manual/initiate', {
+      // Use absolute URL to ensure it goes to the backend
+      const backendURL = 'https://prowrite.pythonanywhere.com/api';
+      const response = await fetch(`${backendURL}/payments/manual/initiate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -68,6 +70,10 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
           user_email: 'user@example.com'
         })
       });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
       const data = await response.json();
       

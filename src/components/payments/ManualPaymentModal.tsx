@@ -68,13 +68,25 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
     setError('');
     
     try {
-      const response = await api.post('/payments/manual/initiate', {
-        form_data: formData,
-        document_type: documentType,
-        user_email: 'user@example.com' // Get from auth context
+      // Use absolute URL to ensure it goes to the backend
+      const backendURL = 'https://prowrite.pythonanywhere.com/api';
+      const response = await fetch(`${backendURL}/payments/manual/initiate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          form_data: formData,
+          document_type: documentType,
+          user_email: 'user@example.com' // Get from auth context
+        })
       });
 
-      const data = response.data;
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
       
       if (data.success) {
         setSubmissionData(data);
@@ -111,12 +123,24 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
     setError('');
     
     try {
-      const response = await api.post('/payments/manual/validate', {
-        transaction_code: transactionCode.trim().toUpperCase(),
-        reference: submissionData.reference
+      // Use absolute URL to ensure it goes to the backend
+      const backendURL = 'https://prowrite.pythonanywhere.com/api';
+      const response = await fetch(`${backendURL}/payments/manual/validate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          transaction_code: transactionCode.trim().toUpperCase(),
+          reference: submissionData.reference
+        })
       });
 
-      const data: ValidationResult = response.data;
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data: ValidationResult = await response.json();
       
       if (data.success) {
         setCurrentStep('processing');
@@ -150,8 +174,15 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
 
     const poll = async () => {
       try {
-        const response = await api.get(`/payments/manual/status/${submissionData.reference}`);
-        const data = response.data;
+        // Use absolute URL to ensure it goes to the backend
+        const backendURL = 'https://prowrite.pythonanywhere.com/api';
+        const response = await fetch(`${backendURL}/payments/manual/status/${submissionData.reference}`);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
         
         if (data.success) {
           if (data.status === 'completed') {
