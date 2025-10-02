@@ -55,6 +55,7 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
 }) => {
   const [currentStep, setCurrentStep] = useState<'instructions' | 'validation' | 'processing' | 'completed' | 'failed'>('instructions');
   const [transactionCode, setTransactionCode] = useState('');
+  const [userEmail, setUserEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [submissionData, setSubmissionData] = useState<PaymentSubmission | null>(null);
   const [error, setError] = useState('');
@@ -64,6 +65,18 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
   const amount = documentType === 'Francisca Resume' ? 500 : 300;
 
   const initiatePayment = async () => {
+    // Validate email before proceeding
+    if (!userEmail.trim()) {
+      toast.error('Please enter your email address for PDF delivery');
+      return;
+    }
+    
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(userEmail.trim())) {
+      toast.error('Please enter a valid email address');
+      return;
+    }
+    
     setIsLoading(true);
     setError('');
     
@@ -78,7 +91,7 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
         body: JSON.stringify({
           form_data: formData,
           document_type: documentType,
-          user_email: 'user@example.com' // Get from auth context
+          user_email: userEmail.trim()
         })
       });
 
@@ -231,6 +244,7 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
 
   const resetForm = () => {
     setTransactionCode('');
+    setUserEmail('');
     setCurrentStep('instructions');
     setSubmissionData(null);
     setError('');
@@ -264,6 +278,24 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
         </h3>
         <p className="text-gray-600">
           Pay with M-Pesa to generate your {documentType}
+        </p>
+      </div>
+
+      {/* Email Input for PDF Delivery */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          📧 Email for PDF Delivery *
+        </label>
+        <input
+          type="email"
+          value={userEmail}
+          onChange={(e) => setUserEmail(e.target.value)}
+          placeholder="Enter your email address"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          required
+        />
+        <p className="text-xs text-gray-600 mt-1">
+          Your generated PDF will be sent to this email address
         </p>
       </div>
 
