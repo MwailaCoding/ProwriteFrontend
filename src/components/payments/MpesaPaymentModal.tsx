@@ -215,9 +215,9 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
         <div className="flex justify-between items-center">
           <span className="text-gray-600">Till Number:</span>
           <div className="flex items-center space-x-2">
-            <span className="font-mono font-semibold text-lg">8576310</span>
+            <span className="font-mono font-semibold text-lg">6340351</span>
             <button
-              onClick={() => copyToClipboard('8576310')}
+              onClick={() => copyToClipboard('6340351')}
               className="text-blue-600 hover:text-blue-800 transition-colors"
             >
               <Copy className="w-4 h-4" />
@@ -251,7 +251,7 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
         <ol className="list-decimal list-inside text-blue-700 space-y-1 text-sm">
           <li>Go to M-Pesa menu on your phone</li>
           <li>Select "Pay Bill"</li>
-          <li>Enter Till Number: <span className="font-mono font-semibold">8576310</span></li>
+          <li>Enter Till Number: <span className="font-mono font-semibold">6340351</span></li>
           <li>Enter Amount: <span className="font-semibold">KES {amount}</span></li>
           <li>Enter your M-Pesa PIN</li>
           <li>Wait for confirmation SMS</li>
