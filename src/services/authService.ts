@@ -371,11 +371,11 @@ class AuthService {
   /**
    * Request password reset
    */
-  async requestPasswordReset(data: PasswordResetRequest): Promise<{ message: string }> {
+  async requestPasswordReset(data: PasswordResetRequest): Promise<{ message: string; token?: string; instructions?: string }> {
     try {
       console.log('🔐 AuthService: Requesting password reset...', data);
       
-      const response: AxiosResponse<{ message: string }> = await axios.post(
+      const response: AxiosResponse<{ message: string; token?: string; instructions?: string }> = await axios.post(
         `${this.baseURL}/auth/forgot-password`,
         data
       );

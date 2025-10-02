@@ -50,9 +50,15 @@ const PasswordResetModal: React.FC<PasswordResetModalProps> = ({ isOpen, onClose
       setIsLoading(true);
       setError(null);
       
-      await authService.requestPasswordReset(data);
+      const response = await authService.requestPasswordReset(data);
       setStep('confirm');
-      setSuccessMessage('Password reset instructions sent to your email!');
+      
+      // Check if we got a token in the response (when email isn't working)
+      if (response.token) {
+        setSuccessMessage(`Reset token generated! Copy this token: ${response.token}`);
+      } else {
+        setSuccessMessage('Password reset instructions sent to your email!');
+      }
     } catch (error: any) {
       setError(error.message);
     } finally {
