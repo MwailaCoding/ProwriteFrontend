@@ -110,7 +110,9 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
     setError('');
     
     try {
-      const response = await fetch('/api/payments/manual/validate', {
+      // Use absolute URL to ensure it goes to the backend
+      const backendURL = 'https://prowrite.pythonanywhere.com/api';
+      const response = await fetch(`${backendURL}/payments/manual/validate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -120,6 +122,10 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
           reference: submissionData.reference
         })
       });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
       const data = await response.json();
       
@@ -151,7 +157,14 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
 
     const poll = async () => {
       try {
-        const response = await fetch(`/api/payments/manual/status/${submissionData.reference}`);
+        // Use absolute URL to ensure it goes to the backend
+        const backendURL = 'https://prowrite.pythonanywhere.com/api';
+        const response = await fetch(`${backendURL}/payments/manual/status/${submissionData.reference}`);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const data = await response.json();
         
         if (data.success) {

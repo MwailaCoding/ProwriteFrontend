@@ -49,7 +49,14 @@ export const PaymentConfirmationPanel: React.FC<PaymentConfirmationPanelProps> =
   const fetchPendingPayments = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('/api/payments/manual/admin/pending');
+      // Use absolute URL to ensure it goes to the backend
+      const backendURL = 'https://prowrite.pythonanywhere.com/api';
+      const response = await fetch(`${backendURL}/payments/manual/admin/pending`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const data = await response.json();
       
       if (data.success) {
@@ -68,7 +75,9 @@ export const PaymentConfirmationPanel: React.FC<PaymentConfirmationPanelProps> =
   const confirmPayment = async (reference: string) => {
     setIsProcessing(true);
     try {
-      const response = await fetch('/api/payments/manual/admin/confirm', {
+      // Use absolute URL to ensure it goes to the backend
+      const backendURL = 'https://prowrite.pythonanywhere.com/api';
+      const response = await fetch(`${backendURL}/payments/manual/admin/confirm`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -105,7 +114,9 @@ export const PaymentConfirmationPanel: React.FC<PaymentConfirmationPanelProps> =
 
     setIsProcessing(true);
     try {
-      const response = await fetch('/api/payments/manual/admin/reject', {
+      // Use absolute URL to ensure it goes to the backend
+      const backendURL = 'https://prowrite.pythonanywhere.com/api';
+      const response = await fetch(`${backendURL}/payments/manual/admin/reject`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
