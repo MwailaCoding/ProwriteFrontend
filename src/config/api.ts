@@ -5,13 +5,32 @@
 
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
 
+// Ensure we always use the correct backend URL
+const getBackendURL = () => {
+  const envURL = import.meta.env.VITE_API_BASE_URL;
+  const defaultURL = 'https://prowrite.pythonanywhere.com/api';
+  
+  // Debug logging
+  console.log('🔧 Environment URL:', envURL);
+  console.log('🔧 Default URL:', defaultURL);
+  console.log('🔧 Mode:', import.meta.env.MODE);
+  
+  return envURL || defaultURL;
+};
+
 // Create axios instance
 const api: AxiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://prowrite.pythonanywhere.com/api',
+  baseURL: getBackendURL(),
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
   },
+});
+
+// Debug logging for API configuration
+console.log('🔧 Final API Configuration:', {
+  baseURL: api.defaults.baseURL,
+  fullURL: `${api.defaults.baseURL}/payments/manual/initiate`
 });
 
 // Request interceptor
