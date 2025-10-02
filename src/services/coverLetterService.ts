@@ -110,7 +110,7 @@ class CoverLetterService {
     enhanced_description: string;
     message?: string;
   }> {
-    const response = await api.post('/ai/enhance-job-description', data);
+    const response = await api.post('/api/ai/enhance-job-description', data);
     return response.data;
   }
 

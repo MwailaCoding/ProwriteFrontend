@@ -40,6 +40,7 @@ import {
 import { coverLetterService } from '../../services/coverLetterService';
 import { resumeService, ParsedResume } from '../../services/resumeService';
 import { useApi, useApiMutation } from '../../hooks/useApi';
+import api from '../../config/api';
 import { CoverLetterTemplate, CoverLetterTemplateWithPlaceholders } from './CoverLetterTemplate';
 import { FileUpload } from '../common/FileUpload';
 import { ResumePreview } from './ResumePreview';
@@ -532,24 +533,17 @@ export const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({
     setEnhancingParagraph(paragraphType);
     
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://prowrite.pythonanywhere.com/api'}/francisca/ai/enhance-paragraph`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({
-          content: formData[paragraphType],
-          enhancement_type: enhancementType,
-          job_title: formData.jobTitle,
-          company_name: formData.companyName,
-          job_description: formData.jobDescription,
-          tone: formData.tone,
-          industry: formData.industry
-        })
+      const response = await api.post('/francisca/ai/enhance-paragraph', {
+        content: formData[paragraphType],
+        enhancement_type: enhancementType,
+        job_title: formData.jobTitle,
+        company_name: formData.companyName,
+        job_description: formData.jobDescription,
+        tone: formData.tone,
+        industry: formData.industry
       });
 
-      const data = await response.json();
+      const data = response.data;
       
       if (data.success) {
         updateFormData({
@@ -572,22 +566,15 @@ export const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({
 
   const generateSuggestions = async (paragraphType: 'introduction' | 'experience' | 'companyFit' | 'closing') => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://prowrite.pythonanywhere.com/api'}/francisca/ai/generate-suggestions`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({
-          paragraph_type: paragraphType,
-          current_content: formData[paragraphType],
-          job_title: formData.jobTitle,
-          company_name: formData.companyName,
-          job_description: formData.jobDescription
-        })
+      const response = await api.post('/francisca/ai/generate-suggestions', {
+        paragraph_type: paragraphType,
+        current_content: formData[paragraphType],
+        job_title: formData.jobTitle,
+        company_name: formData.companyName,
+        job_description: formData.jobDescription
       });
 
-      const data = await response.json();
+      const data = response.data;
       
       if (data.success) {
         updateFormData({

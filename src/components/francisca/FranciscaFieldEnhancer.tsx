@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Sparkles, Loader2, CheckCircle, X, Copy, RotateCcw } from 'lucide-react';
-import axios from 'axios';
+import api from '../../config/api';
 
 interface FranciscaFieldEnhancerProps {
   fieldType: string;
@@ -108,7 +108,7 @@ const FranciscaFieldEnhancer: React.FC<FranciscaFieldEnhancerProps> = ({
     setEnhancementResult(null);
 
     try {
-      const response = await axios.post('/api/francisca/ai/enhance-field', {
+      const response = await api.post('/francisca/ai/enhance-field', {
         content: currentValue,
         field_type: fieldType,
         profession: profession,

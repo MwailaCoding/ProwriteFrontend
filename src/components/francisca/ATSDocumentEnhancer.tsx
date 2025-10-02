@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Shield, Loader2, CheckCircle, X, Download, RotateCcw, Target, TrendingUp } from 'lucide-react';
-import axios from 'axios';
+import api from '../../config/api';
 
 interface ATSDocumentEnhancerProps {
   resumeData: any;
@@ -45,7 +45,7 @@ const ATSDocumentEnhancer: React.FC<ATSDocumentEnhancerProps> = ({
     setEnhancementResult(null);
 
     try {
-      const response = await axios.post('/api/francisca/ai/enhance-ats-compliance', {
+      const response = await api.post('/francisca/ai/enhance-ats-compliance', {
         resume_data: resumeData,
         profession: profession,
         job_title: jobTitle
