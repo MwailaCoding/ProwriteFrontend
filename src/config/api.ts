@@ -30,7 +30,8 @@ const api: AxiosInstance = axios.create({
 // Debug logging for API configuration
 console.log('🔧 Final API Configuration:', {
   baseURL: api.defaults.baseURL,
-  fullURL: `${api.defaults.baseURL}/payments/manual/initiate`
+  fullURL: `${api.defaults.baseURL}/payments/manual/initiate`,
+  timestamp: new Date().toISOString()
 });
 
 // Request interceptor

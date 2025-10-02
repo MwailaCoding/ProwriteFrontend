@@ -112,7 +112,11 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
     try {
       // Use absolute URL to ensure it goes to the backend
       const backendURL = 'https://prowrite.pythonanywhere.com/api';
-      const response = await fetch(`${backendURL}/payments/manual/validate`, {
+      const fullURL = `${backendURL}/payments/manual/validate`;
+      console.log('🔍 MPESA VALIDATE - Making API call to:', fullURL);
+      console.log('🔍 MPESA VALIDATE - Transaction code:', transactionCode.trim().toUpperCase());
+      console.log('🔍 MPESA VALIDATE - Reference:', submissionData.reference);
+      const response = await fetch(fullURL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
