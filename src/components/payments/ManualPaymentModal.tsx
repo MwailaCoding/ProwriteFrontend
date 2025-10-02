@@ -15,6 +15,7 @@ import {
 import { Button } from '../common/Button';
 import { LoadingSpinner } from '../common/LoadingSpinner';
 import { toast } from 'react-hot-toast';
+import api from '../../config/api';
 
 interface ManualPaymentModalProps {
   isOpen: boolean;
@@ -67,19 +68,13 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
     setError('');
     
     try {
-      const response = await fetch('/api/payments/manual/initiate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          form_data: formData,
-          document_type: documentType,
-          user_email: 'user@example.com' // Get from auth context
-        })
+      const response = await api.post('/payments/manual/initiate', {
+        form_data: formData,
+        document_type: documentType,
+        user_email: 'user@example.com' // Get from auth context
       });
 
-      const data = await response.json();
+      const data = response.data;
       
       if (data.success) {
         setSubmissionData(data);
@@ -91,9 +86,10 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
         toast.error(data.error || 'Failed to initiate payment');
       }
     } catch (error: any) {
-      setError('Failed to initiate payment');
+      const errorMessage = error.response?.data?.error || error.message || 'Failed to initiate payment';
+      setError(errorMessage);
       setCurrentStep('failed');
-      toast.error('Failed to initiate payment');
+      toast.error(errorMessage);
       console.error('Payment initiation error:', error);
     } finally {
       setIsLoading(false);
@@ -115,18 +111,12 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
     setError('');
     
     try {
-      const response = await fetch('/api/payments/manual/validate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          transaction_code: transactionCode.trim().toUpperCase(),
-          reference: submissionData.reference
-        })
+      const response = await api.post('/payments/manual/validate', {
+        transaction_code: transactionCode.trim().toUpperCase(),
+        reference: submissionData.reference
       });
 
-      const data: ValidationResult = await response.json();
+      const data: ValidationResult = response.data;
       
       if (data.success) {
         setCurrentStep('processing');
@@ -160,8 +150,8 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
 
     const poll = async () => {
       try {
-        const response = await fetch(`/api/payments/manual/status/${submissionData.reference}`);
-        const data = await response.json();
+        const response = await api.get(`/payments/manual/status/${submissionData.reference}`);
+        const data = response.data;
         
         if (data.success) {
           if (data.status === 'completed') {
