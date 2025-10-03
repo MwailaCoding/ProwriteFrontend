@@ -138,10 +138,17 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
     try {
       // Use absolute URL to ensure it goes to the backend
       const backendURL = 'https://prowrite.pythonanywhere.com/api';
+      console.log('🚀 ULTRA-FAST MANUAL VALIDATION - Making API call to:', `${backendURL}/payments/manual/validate`);
+      console.log('🚀 ULTRA-FAST MANUAL VALIDATION - Transaction code:', transactionCode.trim().toUpperCase());
+      console.log('🚀 ULTRA-FAST MANUAL VALIDATION - Reference:', submissionData.reference);
+      console.log('🚀 ULTRA-FAST MANUAL VALIDATION - Timestamp:', new Date().toISOString());
+      
       const response = await fetch(`${backendURL}/payments/manual/validate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
         },
         body: JSON.stringify({
           transaction_code: transactionCode.trim().toUpperCase(),
@@ -156,8 +163,9 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
       const data: ValidationResult = await response.json();
       
       if (data.success) {
+        console.log('🚀 ULTRA-FAST MANUAL VALIDATION - SUCCESS!', data);
         setCurrentStep('processing');
-        toast.success('Payment validated! Generating document...');
+        toast.success('🚀 Payment validated! PDF is being generated in background...');
         
         // Start polling for completion
         pollForCompletion();

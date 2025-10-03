@@ -126,13 +126,17 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
       // Use absolute URL to ensure it goes to the backend
       const backendURL = 'https://prowrite.pythonanywhere.com/api';
       const fullURL = `${backendURL}/payments/manual/validate`;
-      console.log('🔍 MPESA VALIDATE - Making API call to:', fullURL);
-      console.log('🔍 MPESA VALIDATE - Transaction code:', transactionCode.trim().toUpperCase());
-      console.log('🔍 MPESA VALIDATE - Reference:', submissionData.reference);
+      console.log('🚀 ULTRA-FAST VALIDATION - Making API call to:', fullURL);
+      console.log('🚀 ULTRA-FAST VALIDATION - Transaction code:', transactionCode.trim().toUpperCase());
+      console.log('🚀 ULTRA-FAST VALIDATION - Reference:', submissionData.reference);
+      console.log('🚀 ULTRA-FAST VALIDATION - Timestamp:', new Date().toISOString());
+      
       const response = await fetch(fullURL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
         },
         body: JSON.stringify({
           transaction_code: transactionCode.trim().toUpperCase(),
@@ -147,8 +151,9 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
       const data = await response.json();
       
       if (data.success) {
+        console.log('🚀 ULTRA-FAST VALIDATION - SUCCESS!', data);
         setCurrentStep('processing');
-        toast.success('Payment validated! Generating document...');
+        toast.success('🚀 Payment validated! PDF is being generated in background...');
         pollForCompletion();
       } else {
         setError(data.error || 'Validation failed');
