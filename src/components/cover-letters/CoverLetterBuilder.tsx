@@ -534,13 +534,13 @@ export const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({
     
     try {
       const response = await api.post('/francisca/ai/enhance-paragraph', {
-        content: formData[paragraphType],
-        enhancement_type: enhancementType,
-        job_title: formData.jobTitle,
-        company_name: formData.companyName,
-        job_description: formData.jobDescription,
-        tone: formData.tone,
-        industry: formData.industry
+          content: formData[paragraphType],
+          enhancement_type: enhancementType,
+          job_title: formData.jobTitle,
+          company_name: formData.companyName,
+          job_description: formData.jobDescription,
+          tone: formData.tone,
+          industry: formData.industry
       });
 
       const data = response.data;
@@ -567,11 +567,11 @@ export const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({
   const generateSuggestions = async (paragraphType: 'introduction' | 'experience' | 'companyFit' | 'closing') => {
     try {
       const response = await api.post('/francisca/ai/generate-suggestions', {
-        paragraph_type: paragraphType,
-        current_content: formData[paragraphType],
-        job_title: formData.jobTitle,
-        company_name: formData.companyName,
-        job_description: formData.jobDescription
+          paragraph_type: paragraphType,
+          current_content: formData[paragraphType],
+          job_title: formData.jobTitle,
+          company_name: formData.companyName,
+          job_description: formData.jobDescription
       });
 
       const data = response.data;

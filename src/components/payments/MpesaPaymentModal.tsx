@@ -191,14 +191,19 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
             if (onSuccess) {
               onSuccess(data.submission_id);
             }
-          } else if (data.status === 'paid' || data.status === 'processing') {
-            setTimeout(poll, 3000);
+          } else if (data.status === 'processing') {
+            // Ultra-fast polling for processing status
+            setTimeout(poll, 1000); // Poll every 1 second instead of 3
+          } else if (data.status === 'paid') {
+            setTimeout(poll, 2000); // Poll every 2 seconds for paid status
           } else if (data.status === 'pending_admin_confirmation') {
-            setTimeout(poll, 5000);
+            setTimeout(poll, 3000); // Reduced from 5 to 3 seconds
           }
         }
       } catch (error) {
         console.error('Polling error:', error);
+        // Retry faster on error
+        setTimeout(poll, 2000);
       }
     };
     

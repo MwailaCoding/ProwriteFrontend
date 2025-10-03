@@ -204,17 +204,21 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
             if (onSuccess) {
               onSuccess(data.submission_id);
             }
-          } else if (data.status === 'paid' || data.status === 'processing') {
-            // Still processing
-            setTimeout(poll, 3000);
+          } else if (data.status === 'processing') {
+            // Ultra-fast polling for processing status
+            setTimeout(poll, 1000); // Poll every 1 second instead of 3
+          } else if (data.status === 'paid') {
+            setTimeout(poll, 2000); // Poll every 2 seconds for paid status
           } else if (data.status === 'pending_admin_confirmation') {
-            // Admin confirmation pending
-            setTimeout(poll, 5000);
+            // Admin confirmation pending - reduced from 5 to 3 seconds
+            setTimeout(poll, 3000);
           }
         }
       } catch (error) {
         console.error('Polling error:', error);
         setRetryCount(prev => prev + 1);
+        // Retry faster on error
+        setTimeout(poll, 2000);
         
         if (retryCount >= maxRetries) {
           toast.error('Unable to verify payment status. Please check your email or contact support.');
