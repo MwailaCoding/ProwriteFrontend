@@ -255,6 +255,9 @@ class AuthService {
       this.isRefreshing = false;
       this.refreshPromise = null;
       this.lastRefreshAttempt = 0;
+      
+      // Force redirect to login page
+      window.location.href = '/login';
     }
   }
 

@@ -372,27 +372,42 @@ export const DashboardPage: React.FC = () => {
   useEffect(() => {
     const loadDashboardData = async () => {
       try {
-        const [resumesData, marketDataResult, aiInsightsResult, careerPathResult] = await Promise.all([
+        setLoading(true);
+        
+        // Load data with individual error handling
+        const results = await Promise.allSettled([
           fetchResumes(),
           fetchMarketData(),
           fetchAIInsights(),
           fetchCareerPath()
         ]);
 
-        if (resumesData.success) {
-          setResumes(resumesData.data || []);
+        // Handle resumes data
+        if (results[0].status === 'fulfilled' && results[0].value.success) {
+          setResumes(results[0].value.data || []);
+        } else if (results[0].status === 'rejected') {
+          console.error('Error loading resumes:', results[0].reason);
         }
 
-        if (marketDataResult.success) {
-          setMarketData(marketDataResult.data);
+        // Handle market data
+        if (results[1].status === 'fulfilled' && results[1].value.success) {
+          setMarketData(results[1].value.data);
+        } else if (results[1].status === 'rejected') {
+          console.error('Error loading market data:', results[1].reason);
         }
 
-        if (aiInsightsResult.success) {
-          setAiInsights(aiInsightsResult.data);
+        // Handle AI insights
+        if (results[2].status === 'fulfilled' && results[2].value.success) {
+          setAiInsights(results[2].value.data);
+        } else if (results[2].status === 'rejected') {
+          console.error('Error loading AI insights:', results[2].reason);
         }
 
-        if (careerPathResult.success) {
-          setCareerPath(careerPathResult.data);
+        // Handle career path
+        if (results[3].status === 'fulfilled' && results[3].value.success) {
+          setCareerPath(results[3].value.data);
+        } else if (results[3].status === 'rejected') {
+          console.error('Error loading career path:', results[3].reason);
         }
       } catch (error) {
         console.error('Error loading dashboard data:', error);
