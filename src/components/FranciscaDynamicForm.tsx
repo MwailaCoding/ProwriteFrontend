@@ -1253,7 +1253,7 @@ const FranciscaDynamicForm: React.FC = () => {
             </div>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-6 bg-gray-50 rounded-lg">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 p-4 sm:p-6 bg-gray-50 rounded-lg">
             {Object.entries(fields).map(([fieldName, fieldConfig]: [string, any]) => {
               const fieldValue = value?.[fieldName] || '';
               return (
@@ -1271,7 +1271,7 @@ const FranciscaDynamicForm: React.FC = () => {
                       setFormData(newFormData);
                     }}
                     placeholder={fieldConfig.placeholder || ''}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 sm:py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
                     required={fieldConfig.required}
                   />
                 </div>
@@ -1378,7 +1378,7 @@ const FranciscaDynamicForm: React.FC = () => {
                   </div>
                 </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 {itemSchema && Object.entries(itemSchema).map(([itemName, itemConfig]: [string, any]) => (
                   <div key={itemName}>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1391,7 +1391,7 @@ const FranciscaDynamicForm: React.FC = () => {
                           value={item?.[itemName] || ''}
                           onChange={(e) => handleArrayItemChange(name, index, { [itemName]: e.target.value })}
                           placeholder={itemConfig.placeholder || `Enter ${itemName}`}
-                          className="w-full px-3 py-2 pr-12 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          className="w-full px-3 py-2 sm:py-3 pr-12 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
                           rows={itemConfig.rows || 3}
                           style={{
                             fontFamily: itemConfig.styling?.font?.includes('Arial') ? 'Arial, sans-serif' : 'inherit',
@@ -1414,7 +1414,7 @@ const FranciscaDynamicForm: React.FC = () => {
                         <select
                           value={item?.[itemName] || ''}
                           onChange={(e) => handleArrayItemChange(name, index, { [itemName]: e.target.value })}
-                          className="w-full px-3 py-2 pr-12 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          className="w-full px-3 py-2 sm:py-3 pr-12 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
                           style={{
                             fontFamily: itemConfig.styling?.font?.includes('Arial') ? 'Arial, sans-serif' : 'inherit',
                             fontSize: itemConfig.styling?.size ? `${itemConfig.styling.size}px` : 'inherit',
@@ -1448,7 +1448,7 @@ const FranciscaDynamicForm: React.FC = () => {
                           value={item?.[itemName] || ''}
                           onChange={(e) => handleArrayItemChange(name, index, { [itemName]: e.target.value })}
                           placeholder={itemConfig.placeholder || `Enter ${itemName}`}
-                          className="w-full px-3 py-2 pr-12 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          className="w-full px-3 py-2 sm:py-3 pr-12 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
                           style={{
                             fontFamily: itemConfig.styling?.font?.includes('Arial') ? 'Arial, sans-serif' : 'inherit',
                             fontSize: itemConfig.styling?.size ? `${itemConfig.styling.size}px` : 'inherit',
@@ -1475,7 +1475,7 @@ const FranciscaDynamicForm: React.FC = () => {
             <button
               type="button"
               onClick={() => addArrayItem(name)}
-                className="w-full px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-200 flex items-center justify-center space-x-2 shadow-md hover:shadow-lg"
+                className="w-full px-4 sm:px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-200 flex items-center justify-center space-x-2 shadow-md hover:shadow-lg text-sm sm:text-base"
             >
                 <Plus className="w-5 h-5" />
               <span className="font-medium">Add Another {label}</span>
@@ -1916,8 +1916,8 @@ const FranciscaDynamicForm: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-4 sm:py-8">
+      <div className="max-w-5xl mx-auto px-3 sm:px-4 lg:px-8">
         {/* Welcome Modal */}
         {showWelcome && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -2313,12 +2313,12 @@ const FranciscaDynamicForm: React.FC = () => {
 
 
         {/* Header */}
-        <div className="bg-white rounded-xl shadow-xl p-8 mb-8 border border-gray-100">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+        <div className="bg-white rounded-xl shadow-xl p-4 sm:p-6 lg:p-8 mb-6 sm:mb-8 border border-gray-100">
+          <div className="text-center mb-6 sm:mb-8">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
               {schema?.template_name || 'Loading...'}
             </h1>
-            <p className="text-gray-600 mb-4">
+            <p className="text-sm sm:text-base text-gray-600 mb-4 px-2">
               {isGuidedMode 
                 ? "Follow the guided steps below to create your professional resume"
                 : "Fill out the form below to generate your professional resume with preserved styling"
@@ -2369,14 +2369,15 @@ const FranciscaDynamicForm: React.FC = () => {
               </div>
               
               {/* AI Buttons */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-4 mb-4">
                 <button
                   type="button"
                   onClick={() => setShowChatbot(true)}
-                className="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-lg hover:from-purple-600 hover:to-blue-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+                className="inline-flex items-center justify-center px-4 sm:px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-lg hover:from-purple-600 hover:to-blue-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 text-sm sm:text-base"
                 >
-                  <MessageCircle className="h-5 w-5 mr-2" />
-                  Let AI Build Your Resume
+                  <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                  <span className="hidden sm:inline">Let AI Build Your Resume</span>
+                  <span className="sm:hidden">AI Build Resume</span>
                 </button>
                 
                 <button
@@ -2385,19 +2386,21 @@ const FranciscaDynamicForm: React.FC = () => {
                     console.log('Start Resume Workflow button clicked');
                     setShowWorkflow(true);
                   }}
-                className="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg hover:from-green-600 hover:to-emerald-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 border-2 border-green-300"
+                className="inline-flex items-center justify-center px-4 sm:px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg hover:from-green-600 hover:to-emerald-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 border-2 border-green-300 text-sm sm:text-base"
                 >
-                  <Plus className="h-5 w-5 mr-2" />
-                  Start Resume Workflow
+                  <Plus className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                  <span className="hidden sm:inline">Start Resume Workflow</span>
+                  <span className="sm:hidden">Start Workflow</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setShowResumeImport(true)}
-                className="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-lg hover:from-indigo-600 hover:to-purple-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 border-2 border-indigo-300"
+                className="inline-flex items-center justify-center px-4 sm:px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-lg hover:from-indigo-600 hover:to-purple-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 border-2 border-indigo-300 text-sm sm:text-base"
                 >
-                  <Upload className="h-5 w-5 mr-2" />
-                  Import Existing Resume
+                  <Upload className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                  <span className="hidden sm:inline">Import Existing Resume</span>
+                  <span className="sm:hidden">Import Resume</span>
                 </button>
                 
                 <button
@@ -2406,41 +2409,45 @@ const FranciscaDynamicForm: React.FC = () => {
                     setCurrentFieldForGeneration('activities');
                     setShowPromptGenerator(true);
                   }}
-                className="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-green-500 to-teal-500 text-white rounded-lg hover:from-green-600 hover:to-teal-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+                className="inline-flex items-center justify-center px-4 sm:px-6 py-3 bg-gradient-to-r from-green-500 to-teal-500 text-white rounded-lg hover:from-green-600 hover:to-teal-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 text-sm sm:text-base"
                 >
-                  <Wand2 className="h-5 w-5 mr-2" />
-                  Generate Content with AI
+                  <Wand2 className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                  <span className="hidden sm:inline">Generate Content with AI</span>
+                  <span className="sm:hidden">AI Generate</span>
                 </button>
                 
                 <button
                   type="button"
                   onClick={() => setShowJobDescriptionAnalyzer(true)}
-                className="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg hover:from-orange-600 hover:to-red-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+                className="inline-flex items-center justify-center px-4 sm:px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg hover:from-orange-600 hover:to-red-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 text-sm sm:text-base"
                 >
-                  <Briefcase className="h-5 w-5 mr-2" />
-                  Analyze Job Description
+                  <Briefcase className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                  <span className="hidden sm:inline">Analyze Job Description</span>
+                  <span className="sm:hidden">Analyze Job</span>
                 </button>
               </div>
 
 
               {/* Phase 8: Collaboration & Export Buttons */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
                 <button
                   type="button"
                   onClick={() => setShowCollaborationPanel(true)}
-                className="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-lg hover:from-indigo-600 hover:to-purple-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+                className="inline-flex items-center justify-center px-4 sm:px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-lg hover:from-indigo-600 hover:to-purple-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 text-sm sm:text-base"
                 >
-                  <Share2 className="h-5 w-5 mr-2" />
-                  Collaboration & Sharing
+                  <Share2 className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                  <span className="hidden sm:inline">Collaboration & Sharing</span>
+                  <span className="sm:hidden">Collaboration</span>
                 </button>
                 
                 <button
                   type="button"
                   onClick={() => setShowExportIntegrationPanel(true)}
-                className="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-emerald-500 to-cyan-500 text-white rounded-lg hover:from-emerald-600 hover:to-cyan-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+                className="inline-flex items-center justify-center px-4 sm:px-6 py-3 bg-gradient-to-r from-emerald-500 to-cyan-500 text-white rounded-lg hover:from-emerald-600 hover:to-cyan-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 text-sm sm:text-base"
                 >
-                  <Download className="h-5 w-5 mr-2" />
-                  Export & Integration
+                  <Download className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                  <span className="hidden sm:inline">Export & Integration</span>
+                  <span className="sm:hidden">Export</span>
                 </button>
               </div>
               
@@ -2453,7 +2460,7 @@ const FranciscaDynamicForm: React.FC = () => {
           </div>
 
         {/* Form Content */}
-        <div className="bg-white rounded-xl shadow-xl p-8 border border-gray-100">
+        <div className="bg-white rounded-xl shadow-xl p-4 sm:p-6 lg:p-8 border border-gray-100">
           {/* Saved Drafts Section */}
           {savedDrafts.length > 0 && (
             <div className="mb-8 p-6 bg-blue-50 rounded-lg border border-blue-200">
@@ -2606,13 +2613,13 @@ const FranciscaDynamicForm: React.FC = () => {
                </button>
               </div>
               
-              <div className="flex flex-wrap gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 {/* Pre-Download ATS Analysis */}
                 <button
                   type="button"
                   onClick={handlePreDownloadAnalysis}
                   disabled={isLoading}
-                  className={`px-4 py-2 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 flex items-center space-x-2 transition-colors duration-200 ${
+                  className={`px-3 sm:px-4 py-2 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 flex items-center justify-center space-x-2 transition-colors duration-200 text-sm sm:text-base ${
                     isLoading 
                       ? 'bg-gray-400 cursor-not-allowed' 
                       : 'bg-purple-600 hover:bg-purple-700'
@@ -2620,7 +2627,8 @@ const FranciscaDynamicForm: React.FC = () => {
                   title="See ATS analysis before downloading"
                 >
                   <Eye className="h-4 w-4" />
-                  <span>Preview ATS Score</span>
+                  <span className="hidden sm:inline">Preview ATS Score</span>
+                  <span className="sm:hidden">Preview</span>
                 </button>
 
                 {/* Download & Analyze */}
@@ -2628,7 +2636,7 @@ const FranciscaDynamicForm: React.FC = () => {
                   type="button"
                   onClick={handleDownloadAndAnalyze}
                   disabled={isLoading}
-                  className={`px-6 py-2 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 flex items-center space-x-2 transition-colors duration-200 ${
+                  className={`px-3 sm:px-6 py-2 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 flex items-center justify-center space-x-2 transition-colors duration-200 text-sm sm:text-base ${
                     isLoading 
                       ? 'bg-gray-400 cursor-not-allowed' 
                       : 'bg-green-600 hover:bg-green-700'
@@ -2636,14 +2644,15 @@ const FranciscaDynamicForm: React.FC = () => {
                   title="Download resume and see detailed ATS analysis"
                 >
                   <BarChart3 className="h-4 w-4" />
-                  <span>Download & Analyze</span>
+                  <span className="hidden sm:inline">Download & Analyze</span>
+                  <span className="sm:hidden">Download</span>
                 </button>
 
                 {/* Regular Download */}
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className={`px-8 py-2 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200 flex items-center space-x-2 ${
+                  className={`px-3 sm:px-8 py-2 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200 flex items-center justify-center space-x-2 text-sm sm:text-base ${
                     isLoading 
                       ? 'bg-gray-400 cursor-not-allowed' 
                       : 'bg-blue-600 hover:bg-blue-700'
@@ -2653,12 +2662,14 @@ const FranciscaDynamicForm: React.FC = () => {
                   {isLoading ? (
                      <>
                        <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
-                      <span>Generating...</span>
+                      <span className="hidden sm:inline">Generating...</span>
+                      <span className="sm:hidden">Loading...</span>
                      </>
                   ) : (
                      <>
                        <Save className="h-4 w-4" />
-                       <span>Pay & Generate Resume (KES 500)</span>
+                       <span className="hidden sm:inline">Pay & Generate Resume (KES 500)</span>
+                       <span className="sm:hidden">Generate (KES 500)</span>
                      </>
                   )}
                 </button>
@@ -2668,7 +2679,7 @@ const FranciscaDynamicForm: React.FC = () => {
                   type="button"
                   onClick={handlePostDownloadAnalysis}
                   disabled={isLoading}
-                  className={`px-4 py-2 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 flex items-center space-x-2 transition-colors duration-200 ${
+                  className={`px-3 sm:px-4 py-2 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 flex items-center justify-center space-x-2 transition-colors duration-200 text-sm sm:text-base ${
                     isLoading 
                       ? 'bg-gray-400 cursor-not-allowed' 
                       : 'bg-orange-600 hover:bg-orange-700'
@@ -2676,7 +2687,8 @@ const FranciscaDynamicForm: React.FC = () => {
                   title="Analyze your resume after downloading"
                 >
                   <Target className="h-4 w-4" />
-                  <span>Analyze Resume</span>
+                  <span className="hidden sm:inline">Analyze Resume</span>
+                  <span className="sm:hidden">Analyze</span>
                 </button>
               </div>
             </div>
