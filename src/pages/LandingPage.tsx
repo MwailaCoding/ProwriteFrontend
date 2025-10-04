@@ -70,7 +70,7 @@ export const LandingPage: React.FC = () => {
       company: 'Safaricom PLC',
       content: 'ProWriteSolutions helped me land my dream job! The AI suggestions were spot-on and the ATS analyzer gave me the confidence I needed.',
       rating: 5,
-      avatar: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop'
+      initials: 'GW'
     },
     {
       name: 'James Mwangi',
@@ -78,7 +78,7 @@ export const LandingPage: React.FC = () => {
       company: 'Equity Bank',
       content: 'The market insights feature is incredible. I was able to tailor my resume to match exactly what employers were looking for.',
       rating: 5,
-      avatar: 'https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop'
+      initials: 'JM'
     },
     {
       name: 'Mary Akinyi',
@@ -86,7 +86,7 @@ export const LandingPage: React.FC = () => {
       company: 'KCB Bank',
       content: 'Professional templates and AI enhancement made my resume stand out. Got 3 interview calls in the first week!',
       rating: 5,
-      avatar: 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop'
+      initials: 'MA'
     }
   ];
 
@@ -281,11 +281,9 @@ export const LandingPage: React.FC = () => {
                   </div>
                   <p className="text-sm sm:text-base text-gray-600 mb-6">{testimonial.content}</p>
                   <div className="flex items-center space-x-3">
-                    <img
-                      src={testimonial.avatar}
-                      alt={testimonial.name}
-                      className="w-10 h-10 rounded-full"
-                    />
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold text-sm">
+                      {testimonial.initials}
+                    </div>
                     <div>
                       <div className="font-semibold text-gray-900">{testimonial.name}</div>
                       <div className="text-sm text-gray-600">{testimonial.role} at {testimonial.company}</div>
