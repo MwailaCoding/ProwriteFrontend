@@ -65,25 +65,25 @@ export const LandingPage: React.FC = () => {
 
   const testimonials = [
     {
-      name: 'Sarah Johnson',
+      name: 'Grace Wanjiku',
       role: 'Software Engineer',
-      company: 'Tech Corp',
-      content: 'ProWrite helped me land my dream job! The AI suggestions were spot-on and the ATS analyzer gave me the confidence I needed.',
+      company: 'Safaricom PLC',
+      content: 'ProWriteSolutions helped me land my dream job! The AI suggestions were spot-on and the ATS analyzer gave me the confidence I needed.',
       rating: 5,
       avatar: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop'
     },
     {
-      name: 'Michael Chen',
+      name: 'James Mwangi',
       role: 'Marketing Manager',
-      company: 'Growth Inc',
+      company: 'Equity Bank',
       content: 'The market insights feature is incredible. I was able to tailor my resume to match exactly what employers were looking for.',
       rating: 5,
       avatar: 'https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop'
     },
     {
-      name: 'Emily Rodriguez',
+      name: 'Mary Akinyi',
       role: 'Data Analyst',
-      company: 'Analytics Pro',
+      company: 'KCB Bank',
       content: 'Professional templates and AI enhancement made my resume stand out. Got 3 interview calls in the first week!',
       rating: 5,
       avatar: 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop'
@@ -97,51 +97,6 @@ export const LandingPage: React.FC = () => {
     { number: '100+', label: 'Templates' }
   ];
 
-  const pricingPlans = [
-    {
-      name: 'Free',
-      price: '$0',
-      period: 'forever',
-      features: [
-        '3 resume templates',
-        'Basic ATS analysis',
-        'Standard export formats',
-        'Community support'
-      ],
-      popular: false,
-      cta: 'Get Started Free'
-    },
-    {
-      name: 'Pro',
-      price: '$9.99',
-      period: 'per month',
-      features: [
-        'Unlimited templates',
-        'Advanced AI enhancement',
-        'Detailed ATS scoring',
-        'Market insights',
-        'Priority support',
-        'Custom branding'
-      ],
-      popular: true,
-      cta: 'Start Free Trial'
-    },
-    {
-      name: 'Enterprise',
-      price: '$29.99',
-      period: 'per month',
-      features: [
-        'Everything in Pro',
-        'Team collaboration',
-        'Advanced analytics',
-        'API access',
-        'Dedicated support',
-        'Custom integrations'
-      ],
-      popular: false,
-      cta: 'Contact Sales'
-    }
-  ];
 
   return (
     <div className="min-h-screen bg-white">
@@ -174,7 +129,7 @@ export const LandingPage: React.FC = () => {
                 </h1>
                 
                 <p className="text-lg sm:text-xl text-gray-600 leading-relaxed">
-                  Create professional resumes that get noticed. Our AI-powered platform helps you craft compelling resumes, 
+                  Create professional resumes that get noticed. ProWriteSolutions AI-powered platform helps you craft compelling resumes, 
                   analyze ATS compatibility, and stay ahead of market trends.
                 </p>
               </div>
@@ -211,7 +166,7 @@ export const LandingPage: React.FC = () => {
                   <div className="flex items-center space-x-3">
                     <PenTool className="h-8 w-8 text-blue-600" />
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900">John Doe</h3>
+                      <h3 className="text-lg font-semibold text-gray-900">Peter Kamau</h3>
                       <p className="text-sm text-gray-600">Software Engineer</p>
                     </div>
                   </div>
@@ -265,7 +220,7 @@ export const LandingPage: React.FC = () => {
               Everything You Need to Succeed
             </motion.h2>
             <motion.p variants={itemVariants} className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto">
-              Our comprehensive platform provides all the tools you need to create a standout resume and advance your career.
+              ProWriteSolutions comprehensive platform provides all the tools you need to create a standout resume and advance your career.
             </motion.p>
           </motion.div>
 
@@ -302,10 +257,10 @@ export const LandingPage: React.FC = () => {
             className="text-center mb-12 sm:mb-16"
           >
             <motion.h2 variants={itemVariants} className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-              Loved by Job Seekers Worldwide
+              Loved by Kenyan Professionals
             </motion.h2>
             <motion.p variants={itemVariants} className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto">
-              Join thousands of professionals who have transformed their careers with ProWrite.
+              Join thousands of Kenyan professionals who have transformed their careers with ProWriteSolutions.
             </motion.p>
           </motion.div>
 
@@ -343,69 +298,6 @@ export const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Pricing Section */}
-      <section className="py-12 sm:py-16 lg:py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            className="text-center mb-12 sm:mb-16"
-          >
-            <motion.h2 variants={itemVariants} className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-              Choose Your Plan
-            </motion.h2>
-            <motion.p variants={itemVariants} className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto">
-              Start free and upgrade as you grow. No hidden fees, cancel anytime.
-            </motion.p>
-          </motion.div>
-
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 max-w-5xl mx-auto"
-          >
-            {pricingPlans.map((plan, index) => (
-              <motion.div key={plan.name} variants={itemVariants}>
-                <Card className={`h-full p-6 sm:p-8 relative ${plan.popular ? 'ring-2 ring-sunset-500' : ''}`}>
-                  {plan.popular && (
-                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                      <span className="bg-sunset-500 text-white px-4 py-1 rounded-full text-sm font-medium">
-                        Most Popular
-                      </span>
-                    </div>
-                  )}
-                  <div className="text-center mb-6">
-                    <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">{plan.name}</h3>
-                    <div className="mb-2">
-                      <span className="text-3xl sm:text-4xl font-bold text-gray-900">{plan.price}</span>
-                      <span className="text-gray-600">/{plan.period}</span>
-                    </div>
-                  </div>
-                  <ul className="space-y-3 mb-8">
-                    {plan.features.map((feature, featureIndex) => (
-                      <li key={featureIndex} className="flex items-center space-x-3">
-                        <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
-                        <span className="text-sm sm:text-base text-gray-600">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <Button
-                    variant={plan.popular ? 'primary' : 'outline'}
-                    size="lg"
-                    className="w-full"
-                  >
-                    {plan.cta}
-                  </Button>
-                </Card>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
 
       {/* CTA Section */}
       <section className="py-12 sm:py-16 lg:py-20 bg-sunset-gradient">
@@ -420,7 +312,7 @@ export const LandingPage: React.FC = () => {
               Ready to Transform Your Career?
             </motion.h2>
             <motion.p variants={itemVariants} className="text-lg sm:text-xl text-white/90 mb-8">
-              Join thousands of professionals who have already taken their careers to the next level with ProWrite.
+              Join thousands of Kenyan professionals who have already taken their careers to the next level with ProWriteSolutions.
             </motion.p>
             <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link to="/register">
@@ -446,10 +338,10 @@ export const LandingPage: React.FC = () => {
             <div className="col-span-1 md:col-span-2">
               <div className="flex items-center space-x-2 mb-4">
                 <PenTool className="h-8 w-8 text-blue-400" />
-                <span className="text-xl font-bold">ProWrite</span>
+                <span className="text-xl font-bold">ProWriteSolutions</span>
               </div>
               <p className="text-gray-400 mb-4 max-w-md">
-                The AI-powered resume builder that helps you create professional resumes, 
+                The AI-powered resume builder that helps Kenyan professionals create professional resumes, 
                 analyze ATS compatibility, and stay ahead of market trends.
               </p>
             </div>
@@ -473,7 +365,7 @@ export const LandingPage: React.FC = () => {
             </div>
           </div>
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 ProWrite. All rights reserved.</p>
+            <p>&copy; 2024 ProWriteSolutions. All rights reserved.</p>
           </div>
         </div>
       </footer>
