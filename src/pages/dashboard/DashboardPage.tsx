@@ -358,56 +358,19 @@ const QuickActionButton = ({
 export const DashboardPage: React.FC = () => {
   const { user } = useSelector((state: RootState) => state.auth);
   const [resumes, setResumes] = useState<Resume[]>([]);
-  const [marketData, setMarketData] = useState<MarketData | null>(null);
-  const [aiInsights, setAiInsights] = useState<any>(null);
-  const [careerPath, setCareerPath] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('overview');
 
   const { callApi: fetchResumes } = useApi(resumeService.getResumes);
-  const { callApi: fetchMarketData } = useApi(marketService.getMarketData);
-  const { callApi: fetchAIInsights } = useApi(aiService.getInsights);
-  const { callApi: fetchCareerPath } = useApi(advancedAIMarketService.getCareerPath);
 
   useEffect(() => {
     const loadDashboardData = async () => {
       try {
         setLoading(true);
         
-        // Load data with individual error handling
-        const results = await Promise.allSettled([
-          fetchResumes(),
-          fetchMarketData(),
-          fetchAIInsights(),
-          fetchCareerPath()
-        ]);
-
-        // Handle resumes data
-        if (results[0].status === 'fulfilled' && results[0].value.success) {
-          setResumes(results[0].value.data || []);
-        } else if (results[0].status === 'rejected') {
-          console.error('Error loading resumes:', results[0].reason);
-        }
-
-        // Handle market data
-        if (results[1].status === 'fulfilled' && results[1].value.success) {
-          setMarketData(results[1].value.data);
-        } else if (results[1].status === 'rejected') {
-          console.error('Error loading market data:', results[1].reason);
-        }
-
-        // Handle AI insights
-        if (results[2].status === 'fulfilled' && results[2].value.success) {
-          setAiInsights(results[2].value.data);
-        } else if (results[2].status === 'rejected') {
-          console.error('Error loading AI insights:', results[2].reason);
-        }
-
-        // Handle career path
-        if (results[3].status === 'fulfilled' && results[3].value.success) {
-          setCareerPath(results[3].value.data);
-        } else if (results[3].status === 'rejected') {
-          console.error('Error loading career path:', results[3].reason);
+        // Only load resumes data
+        const resumesResult = await fetchResumes();
+        if (resumesResult.success) {
+          setResumes(resumesResult.data || []);
         }
       } catch (error) {
         console.error('Error loading dashboard data:', error);
@@ -417,7 +380,7 @@ export const DashboardPage: React.FC = () => {
     };
 
     loadDashboardData();
-  }, [fetchResumes, fetchMarketData, fetchAIInsights, fetchCareerPath]);
+  }, [fetchResumes]);
 
   if (loading) {
     return (
@@ -435,7 +398,7 @@ export const DashboardPage: React.FC = () => {
             transition={{ delay: 0.5 }}
             className="mt-4 text-gray-600"
           >
-            Loading your personalized dashboard...
+            Loading your workspace...
           </motion.p>
         </motion.div>
       </div>
@@ -465,7 +428,7 @@ export const DashboardPage: React.FC = () => {
                 animate={pulseVariants.pulse}
                 className="w-2 h-2 bg-green-500 rounded-full"
               />
-              <span className="text-sm font-medium text-gray-700">AI-Powered Career Platform</span>
+              <span className="text-sm font-medium text-gray-700">ProWriteSolutions Workspace</span>
             </motion.div>
             
             <motion.h1
@@ -483,338 +446,287 @@ export const DashboardPage: React.FC = () => {
               transition={{ duration: 0.8, delay: 0.4 }}
               className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto px-4"
             >
-              Your AI-powered career journey starts here. Let's build something amazing together.
+              Create professional documents with our Francisca templates and cover letter builder.
             </motion.p>
           </div>
         </motion.div>
 
-        {/* Stats Overview */}
-        <motion.div variants={itemVariants} className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-          <StatsCard
-            title="Resumes Created"
-            value={resumes.length}
-            change="+2 this week"
-            icon={FileText}
-            color="blue"
-            delay={0.1}
-          />
-          <StatsCard
-            title="AI Optimizations"
-            value={resumes.length * 3}
-            change="+12 this month"
-            icon={Brain}
-            color="purple"
-            delay={0.2}
-          />
-          <StatsCard
-            title="Job Matches"
-            value={24}
-            change="+5 today"
-            icon={Target}
-            color="green"
-            delay={0.3}
-          />
-          <StatsCard
-            title="Success Rate"
-            value="94%"
-            change="+3% this week"
-            icon={TrendingUp}
-            color="orange"
-            delay={0.4}
-          />
+        {/* Quick Stats */}
+        <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-200">
+            <div className="flex items-center space-x-4">
+              <div className="p-3 bg-blue-100 rounded-xl">
+                <FileText className="h-6 w-6 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-gray-900">{resumes.length}</p>
+                <p className="text-sm text-gray-600">Resumes Created</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-200">
+            <div className="flex items-center space-x-4">
+              <div className="p-3 bg-green-100 rounded-xl">
+                <Edit3 className="h-6 w-6 text-green-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-gray-900">0</p>
+                <p className="text-sm text-gray-600">Cover Letters</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-200">
+            <div className="flex items-center space-x-4">
+              <div className="p-3 bg-purple-100 rounded-xl">
+                <Download className="h-6 w-6 text-purple-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-gray-900">0</p>
+                <p className="text-sm text-gray-600">Downloads</p>
+              </div>
+            </div>
+          </div>
         </motion.div>
 
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
-          {/* Left Column - AI Insights */}
-          <motion.div variants={itemVariants} className="lg:col-span-2 space-y-6 sm:space-y-8">
-            {/* AI Career Intelligence */}
+        {/* Main Navigation Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+          {/* Francisca Templates Section */}
+          <motion.div variants={itemVariants} className="space-y-6">
             <Card className="relative overflow-hidden border-0 shadow-xl">
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5" />
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-indigo-500/5" />
               <CardHeader className="relative">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="p-3 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl text-white shadow-lg">
-                      <Brain className="h-6 w-6" />
+                <CardTitle className="text-2xl font-bold text-gray-900 flex items-center space-x-3">
+                  <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl text-white shadow-lg">
+                    <FileText className="h-8 w-8" />
+                  </div>
+                  <span>Francisca Resume Templates</span>
+                </CardTitle>
+                <p className="text-gray-600 mt-2">Professional ATS-friendly resume templates</p>
+              </CardHeader>
+              <CardContent className="relative space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Link to="/francisca">
+                    <div className="p-6 bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-lg transition-all duration-300 cursor-pointer group">
+                      <div className="flex items-center space-x-4">
+                        <div className="p-3 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
+                          <FileText className="h-6 w-6 text-blue-600" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">Create New Resume</h3>
+                          <p className="text-sm text-gray-600">Start with Francisca template</p>
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                  <Link to="/resumes">
+                    <div className="p-6 bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200 hover:border-green-300 hover:shadow-lg transition-all duration-300 cursor-pointer group">
+                      <div className="flex items-center space-x-4">
+                        <div className="p-3 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors">
+                          <Eye className="h-6 w-6 text-green-600" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-gray-900 group-hover:text-green-600 transition-colors">View Resumes</h3>
+                          <p className="text-sm text-gray-600">Manage existing resumes</p>
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                </div>
+                
+                <div className="mt-6 p-4 bg-blue-50 rounded-xl border border-blue-200">
+                  <div className="flex items-start space-x-3">
+                    <div className="p-2 bg-blue-100 rounded-lg">
+                      <Sparkles className="h-5 w-5 text-blue-600" />
                     </div>
                     <div>
-                      <CardTitle className="text-xl font-bold text-gray-900">AI Career Intelligence</CardTitle>
-                      <p className="text-sm text-gray-600">Personalized insights powered by AI</p>
+                      <h4 className="font-semibold text-blue-900">Francisca Features</h4>
+                      <ul className="text-sm text-blue-700 mt-2 space-y-1">
+                        <li>• ATS-optimized formatting</li>
+                        <li>• Professional design templates</li>
+                        <li>• AI-powered content suggestions</li>
+                        <li>• Industry-specific customization</li>
+                      </ul>
                     </div>
                   </div>
-                  <motion.div
-                    animate={pulseVariants.pulse}
-                    className="px-3 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full"
-                  >
-                    Live
-                  </motion.div>
-                </div>
-              </CardHeader>
-              <CardContent className="relative space-y-6">
-                {/* Career Progress */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                  <div className="space-y-4">
-                    <h4 className="font-semibold text-gray-900 flex items-center space-x-2">
-                      <Rocket className="h-5 w-5 text-blue-600" />
-                      <span>Career Trajectory</span>
-                    </h4>
-                    <div className="space-y-3">
-                      <div className="p-4 bg-white/80 backdrop-blur-sm rounded-xl border border-blue-200">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-medium text-gray-700">Current Level</span>
-                          <span className="text-sm font-bold text-blue-600">Mid-Level</span>
-                        </div>
-                        <ProgressBar value={65} color="blue" />
-                      </div>
-                      <div className="p-4 bg-white/80 backdrop-blur-sm rounded-xl border border-green-200">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-medium text-gray-700">Next Milestone</span>
-                          <span className="text-sm font-bold text-green-600">Senior Role</span>
-                        </div>
-                        <ProgressBar value={35} color="green" />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <h4 className="font-semibold text-gray-900 flex items-center space-x-2">
-                      <Target className="h-5 w-5 text-green-600" />
-                      <span>Skill Development</span>
-                    </h4>
-                    <div className="space-y-3">
-                      <div className="p-4 bg-white/80 backdrop-blur-sm rounded-xl border border-green-200">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-medium text-gray-700">Leadership</span>
-                          <span className="text-sm font-bold text-green-600">70%</span>
-                        </div>
-                        <ProgressBar value={70} color="green" />
-                      </div>
-                      <div className="p-4 bg-white/80 backdrop-blur-sm rounded-xl border border-purple-200">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-medium text-gray-700">Data Analytics</span>
-                          <span className="text-sm font-bold text-purple-600">45%</span>
-                        </div>
-                        <ProgressBar value={45} color="purple" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* AI Recommendations */}
-                <div className="space-y-4">
-                  <h4 className="font-semibold text-gray-900 flex items-center space-x-2">
-                    <Lightbulb className="h-5 w-5 text-amber-600" />
-                    <span>AI Recommendations</span>
-                  </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {[
-                      { text: "Complete leadership certification", icon: Award, color: "green" },
-                      { text: "Join industry networking groups", icon: Users, color: "blue" },
-                      { text: "Update your portfolio with recent projects", icon: Briefcase, color: "purple" },
-                      { text: "Practice technical interviews", icon: Brain, color: "orange" }
-                    ].map((rec, index) => (
-                      <motion.div
-                        key={index}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.5 + index * 0.1 }}
-                        className="p-4 bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-300"
-                      >
-                        <div className="flex items-start space-x-3">
-                          <div className={`p-2 rounded-lg bg-${rec.color}-100`}>
-                            <rec.icon className={`h-4 w-4 text-${rec.color}-600`} />
-                          </div>
-                          <span className="text-sm text-gray-700 font-medium">{rec.text}</span>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Quick Actions */}
-            <Card className="relative overflow-hidden border-0 shadow-xl">
-              <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-pink-500/5" />
-              <CardHeader className="relative">
-                <CardTitle className="text-xl font-bold text-gray-900 flex items-center space-x-3">
-                  <div className="p-3 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl text-white shadow-lg">
-                    <Zap className="h-6 w-6" />
-                  </div>
-                  <span>Quick Actions</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="relative">
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-                  <QuickActionButton
-                    title="Create Resume"
-                    icon={Plus}
-                    color="blue"
-                    delay={0.1}
-                  />
-                  <QuickActionButton
-                    title="AI Enhance"
-                    icon={Brain}
-                    color="purple"
-                    delay={0.2}
-                  />
-                  <QuickActionButton
-                    title="Job Search"
-                    icon={Target}
-                    color="green"
-                    delay={0.3}
-                  />
-                  <QuickActionButton
-                    title="Market Insights"
-                    icon={TrendingUp}
-                    color="orange"
-                    delay={0.4}
-                  />
                 </div>
               </CardContent>
             </Card>
           </motion.div>
 
-          {/* Right Column - Recent Activity & Resources */}
-          <motion.div variants={itemVariants} className="space-y-6 sm:space-y-8">
-            {/* Recent Activity */}
+          {/* Cover Letters Section */}
+          <motion.div variants={itemVariants} className="space-y-6">
             <Card className="relative overflow-hidden border-0 shadow-xl">
-              <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-teal-500/5" />
+              <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-emerald-500/5" />
               <CardHeader className="relative">
-                <CardTitle className="text-lg font-bold text-gray-900 flex items-center space-x-3">
-                  <div className="p-2 bg-gradient-to-br from-green-500 to-teal-600 rounded-lg text-white shadow-lg">
-                    <Activity className="h-5 w-5" />
+                <CardTitle className="text-2xl font-bold text-gray-900 flex items-center space-x-3">
+                  <div className="p-3 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl text-white shadow-lg">
+                    <Edit3 className="h-8 w-8" />
                   </div>
-                  <span>Recent Activity</span>
+                  <span>Cover Letter Builder</span>
                 </CardTitle>
+                <p className="text-gray-600 mt-2">Create compelling cover letters</p>
               </CardHeader>
               <CardContent className="relative space-y-4">
-                {[
-                  { action: "Resume optimized", time: "2 hours ago", icon: CheckCircle, color: "green" },
-                  { action: "New job match found", time: "4 hours ago", icon: Target, color: "blue" },
-                  { action: "AI analysis completed", time: "1 day ago", icon: Brain, color: "purple" },
-                  { action: "Profile updated", time: "2 days ago", icon: User, color: "orange" }
-                ].map((activity, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.5 + index * 0.1 }}
-                    className="flex items-center space-x-3 p-3 bg-white/80 backdrop-blur-sm rounded-xl hover:bg-white transition-colors duration-300"
-                  >
-                    <div className={`p-2 rounded-lg bg-${activity.color}-100`}>
-                      <activity.icon className={`h-4 w-4 text-${activity.color}-600`} />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Link to="/cover-letters">
+                    <div className="p-6 bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200 hover:border-green-300 hover:shadow-lg transition-all duration-300 cursor-pointer group">
+                      <div className="flex items-center space-x-4">
+                        <div className="p-3 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors">
+                          <Plus className="h-6 w-6 text-green-600" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-gray-900 group-hover:text-green-600 transition-colors">Create Cover Letter</h3>
+                          <p className="text-sm text-gray-600">Start new cover letter</p>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-900">{activity.action}</p>
-                      <p className="text-xs text-gray-500">{activity.time}</p>
+                  </Link>
+                  <Link to="/cover-letters">
+                    <div className="p-6 bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200 hover:border-purple-300 hover:shadow-lg transition-all duration-300 cursor-pointer group">
+                      <div className="flex items-center space-x-4">
+                        <div className="p-3 bg-purple-100 rounded-lg group-hover:bg-purple-200 transition-colors">
+                          <Edit3 className="h-6 w-6 text-purple-600" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-gray-900 group-hover:text-purple-600 transition-colors">My Cover Letters</h3>
+                          <p className="text-sm text-gray-600">View and edit existing</p>
+                        </div>
+                      </div>
                     </div>
-                  </motion.div>
-                ))}
-              </CardContent>
-            </Card>
-
-            {/* Resources & Learning */}
-            <Card className="relative overflow-hidden border-0 shadow-xl">
-              <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-blue-500/5" />
-              <CardHeader className="relative">
-                <CardTitle className="text-lg font-bold text-gray-900 flex items-center space-x-3">
-                  <div className="p-2 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-lg text-white shadow-lg">
-                    <BookOpen className="h-5 w-5" />
+                  </Link>
+                </div>
+                
+                <div className="mt-6 p-4 bg-green-50 rounded-xl border border-green-200">
+                  <div className="flex items-start space-x-3">
+                    <div className="p-2 bg-green-100 rounded-lg">
+                      <Target className="h-5 w-5 text-green-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-green-900">Cover Letter Features</h4>
+                      <ul className="text-sm text-green-700 mt-2 space-y-1">
+                        <li>• Job-specific customization</li>
+                        <li>• Professional templates</li>
+                        <li>• AI content enhancement</li>
+                        <li>• Industry best practices</li>
+                      </ul>
+                    </div>
                   </div>
-                  <span>Learning Resources</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="relative space-y-4">
-                {[
-                  { title: "Leadership Fundamentals", progress: 75, color: "blue" },
-                  { title: "Data Analytics Bootcamp", progress: 45, color: "green" },
-                  { title: "Technical Interview Prep", progress: 60, color: "purple" },
-                  { title: "Industry Networking", progress: 30, color: "orange" }
-                ].map((resource, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.6 + index * 0.1 }}
-                    className="p-4 bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200"
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="text-sm font-medium text-gray-900">{resource.title}</h4>
-                      <span className="text-sm font-bold text-gray-600">{resource.progress}%</span>
-                    </div>
-                    <ProgressBar value={resource.progress} color={resource.color} />
-                  </motion.div>
-                ))}
+                </div>
               </CardContent>
             </Card>
           </motion.div>
         </div>
 
-        {/* Feature Cards */}
+        {/* Additional Tools & Features */}
         <motion.div variants={itemVariants} className="space-y-6 sm:space-y-8">
           <div className="text-center px-4">
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">Powerful Features</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">Additional Tools & Resources</h2>
             <p className="text-gray-600 max-w-2xl mx-auto text-sm sm:text-base">
-              Everything you need to advance your career, powered by cutting-edge AI technology
+              More tools to help you succeed in your career journey.
             </p>
           </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             <FeatureCard
-              title="Smart Resume Builder"
-              description="AI-powered resume creation with real-time optimization and ATS compatibility"
+              title="Document Templates"
+              description="Professional templates for resumes, cover letters, and more"
               icon={FileText}
               color="blue"
-              href="/app/templates"
+              href="/templates"
               delay={0.1}
-              badge="AI"
+              badge="Free"
             />
             <FeatureCard
-              title="Market Intelligence"
-              description="Real-time industry insights, salary data, and skill demand analysis"
-              icon={BarChart3}
+              title="File Manager"
+              description="Organize and manage all your career documents"
+              icon={Settings}
               color="green"
-              href="/app/market-insights"
+              href="/files"
               delay={0.2}
-              badge="Live"
-            />
-            <FeatureCard
-              title="Job Search Engine"
-              description="AI-matched job opportunities with personalized recommendations"
-              icon={Target}
-              color="purple"
-              href="/app/real-jobs"
-              delay={0.3}
-              badge="AI"
-            />
-            <FeatureCard
-              title="Cover Letter Generator"
-              description="Create compelling cover letters tailored to specific job applications"
-              icon={BookOpen}
-              color="orange"
-              href="/app/cover-letters"
-              delay={0.4}
               badge="New"
             />
             <FeatureCard
-              title="Career Analytics"
-              description="Track your progress and get insights on your career development"
-              icon={TrendingUp}
-              color="pink"
-              href="/app/analytics"
-              delay={0.5}
+              title="Export Options"
+              description="Download your documents in multiple formats"
+              icon={Download}
+              color="purple"
+              href="/export"
+              delay={0.3}
               badge="Pro"
             />
             <FeatureCard
-              title="AI Career Coach"
-              description="Personalized career guidance and development recommendations"
-              icon={Brain}
-              color="blue"
-              href="/app/coach"
-              delay={0.6}
-              badge="AI"
+              title="Account Settings"
+              description="Manage your profile and preferences"
+              icon={User}
+              color="orange"
+              href="/settings"
+              delay={0.4}
+              badge=""
             />
+            <FeatureCard
+              title="Help & Support"
+              description="Get help and contact our support team"
+              icon={MessageCircle}
+              color="pink"
+              href="/help"
+              delay={0.5}
+              badge="24/7"
+            />
+            <FeatureCard
+              title="About ProWriteSolutions"
+              description="Learn more about our platform and features"
+              icon={Globe}
+              color="blue"
+              href="/about"
+              delay={0.6}
+              badge="Info"
+            />
+          </div>
+        </motion.div>
+
+        {/* Quick Actions Bar */}
+        <motion.div variants={itemVariants} className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-200">
+          <div className="text-center mb-6">
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Quick Actions</h3>
+            <p className="text-gray-600">Get started with these common tasks</p>
+          </div>
+          
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <Link to="/francisca">
+              <div className="p-4 bg-blue-50 hover:bg-blue-100 rounded-xl border border-blue-200 hover:border-blue-300 transition-all duration-300 cursor-pointer group text-center">
+                <div className="p-3 bg-blue-100 rounded-lg mx-auto mb-3 group-hover:bg-blue-200 transition-colors w-fit">
+                  <FileText className="h-6 w-6 text-blue-600" />
+                </div>
+                <h4 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors text-sm">New Resume</h4>
+              </div>
+            </Link>
+            
+            <Link to="/cover-letters">
+              <div className="p-4 bg-green-50 hover:bg-green-100 rounded-xl border border-green-200 hover:border-green-300 transition-all duration-300 cursor-pointer group text-center">
+                <div className="p-3 bg-green-100 rounded-lg mx-auto mb-3 group-hover:bg-green-200 transition-colors w-fit">
+                  <Edit3 className="h-6 w-6 text-green-600" />
+                </div>
+                <h4 className="font-semibold text-gray-900 group-hover:text-green-600 transition-colors text-sm">Cover Letter</h4>
+              </div>
+            </Link>
+            
+            <Link to="/resumes">
+              <div className="p-4 bg-purple-50 hover:bg-purple-100 rounded-xl border border-purple-200 hover:border-purple-300 transition-all duration-300 cursor-pointer group text-center">
+                <div className="p-3 bg-purple-100 rounded-lg mx-auto mb-3 group-hover:bg-purple-200 transition-colors w-fit">
+                  <Eye className="h-6 w-6 text-purple-600" />
+                </div>
+                <h4 className="font-semibold text-gray-900 group-hover:text-purple-600 transition-colors text-sm">View Files</h4>
+              </div>
+            </Link>
+            
+            <Link to="/settings">
+              <div className="p-4 bg-orange-50 hover:bg-orange-100 rounded-xl border border-orange-200 hover:border-orange-300 transition-all duration-300 cursor-pointer group text-center">
+                <div className="p-3 bg-orange-100 rounded-lg mx-auto mb-3 group-hover:bg-orange-200 transition-colors w-fit">
+                  <Settings className="h-6 w-6 text-orange-600" />
+                </div>
+                <h4 className="font-semibold text-gray-900 group-hover:text-orange-600 transition-colors text-sm">Settings</h4>
+              </div>
+            </Link>
           </div>
         </motion.div>
       </motion.div>
