@@ -107,12 +107,13 @@ class FastManualPaymentService:
             cursor.execute("""
                 INSERT INTO manual_payments 
                 (reference, form_data, document_type, amount, status, payment_method, 
-                 transaction_code, validation_method, created_at, updated_at)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                 transaction_code, validation_method, pdf_path, created_at, updated_at)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 ON DUPLICATE KEY UPDATE
                 status = VALUES(status),
                 transaction_code = VALUES(transaction_code),
                 validation_method = VALUES(validation_method),
+                pdf_path = VALUES(pdf_path),
                 updated_at = VALUES(updated_at)
             """, (
                 submission.reference,
@@ -123,6 +124,7 @@ class FastManualPaymentService:
                 submission.payment_method,
                 submission.transaction_code,
                 submission.validation_method,
+                submission.pdf_path,
                 submission.created_at,
                 submission.updated_at
             ))
@@ -148,7 +150,7 @@ class FastManualPaymentService:
             cursor.execute("""
                 SELECT id, reference, form_data, document_type, amount, status, 
                        payment_method, transaction_code, validation_method, 
-                       created_at, updated_at
+                       pdf_path, created_at, updated_at
                 FROM manual_payments 
                 WHERE reference = %s
             """, (reference,))
@@ -175,8 +177,9 @@ class FastManualPaymentService:
                     payment_method=row[6],
                     transaction_code=row[7],
                     validation_method=row[8],
-                    created_at=row[9],
-                    updated_at=row[10]
+                    pdf_path=row[9],
+                    created_at=row[10],
+                    updated_at=row[11]
                 )
                 
                 self.submissions[reference] = submission
@@ -532,17 +535,30 @@ ProWrite Team
     def get_pdf_download_path(self, reference: str) -> Optional[str]:
         """Get PDF file path for download"""
         try:
+            logger.info(f"🔍 Looking for PDF path for reference: {reference}")
+            
             submission = self._get_submission_from_db(reference)
             if not submission:
+                logger.error(f"❌ No submission found for reference: {reference}")
                 return None
             
-            if submission.status == 'completed' and submission.pdf_path and os.path.exists(submission.pdf_path):
-                return submission.pdf_path
+            logger.info(f"📋 Submission found - Status: {submission.status}, PDF Path: {submission.pdf_path}")
             
-            return None
+            if submission.status == 'completed' and submission.pdf_path:
+                if os.path.exists(submission.pdf_path):
+                    logger.info(f"✅ PDF file exists: {submission.pdf_path}")
+                    return submission.pdf_path
+                else:
+                    logger.error(f"❌ PDF file does not exist: {submission.pdf_path}")
+                    return None
+            else:
+                logger.warning(f"⚠️  PDF not ready - Status: {submission.status}, Path: {submission.pdf_path}")
+                return None
             
         except Exception as e:
-            logger.error(f"PDF path retrieval error: {e}")
+            logger.error(f"❌ PDF path retrieval error: {e}")
+            import traceback
+            logger.error(f"❌ Traceback: {traceback.format_exc()}")
             return None
     
     def _generate_reference(self) -> str:

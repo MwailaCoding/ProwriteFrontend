@@ -296,20 +296,22 @@ def download_pdf(reference):
     Download PDF after payment verification
     """
     try:
-        logger.info(f"PDF download requested for reference: {reference}")
+        logger.info(f"📥 PDF download requested for reference: {reference}")
         
         # Get PDF path from payment service
         pdf_path = manual_payment_service.get_pdf_download_path(reference)
         
+        logger.info(f"📥 PDF path retrieved: {pdf_path}")
+        
         if not pdf_path:
-            logger.error(f"PDF not found for reference: {reference}")
+            logger.error(f"❌ PDF not found for reference: {reference}")
             return jsonify({
                 'success': False,
                 'error': 'PDF not found or not ready for download'
             }), 404
         
         if not os.path.exists(pdf_path):
-            logger.error(f"PDF file does not exist: {pdf_path}")
+            logger.error(f"❌ PDF file does not exist: {pdf_path}")
             return jsonify({
                 'success': False,
                 'error': 'PDF file not found'
@@ -318,7 +320,7 @@ def download_pdf(reference):
         # Get filename for download
         filename = os.path.basename(pdf_path)
         
-        logger.info(f"Serving PDF download: {filename}")
+        logger.info(f"✅ Serving PDF download: {filename} from {pdf_path}")
         
         # Send file for download
         return send_file(
@@ -329,7 +331,9 @@ def download_pdf(reference):
         )
         
     except Exception as e:
-        logger.error(f"PDF download error: {e}")
+        logger.error(f"❌ PDF download error: {e}")
+        import traceback
+        logger.error(f"❌ Traceback: {traceback.format_exc()}")
         return jsonify({
             'success': False,
             'error': 'Download failed'
