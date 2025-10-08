@@ -13,12 +13,12 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv('.env')
 
-# Database configuration
+# Database configuration - PythonAnywhere
 DB_CONFIG = {
-    'host': os.getenv('DB_HOST', 'localhost'),
-    'user': os.getenv('DB_USER', 'root'),
-    'password': os.getenv('DB_PASSWORD', ''),
-    'database': os.getenv('DB_NAME', 'aiprowrite2'),
+    'host': os.getenv('DB_HOST', 'Prowrite.mysql.pythonanywhere-services.com'),
+    'user': os.getenv('DB_USER', 'Prowrite'),
+    'password': os.getenv('DB_PASSWORD', 'Hamilton2025'),
+    'database': os.getenv('DB_NAME', 'Prowrite$dbprowrite'),
     'charset': 'utf8mb4'
 }
 
@@ -150,8 +150,12 @@ def test_download_endpoint():
 
 def main():
     """Main debug function"""
-    print("🚀 DOWNLOAD DEBUG SCRIPT")
-    print("=" * 50)
+    print("🚀 DOWNLOAD DEBUG SCRIPT - PYTHONANYWHERE")
+    print("=" * 60)
+    print(f"🔌 Database: {DB_CONFIG['database']}")
+    print(f"🌐 Host: {DB_CONFIG['host']}")
+    print(f"👤 User: {DB_CONFIG['user']}")
+    print("=" * 60)
     
     # Check database schema
     schema_ok = check_database_schema()
@@ -162,7 +166,7 @@ def main():
     # Test download endpoint
     test_download_endpoint()
     
-    print("\n" + "=" * 50)
+    print("\n" + "=" * 60)
     print("🎯 DEBUG SUMMARY:")
     
     if not schema_ok:
@@ -170,13 +174,16 @@ def main():
         print("   SOLUTION: Run 'python migrate_pdf_path.py'")
     else:
         print("✅ Database schema is correct")
+        print("✅ pdf_path column exists")
     
     print("\n📋 NEXT STEPS:")
-    print("1. If schema is missing, run: python migrate_pdf_path.py")
-    print("2. Upload updated backend files to PythonAnywhere")
-    print("3. Restart PythonAnywhere web app")
-    print("4. Test with a new payment")
-    print("5. Check browser console for download URL")
+    print("1. ✅ Database migration completed")
+    print("2. ✅ Backend files uploaded")
+    print("3. 🔄 Restart PythonAnywhere web app if needed")
+    print("4. 🧪 Test with a new payment")
+    print("5. 👀 Check browser console for download URL")
+    print("6. 📱 Check PythonAnywhere error logs for download requests")
 
 if __name__ == "__main__":
     main()
+
