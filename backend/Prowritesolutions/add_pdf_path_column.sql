@@ -13,3 +13,4 @@ CREATE INDEX idx_manual_payments_pdf_path ON manual_payments(pdf_path);
 
 -- Verify the column was added
 DESCRIBE manual_payments;
+

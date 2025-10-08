@@ -99,3 +99,4 @@ if __name__ == "__main__":
         print("🚀 You can now use the PDF download functionality")
     else:
         print("\n❌ Migration failed. Please check the error messages above.")
+

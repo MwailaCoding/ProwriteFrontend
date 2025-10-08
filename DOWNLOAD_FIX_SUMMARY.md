@@ -118,3 +118,4 @@ ls -la /path/to/uploads/resume_PAY-ABC12345.pdf
 4. **Test with a new payment** (existing payments won't have PDF paths)
 
 The download functionality will work immediately after these fixes are applied!
+
