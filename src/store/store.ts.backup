@@ -1,0 +1,58 @@
+/**
+ * Redux Store Configuration - Complete Rewrite
+ * Centralized state management with proper middleware
+ */
+
+import { configureStore } from '@reduxjs/toolkit';
+import { persistStore, persistReducer } from 'redux-persist';
+import storage from 'redux-persist/lib/storage';
+import { combineReducers } from '@reduxjs/toolkit';
+import { FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER } from 'redux-persist';
+
+// Import reducers
+import authReducer from './authSlice_new';
+// import notificationReducer from './notificationSlice'; // Add when needed
+// import dashboardReducer from './dashboardSlice'; // Add when needed
+
+// Persist config for auth
+const authPersistConfig = {
+  key: 'auth',
+  storage,
+  whitelist: ['user', 'isAuthenticated'], // Only persist these fields
+};
+
+// Persist config for other reducers (if needed)
+// const notificationPersistConfig = {
+//   key: 'notifications',
+//   storage,
+//   whitelist: ['preferences'],
+// };
+
+// Root reducer
+const rootReducer = combineReducers({
+  auth: persistReducer(authPersistConfig, authReducer),
+  // notifications: persistReducer(notificationPersistConfig, notificationReducer),
+  // dashboard: dashboardReducer,
+});
+
+// Store configuration
+export const store = configureStore({
+  reducer: rootReducer,
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: {
+        ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
+      },
+    }),
+  devTools: process.env.NODE_ENV !== 'production',
+});
+
+// Persistor for redux-persist
+export const persistor = persistStore(store);
+
+// Types
+export type RootState = ReturnType<typeof store.getState>;
+export type AppDispatch = typeof store.dispatch;
+
+// Export store and persistor
+export default store;

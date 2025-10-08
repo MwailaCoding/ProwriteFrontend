@@ -1,0 +1,234 @@
+/**
+ * Redux Auth Slice - Complete Rewrite
+ * Manages authentication state and async actions
+ */
+
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { toast } from 'react-hot-toast';
+import authService, { User, LoginData, RegisterData, AuthResponse } from '../services/authService_new';
+
+// State interface
+interface AuthState {
+  user: User | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  error: string | null;
+}
+
+// Initial state
+const initialState: AuthState = {
+  user: authService.getUser(),
+  isAuthenticated: authService.isAuthenticated(),
+  isLoading: false,
+  error: null,
+};
+
+// Async thunks
+export const loginAsync = createAsyncThunk(
+  'auth/login',
+  async (credentials: LoginData, { rejectWithValue }) => {
+    try {
+      console.log('🚀 Redux: Starting login process...');
+      const response = await authService.login(credentials);
+      console.log('✅ Redux: Login successful:', response);
+      return response;
+    } catch (error: any) {
+      console.error('❌ Redux: Login failed:', error);
+      return rejectWithValue(error.message || 'Login failed');
+    }
+  }
+);
+
+export const registerAsync = createAsyncThunk(
+  'auth/register',
+  async (userData: RegisterData, { rejectWithValue }) => {
+    try {
+      console.log('🚀 Redux: Starting registration process...');
+      const response = await authService.register(userData);
+      console.log('✅ Redux: Registration successful:', response);
+      return response;
+    } catch (error: any) {
+      console.error('❌ Redux: Registration failed:', error);
+      return rejectWithValue(error.message || 'Registration failed');
+    }
+  }
+);
+
+export const getCurrentUserAsync = createAsyncThunk(
+  'auth/getCurrentUser',
+  async (_, { rejectWithValue }) => {
+    try {
+      console.log('🚀 Redux: Getting current user...');
+      const user = await authService.getCurrentUser();
+      console.log('✅ Redux: Current user retrieved:', user);
+      return user;
+    } catch (error: any) {
+      console.error('❌ Redux: Get current user failed:', error);
+      return rejectWithValue(error.message || 'Failed to get user data');
+    }
+  }
+);
+
+export const refreshTokenAsync = createAsyncThunk(
+  'auth/refreshToken',
+  async (_, { rejectWithValue }) => {
+    try {
+      console.log('🚀 Redux: Refreshing token...');
+      const newToken = await authService.refreshToken();
+      console.log('✅ Redux: Token refreshed successfully');
+      return newToken;
+    } catch (error: any) {
+      console.error('❌ Redux: Token refresh failed:', error);
+      return rejectWithValue(error.message || 'Token refresh failed');
+    }
+  }
+);
+
+// Auth slice
+const authSlice = createSlice({
+  name: 'auth',
+  initialState,
+  reducers: {
+    // Logout action
+    logout: (state) => {
+      console.log('🚪 Redux: Logging out user...');
+      authService.logout();
+      state.user = null;
+      state.isAuthenticated = false;
+      state.error = null;
+      toast.success('Logged out successfully');
+    },
+    
+    // Clear error
+    clearError: (state) => {
+      state.error = null;
+    },
+    
+    // Update user data
+    updateUser: (state, action: PayloadAction<Partial<User>>) => {
+      if (state.user) {
+        state.user = { ...state.user, ...action.payload };
+        // Update localStorage
+        localStorage.setItem('user_data', JSON.stringify(state.user));
+      }
+    },
+    
+    // Set loading state
+    setLoading: (state, action: PayloadAction<boolean>) => {
+      state.isLoading = action.payload;
+    },
+    
+    // Initialize auth state
+    initializeAuth: (state) => {
+      const user = authService.getUser();
+      const isAuthenticated = authService.isAuthenticated();
+      
+      state.user = user;
+      state.isAuthenticated = isAuthenticated;
+      
+      console.log('🔍 Redux: Auth initialized:', {
+        hasUser: !!user,
+        isAuthenticated,
+        userEmail: user?.email || 'N/A'
+      });
+    }
+  },
+  extraReducers: (builder) => {
+    builder
+      // Login cases
+      .addCase(loginAsync.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+        console.log('⏳ Redux: Login pending...');
+      })
+      .addCase(loginAsync.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.user = action.payload.user;
+        state.isAuthenticated = true;
+        state.error = null;
+        toast.success('Login successful!');
+        console.log('✅ Redux: Login fulfilled');
+      })
+      .addCase(loginAsync.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+        toast.error(action.payload as string || 'Login failed');
+        console.log('❌ Redux: Login rejected:', action.payload);
+      })
+      
+      // Registration cases
+      .addCase(registerAsync.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+        console.log('⏳ Redux: Registration pending...');
+      })
+      .addCase(registerAsync.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.user = action.payload.user;
+        state.isAuthenticated = true;
+        state.error = null;
+        toast.success('Registration successful!');
+        console.log('✅ Redux: Registration fulfilled');
+      })
+      .addCase(registerAsync.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+        toast.error(action.payload as string || 'Registration failed');
+        console.log('❌ Redux: Registration rejected:', action.payload);
+      })
+      
+      // Get current user cases
+      .addCase(getCurrentUserAsync.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+        console.log('⏳ Redux: Get current user pending...');
+      })
+      .addCase(getCurrentUserAsync.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.user = action.payload;
+        state.isAuthenticated = true;
+        state.error = null;
+        console.log('✅ Redux: Get current user fulfilled');
+      })
+      .addCase(getCurrentUserAsync.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+        state.isAuthenticated = false;
+        state.user = null;
+        console.log('❌ Redux: Get current user rejected:', action.payload);
+      })
+      
+      // Refresh token cases
+      .addCase(refreshTokenAsync.pending, (state) => {
+        console.log('⏳ Redux: Token refresh pending...');
+      })
+      .addCase(refreshTokenAsync.fulfilled, (state) => {
+        console.log('✅ Redux: Token refresh fulfilled');
+      })
+      .addCase(refreshTokenAsync.rejected, (state, action) => {
+        state.isAuthenticated = false;
+        state.user = null;
+        toast.error('Session expired. Please login again.');
+        console.log('❌ Redux: Token refresh rejected:', action.payload);
+      });
+  },
+});
+
+// Export actions
+export const { 
+  logout, 
+  clearError, 
+  updateUser, 
+  setLoading, 
+  initializeAuth 
+} = authSlice.actions;
+
+// Export reducer
+export default authSlice.reducer;
+
+// Selectors
+export const selectAuth = (state: { auth: AuthState }) => state.auth;
+export const selectUser = (state: { auth: AuthState }) => state.auth.user;
+export const selectIsAuthenticated = (state: { auth: AuthState }) => state.auth.isAuthenticated;
+export const selectIsLoading = (state: { auth: AuthState }) => state.auth.isLoading;
+export const selectError = (state: { auth: AuthState }) => state.auth.error;

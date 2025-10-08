@@ -1,0 +1,157 @@
+/**
+ * Protected Route Component - Complete Rewrite
+ * Handles route protection and authentication state management
+ */
+
+import React, { useEffect, useState, useRef } from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { motion } from 'framer-motion';
+import { Loader2, Shield, AlertCircle } from 'lucide-react';
+import { initializeAuth, getCurrentUserAsync } from '../../store/authSlice';
+import { RootState, AppDispatch } from '../../store/store';
+
+interface ProtectedRouteProps {
+  children: React.ReactNode;
+  adminOnly?: boolean;
+  guestOnly?: boolean;
+}
+
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
+  children, 
+  adminOnly = false, 
+  guestOnly = false 
+}) => {
+  // State
+  const [isInitializing, setIsInitializing] = useState(true);
+  const [initError, setInitError] = useState<string | null>(null);
+  const hasInitialized = useRef(false);
+  
+  // Hooks
+  const dispatch = useDispatch<AppDispatch>();
+  const location = useLocation();
+  
+  // Redux state
+  const { user, isAuthenticated, isLoading, error } = useSelector((state: RootState) => state.auth);
+  
+  // Initialize authentication on mount
+  useEffect(() => {
+    // Prevent multiple initializations
+    if (hasInitialized.current) {
+      return;
+    }
+
+    const initializeAuthState = async () => {
+      try {
+        hasInitialized.current = true;
+        console.log('🔄 ProtectedRoute: Initializing auth state...');
+        
+        // Initialize auth state
+        dispatch(initializeAuth());
+        
+        // If we have a token but no user data, try to get current user
+        const token = localStorage.getItem('access_token');
+        if (token && !user) {
+          console.log('🔄 ProtectedRoute: Token found, fetching user data...');
+          await dispatch(getCurrentUserAsync()).unwrap();
+        }
+        
+        console.log('✅ ProtectedRoute: Auth initialization complete');
+      } catch (error: any) {
+        console.error('❌ ProtectedRoute: Auth initialization failed:', error);
+        setInitError(error.message || 'Authentication initialization failed');
+      } finally {
+        setIsInitializing(false);
+      }
+    };
+    
+    initializeAuthState();
+  }, []); // Empty dependency array - only run once on mount
+  
+  
+  // Show loading spinner while initializing
+  if (isInitializing || isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center"
+        >
+          <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
+          <p className="text-gray-600">Loading...</p>
+        </motion.div>
+      </div>
+    );
+  }
+  
+  // Show error if initialization failed
+  if (initError) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center max-w-md mx-auto p-6"
+        >
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+            Authentication Error
+          </h2>
+          <p className="text-gray-600 mb-4">{initError}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Retry
+          </button>
+        </motion.div>
+      </div>
+    );
+  }
+  
+  // Handle guest-only routes (login, register, etc.)
+  if (guestOnly) {
+    if (isAuthenticated && user) {
+      return <Navigate to="/app/dashboard" replace />;
+    }
+    return <>{children}</>;
+  }
+  
+  // Handle protected routes
+  if (!isAuthenticated || !user) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+  
+  // Handle admin-only routes
+  if (adminOnly && !user.is_admin) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center max-w-md mx-auto p-6"
+        >
+          <Shield className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+            Access Denied
+          </h2>
+          <p className="text-gray-600 mb-4">
+            You don't have permission to access this page.
+          </p>
+          <button
+            onClick={() => window.history.back()}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Go Back
+          </button>
+        </motion.div>
+      </div>
+    );
+  }
+  
+  // User is authenticated and authorized
+  return <>{children}</>;
+};
+
+export default ProtectedRoute;

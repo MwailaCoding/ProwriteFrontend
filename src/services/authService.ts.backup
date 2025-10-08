@@ -1,0 +1,290 @@
+/**
+ * Complete Authentication Service for ProWrite
+ * Handles login, registration, token management, and API calls
+ */
+
+import axios, { AxiosResponse } from 'axios';
+
+// Types
+export interface User {
+  id: number;
+  email: string;
+  firstName: string;
+  lastName: string;
+  isPremium: number;
+  is_admin: number;
+  createdAt?: string;
+}
+
+export interface LoginData {
+  email: string;
+  password: string;
+}
+
+export interface RegisterData {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+}
+
+export interface AuthResponse {
+  message: string;
+  access_token: string;
+  user: User;
+}
+
+export interface ApiError {
+  error: string;
+  message?: string;
+}
+
+class AuthService {
+  private baseURL: string;
+  private tokenKey: string = 'access_token';
+  private userKey: string = 'user_data';
+
+  constructor() {
+    this.baseURL = 'http://localhost:5000/api';
+    this.setupAxiosInterceptors();
+  }
+
+  /**
+   * Setup axios interceptors for automatic token handling
+   */
+  private setupAxiosInterceptors(): void {
+    // Request interceptor - add token to requests
+    axios.interceptors.request.use(
+      (config) => {
+        const token = this.getToken();
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+      },
+      (error) => {
+        console.error('Request interceptor error:', error);
+        return Promise.reject(error);
+      }
+    );
+
+    // Response interceptor - handle token expiration
+    axios.interceptors.response.use(
+      (response) => response,
+      async (error) => {
+        const originalRequest = error.config;
+
+        // If 401 and not already retried
+        if (error.response?.status === 401 && !originalRequest._retry) {
+          originalRequest._retry = true;
+
+          try {
+            // Try to refresh token
+            const newToken = await this.refreshToken();
+            if (newToken) {
+              // Retry original request with new token
+              originalRequest.headers.Authorization = `Bearer ${newToken}`;
+              return axios(originalRequest);
+            }
+          } catch (refreshError) {
+            console.error('Token refresh failed:', refreshError);
+            // If refresh fails, logout user
+            this.logout();
+            window.location.href = '/login';
+          }
+        }
+
+        return Promise.reject(error);
+      }
+    );
+  }
+
+  /**
+   * Register a new user
+   */
+  async register(data: RegisterData): Promise<AuthResponse> {
+    try {
+      console.log('🔐 AuthService: Starting registration...', data);
+      
+      const response: AxiosResponse<AuthResponse> = await axios.post(
+        `${this.baseURL}/auth/register`,
+        data
+      );
+
+      console.log('🔐 AuthService: Registration successful:', response.data);
+
+      // Store token and user data
+      this.setToken(response.data.access_token);
+      this.setUser(response.data.user);
+
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ AuthService: Registration failed:', error);
+      throw this.handleError(error);
+    }
+  }
+
+  /**
+   * Login user
+   */
+  async login(data: LoginData): Promise<AuthResponse> {
+    try {
+      console.log('🔐 AuthService: Starting login...', data);
+      
+      const response: AxiosResponse<AuthResponse> = await axios.post(
+        `${this.baseURL}/auth/login`,
+        data
+      );
+
+      console.log('🔐 AuthService: Login successful:', response.data);
+
+      // Store token and user data
+      this.setToken(response.data.access_token);
+      this.setUser(response.data.user);
+
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ AuthService: Login failed:', error);
+      throw this.handleError(error);
+    }
+  }
+
+  /**
+   * Get current user data
+   */
+  async getCurrentUser(): Promise<User> {
+    try {
+      const response: AxiosResponse<{ user: User }> = await axios.get(
+        `${this.baseURL}/auth/me`
+      );
+      return response.data.user;
+    } catch (error: any) {
+      console.error('❌ AuthService: Get current user failed:', error);
+      throw this.handleError(error);
+    }
+  }
+
+  /**
+   * Refresh access token
+   */
+  async refreshToken(): Promise<string | null> {
+    try {
+      console.log('🔄 AuthService: Refreshing token...');
+      
+      const response: AxiosResponse<{ access_token: string }> = await axios.post(
+        `${this.baseURL}/auth/refresh`
+      );
+
+      const newToken = response.data.access_token;
+      this.setToken(newToken);
+      
+      console.log('🔄 AuthService: Token refreshed successfully');
+      return newToken;
+    } catch (error: any) {
+      console.error('❌ AuthService: Token refresh failed:', error);
+      throw this.handleError(error);
+    }
+  }
+
+  /**
+   * Logout user
+   */
+  async logout(): Promise<void> {
+    try {
+      // Call logout endpoint
+      await axios.post(`${this.baseURL}/auth/logout`);
+    } catch (error) {
+      console.error('Logout endpoint error:', error);
+    } finally {
+      // Clear local storage regardless of endpoint success
+      this.clearStorage();
+    }
+  }
+
+  /**
+   * Check if user is authenticated
+   */
+  isAuthenticated(): boolean {
+    const token = this.getToken();
+    const user = this.getUser();
+    return !!(token && user);
+  }
+
+  /**
+   * Get stored token
+   */
+  getToken(): string | null {
+    return localStorage.getItem(this.tokenKey);
+  }
+
+  /**
+   * Set token in storage
+   */
+  private setToken(token: string): void {
+    localStorage.setItem(this.tokenKey, token);
+  }
+
+  /**
+   * Get stored user data
+   */
+  getUser(): User | null {
+    const userData = localStorage.getItem(this.userKey);
+    if (userData) {
+      try {
+        return JSON.parse(userData);
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+        return null;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Set user data in storage
+   */
+  private setUser(user: User): void {
+    localStorage.setItem(this.userKey, JSON.stringify(user));
+  }
+
+  /**
+   * Clear all stored data
+   */
+  private clearStorage(): void {
+    localStorage.removeItem(this.tokenKey);
+    localStorage.removeItem(this.userKey);
+  }
+
+  /**
+   * Handle API errors
+   */
+  private handleError(error: any): Error {
+    if (error.response?.data?.error) {
+      return new Error(error.response.data.error);
+    } else if (error.message) {
+      return new Error(error.message);
+    } else {
+      return new Error('An unexpected error occurred');
+    }
+  }
+
+  /**
+   * Debug authentication state
+   */
+  debugAuthState(): void {
+    const token = this.getToken();
+    const user = this.getUser();
+    
+    console.log('🔍 AuthService Debug:', {
+      hasToken: !!token,
+      tokenLength: token?.length || 0,
+      hasUser: !!user,
+      userEmail: user?.email || 'N/A',
+      isAuthenticated: this.isAuthenticated()
+    });
+  }
+}
+
+// Create and export singleton instance
+const authService = new AuthService();
+export default authService;
