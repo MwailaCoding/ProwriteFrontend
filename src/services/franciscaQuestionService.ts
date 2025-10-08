@@ -1,5 +1,5 @@
 /**
- * Francisca Question Flow Service
+ * Prowrite Template Question Flow Service
  * Handles the guided resume building process with real-time enhancement
  */
 
@@ -57,7 +57,7 @@ export interface ResumeData {
   [key: string]: string;
 }
 
-class FranciscaQuestionService {
+class ProwriteTemplateQuestionService {
   private baseURL: string;
 
   constructor() {
@@ -69,7 +69,7 @@ class FranciscaQuestionService {
    */
   async startQuestionFlow(): Promise<{ question: QuestionStep; progress: Progress }> {
     try {
-      const response = await axios.post(`${this.baseURL}/francisca/questions/start`);
+      const response = await axios.post(`${this.baseURL}/prowrite-template/questions/start`);
       return {
         question: response.data.question,
         progress: response.data.progress
@@ -85,7 +85,7 @@ class FranciscaQuestionService {
    */
   async getCurrentQuestion(): Promise<{ question: QuestionStep; progress: Progress }> {
     try {
-      const response = await axios.get(`${this.baseURL}/francisca/questions/current`);
+      const response = await axios.get(`${this.baseURL}/prowrite-template/questions/current`);
       return {
         question: response.data.question,
         progress: response.data.progress
@@ -101,7 +101,7 @@ class FranciscaQuestionService {
    */
   async submitAnswer(field: string, answer: string, context: Record<string, any> = {}): Promise<AnswerResponse> {
     try {
-      const response = await axios.post(`${this.baseURL}/francisca/questions/answer`, {
+      const response = await axios.post(`${this.baseURL}/prowrite-template/questions/answer`, {
         field,
         answer,
         context
@@ -118,7 +118,7 @@ class FranciscaQuestionService {
    */
   async getNextQuestion(): Promise<{ question: QuestionStep | null; progress: Progress }> {
     try {
-      const response = await axios.post(`${this.baseURL}/francisca/questions/next`);
+      const response = await axios.post(`${this.baseURL}/prowrite-template/questions/next`);
       return {
         question: response.data.question,
         progress: response.data.progress
@@ -134,7 +134,7 @@ class FranciscaQuestionService {
    */
   async getPreviousQuestion(): Promise<{ question: QuestionStep | null; progress: Progress }> {
     try {
-      const response = await axios.post(`${this.baseURL}/francisca/questions/previous`);
+      const response = await axios.post(`${this.baseURL}/prowrite-template/questions/previous`);
       return {
         question: response.data.question,
         progress: response.data.progress
@@ -150,7 +150,7 @@ class FranciscaQuestionService {
    */
   async jumpToStep(stepName: string): Promise<{ question: QuestionStep; progress: Progress }> {
     try {
-      const response = await axios.post(`${this.baseURL}/francisca/questions/jump`, {
+      const response = await axios.post(`${this.baseURL}/prowrite-template/questions/jump`, {
         step: stepName
       });
       return {
@@ -168,7 +168,7 @@ class FranciscaQuestionService {
    */
   async getProgress(): Promise<Progress> {
     try {
-      const response = await axios.get(`${this.baseURL}/francisca/questions/progress`);
+      const response = await axios.get(`${this.baseURL}/prowrite-template/questions/progress`);
       return response.data.progress;
     } catch (error: any) {
       console.error('Error getting progress:', error);
@@ -181,7 +181,7 @@ class FranciscaQuestionService {
    */
   async getResumeData(): Promise<{ resume_data: ResumeData; progress: Progress }> {
     try {
-      const response = await axios.get(`${this.baseURL}/francisca/questions/resume-data`);
+      const response = await axios.get(`${this.baseURL}/prowrite-template/questions/resume-data`);
       return {
         resume_data: response.data.resume_data,
         progress: response.data.progress
@@ -197,7 +197,7 @@ class FranciscaQuestionService {
    */
   async getStepSummary(stepName: string): Promise<{ summary: any }> {
     try {
-      const response = await axios.post(`${this.baseURL}/francisca/questions/step-summary`, {
+      const response = await axios.post(`${this.baseURL}/prowrite-template/questions/step-summary`, {
         step: stepName
       });
       return response.data;
@@ -212,7 +212,7 @@ class FranciscaQuestionService {
    */
   async enhanceAnswer(field: string, answer: string, context: Record<string, any> = {}): Promise<Enhancement> {
     try {
-      const response = await axios.post(`${this.baseURL}/francisca/ai/enhance-field`, {
+      const response = await axios.post(`${this.baseURL}/prowrite-template/ai/enhance-field`, {
         content: answer,
         field_type: field,
         profession: context.profession || 'Professional'
@@ -232,8 +232,8 @@ class FranciscaQuestionService {
 }
 
 // Create and export singleton instance
-const franciscaQuestionService = new FranciscaQuestionService();
-export default franciscaQuestionService;
+const prowriteTemplateQuestionService = new ProwriteTemplateQuestionService();
+export default prowriteTemplateQuestionService;
 
 
 

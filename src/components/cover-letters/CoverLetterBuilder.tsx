@@ -533,7 +533,7 @@ export const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({
     setEnhancingParagraph(paragraphType);
     
     try {
-      const response = await api.post('/francisca/ai/enhance-paragraph', {
+      const response = await api.post('/prowrite-template/ai/enhance-paragraph', {
           content: formData[paragraphType],
           enhancement_type: enhancementType,
           job_title: formData.jobTitle,
@@ -566,7 +566,7 @@ export const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({
 
   const generateSuggestions = async (paragraphType: 'introduction' | 'experience' | 'companyFit' | 'closing') => {
     try {
-      const response = await api.post('/francisca/ai/generate-suggestions', {
+      const response = await api.post('/prowrite-template/ai/generate-suggestions', {
           paragraph_type: paragraphType,
           current_content: formData[paragraphType],
           job_title: formData.jobTitle,

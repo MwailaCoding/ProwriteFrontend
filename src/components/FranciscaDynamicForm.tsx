@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { pdfTemplateService } from '../services/pdfTemplateService';
 import { MpesaPaymentModal } from './payments/MpesaPaymentModal';
-import FranciscaFieldEnhancer from './francisca/FranciscaFieldEnhancer';
-import FranciscaChatbot from './francisca/FranciscaChatbot';
-import FranciscaSmartPromptGenerator from './francisca/FranciscaSmartPromptGenerator';
-import FranciscaATSAnalysis from './francisca/FranciscaATSAnalysis';
-import EnhancedATSAnalysis from './francisca/EnhancedATSAnalysis';
-import ResumeImportModal from './francisca/ResumeImportModal';
-import ResumeWorkflow from './francisca/ResumeWorkflow';
-import FranciscaJobDescriptionAnalyzer from './francisca/FranciscaJobDescriptionAnalyzer';
-import FranciscaCollaborationPanel from './francisca/FranciscaCollaborationPanel';
-import FranciscaExportIntegrationPanel from './francisca/FranciscaExportIntegrationPanel';
+import ProwriteTemplateFieldEnhancer from './prowrite-template/ProwriteTemplateFieldEnhancer';
+import ProwriteTemplateChatbot from './prowrite-template/ProwriteTemplateChatbot';
+import ProwriteTemplateSmartPromptGenerator from './prowrite-template/ProwriteTemplateSmartPromptGenerator';
+import ProwriteTemplateATSAnalysis from './prowrite-template/ProwriteTemplateATSAnalysis';
+import EnhancedATSAnalysis from './prowrite-template/EnhancedATSAnalysis';
+import ResumeImportModal from './prowrite-template/ResumeImportModal';
+import ResumeWorkflow from './prowrite-template/ResumeWorkflow';
+import ProwriteTemplateJobDescriptionAnalyzer from './prowrite-template/ProwriteTemplateJobDescriptionAnalyzer';
+import ProwriteTemplateCollaborationPanel from './prowrite-template/ProwriteTemplateCollaborationPanel';
+import ProwriteTemplateExportIntegrationPanel from './prowrite-template/ProwriteTemplateExportIntegrationPanel';
 import { 
   MessageCircle, 
   Sparkles, 
@@ -50,7 +50,7 @@ import {
   Upload,
   X
 } from 'lucide-react';
-import '../styles/franciscaTemplate.css';
+import '../styles/prowrite-templateTemplate.css';
 
 interface FormData {
   [key: string]: any;
@@ -60,7 +60,7 @@ interface ArrayItem {
   [key: string]: any;
 }
 
-const FranciscaDynamicForm: React.FC = () => {
+const ProwriteTemplateDynamicForm: React.FC = () => {
   const [formData, setFormData] = useState<FormData>({});
   const [activeSection, setActiveSection] = useState<string>('personal');
   const [collapsedSections, setCollapsedSections] = useState<{[key: string]: boolean}>({
@@ -868,7 +868,7 @@ const FranciscaDynamicForm: React.FC = () => {
 
   // Create a comprehensive schema for the form
   const createFormSchema = () => ({
-    template_name: "Francisca Resume Template",
+    template_name: "ProwriteTemplate Resume Template",
     fields: [
       // Personal Information
       { name: 'name', label: 'Full Name', type: 'text', required: true, section: 'personal', placeholder: 'Enter your full name' },
@@ -957,12 +957,12 @@ const FranciscaDynamicForm: React.FC = () => {
   const [showExportIntegrationPanel, setShowExportIntegrationPanel] = useState(false);
   const [formProgress, setFormProgress] = useState(0);
 
-  // Fetch the Francisca template schema from API
+  // Fetch the ProwriteTemplate template schema from API
   useEffect(() => {
     const fetchSchema = async () => {
       try {
         setSchemaLoading(true);
-        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://prowrite.pythonanywhere.com/api'}/francisca/schema`);
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://prowrite.pythonanywhere.com/api'}/prowrite-template/schema`);
         const result = await response.json();
         
         if (result.success) {
@@ -999,7 +999,7 @@ const FranciscaDynamicForm: React.FC = () => {
 
   // Load saved drafts on component mount
   useEffect(() => {
-    const savedDrafts = JSON.parse(localStorage.getItem('francisca_drafts') || '[]');
+    const savedDrafts = JSON.parse(localStorage.getItem('prowrite-template_drafts') || '[]');
     setSavedDrafts(savedDrafts);
   }, []);
 
@@ -1132,9 +1132,9 @@ const FranciscaDynamicForm: React.FC = () => {
       };
       
       // Save to localStorage
-      const existingDrafts = JSON.parse(localStorage.getItem('francisca_drafts') || '[]');
+      const existingDrafts = JSON.parse(localStorage.getItem('prowrite-template_drafts') || '[]');
       const updatedDrafts = [...existingDrafts, draft];
-      localStorage.setItem('francisca_drafts', JSON.stringify(updatedDrafts));
+      localStorage.setItem('prowrite-template_drafts', JSON.stringify(updatedDrafts));
       
       setSavedDrafts(updatedDrafts);
       
@@ -1401,7 +1401,7 @@ const FranciscaDynamicForm: React.FC = () => {
                             textAlign: itemConfig.styling?.alignment || 'left'
                           }}
                         />
-                        <FranciscaFieldEnhancer
+                        <ProwriteTemplateFieldEnhancer
                           fieldType={itemName}
                           currentValue={item?.[itemName] || ''}
                           profession={selectedProfession}
@@ -1457,7 +1457,7 @@ const FranciscaDynamicForm: React.FC = () => {
                             textAlign: itemConfig.styling?.alignment || 'left'
                           }}
                         />
-                        <FranciscaFieldEnhancer
+                        <ProwriteTemplateFieldEnhancer
                           fieldType={itemName}
                           currentValue={item?.[itemName] || ''}
                           profession={selectedProfession}
@@ -1566,7 +1566,7 @@ const FranciscaDynamicForm: React.FC = () => {
                 <CheckCircle className="h-4 w-4 text-green-500" />
               </div>
             )}
-            <FranciscaFieldEnhancer
+            <ProwriteTemplateFieldEnhancer
               fieldType={name}
               currentValue={value || ''}
               profession={selectedProfession}
@@ -1695,7 +1695,7 @@ const FranciscaDynamicForm: React.FC = () => {
               <CheckCircle className="h-4 w-4 text-green-500" />
             </div>
           )}
-          <FranciscaFieldEnhancer
+          <ProwriteTemplateFieldEnhancer
             fieldType={name}
             currentValue={value || ''}
             profession={selectedProfession}
@@ -2697,14 +2697,14 @@ const FranciscaDynamicForm: React.FC = () => {
       </div>
       
       {/* AI Chatbot */}
-      <FranciscaChatbot
+      <ProwriteTemplateChatbot
         isOpen={showChatbot}
         onClose={() => setShowChatbot(false)}
         onAutoFill={handleChatbotAutoFill}
       />
       
       {/* AI Smart Prompt Generator */}
-      <FranciscaSmartPromptGenerator
+      <ProwriteTemplateSmartPromptGenerator
         fieldType={currentFieldForGeneration}
         profession={selectedProfession}
         onGenerateContent={(content) => {
@@ -2717,7 +2717,7 @@ const FranciscaDynamicForm: React.FC = () => {
       />
       
              {/* ATS Analysis */}
-       <FranciscaATSAnalysis
+       <ProwriteTemplateATSAnalysis
          isOpen={showATSAnalysis}
          onClose={() => setShowATSAnalysis(false)}
          resumeContent={resumeContent}
@@ -2745,7 +2745,7 @@ const FranciscaDynamicForm: React.FC = () => {
        />
 
        {/* Job Description Analyzer */}
-       <FranciscaJobDescriptionAnalyzer
+       <ProwriteTemplateJobDescriptionAnalyzer
          isOpen={showJobDescriptionAnalyzer}
          onClose={() => setShowJobDescriptionAnalyzer(false)}
          resumeContent={resumeContent}
@@ -2753,14 +2753,14 @@ const FranciscaDynamicForm: React.FC = () => {
        />
 
       {/* Collaboration Panel */}
-       <FranciscaCollaborationPanel
+       <ProwriteTemplateCollaborationPanel
          isOpen={showCollaborationPanel}
          onClose={() => setShowCollaborationPanel(false)}
          resumeContent={formData}
        />
 
       {/* Export & Integration Panel */}
-       <FranciscaExportIntegrationPanel
+       <ProwriteTemplateExportIntegrationPanel
          isOpen={showExportIntegrationPanel}
          onClose={() => setShowExportIntegrationPanel(false)}
          resumeContent={formData}
@@ -2919,11 +2919,11 @@ const FranciscaDynamicForm: React.FC = () => {
         isOpen={showPaymentModal}
         onClose={() => setShowPaymentModal(false)}
         formData={formData}
-        documentType="Francisca Resume"
+        documentType="ProwriteTemplate Resume"
         onSuccess={handlePaymentSuccess}
       />
     </div>
   );
 };
 
-export default FranciscaDynamicForm;
+export default ProwriteTemplateDynamicForm;

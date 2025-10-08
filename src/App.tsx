@@ -21,7 +21,7 @@ import { FormBuilderDemo } from './pages/FormBuilderDemo';
 
 import { MarketInsightsPage } from './pages/market/MarketInsightsPage';
 import { BillingPage } from './pages/billing/BillingPage';
-import FranciscaFormPage from './pages/FranciscaFormPage';
+import ProwriteTemplateFormPage from './pages/ProwriteTemplateFormPage';
 import RealJobSearchPage from './pages/jobs/RealJobSearchPage';
 
 // Admin Routes
@@ -33,18 +33,18 @@ import { CreateCoverLetterPage } from './pages/cover-letters/CreateCoverLetterPa
 import { EditCoverLetterPage } from './pages/cover-letters/EditCoverLetterPage';
 import { PaymentHistoryPage } from './pages/payments/PaymentHistoryPage';
 import ProfilePage from './pages/profile/ProfilePage';
-import FranciscaStyleTemplate from './components/resume/FranciscaStyleTemplate';
-import { sampleFranciscaData } from './data/sampleResumeData';
-import './styles/franciscaTemplate.css';
+import ProwriteTemplateStyleTemplate from './components/resume/ProwriteTemplateStyleTemplate';
+import { sampleProwriteTemplateData } from './data/sampleResumeData';
+import './styles/prowriteTemplateTemplate.css';
 
-// Simple test component to show Francisca template
-const FranciscaTest: React.FC = () => {
+// Simple test component to show Prowrite template template
+const ProwriteTemplateTest: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-100 p-8">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold text-center mb-8">Francisca Template Test</h1>
+        <h1 className="text-3xl font-bold text-center mb-8">Prowrite Template Template Test</h1>
         <div className="bg-white rounded-lg shadow-lg p-8">
-          <FranciscaStyleTemplate resumeData={sampleFranciscaData} />
+          <ProwriteTemplateStyleTemplate resumeData={sampleProwriteTemplateData} />
         </div>
       </div>
     </div>
@@ -84,10 +84,10 @@ function App() {
             <Route index element={<Navigate to="/app/dashboard" replace />} />
             <Route path="dashboard" element={<DashboardPage />} />
             
-            {/* Francisca Template Route - Place early to avoid conflicts */}
-            <Route path="francisca" element={<FranciscaFormPage />} />
-            <Route path="francisca/" element={<FranciscaFormPage />} />
-            <Route path="francisca-test" element={<FranciscaTest />} />
+            {/* Prowrite Template Template Route - Place early to avoid conflicts */}
+            <Route path="prowrite-template" element={<ProwriteTemplateFormPage />} />
+            <Route path="prowrite-template/" element={<ProwriteTemplateFormPage />} />
+            <Route path="prowrite-template-test" element={<ProwriteTemplateTest />} />
             
             {/* Demo Route */}
             <Route path="demo" element={<FormBuilderDemo />} />

@@ -76,7 +76,7 @@ interface Version {
   approval_status: string;
 }
 
-const FranciscaCollaborationPanel: React.FC<CollaborationPanelProps> = ({
+const ProwriteTemplateCollaborationPanel: React.FC<CollaborationPanelProps> = ({
   resumeContent,
   isOpen,
   onClose
@@ -128,7 +128,7 @@ const FranciscaCollaborationPanel: React.FC<CollaborationPanelProps> = ({
     setError(null);
     
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://prowrite.pythonanywhere.com/api'}/francisca/collaboration/share`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://prowrite.pythonanywhere.com/api'}/prowrite-template/collaboration/share`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -167,7 +167,7 @@ const FranciscaCollaborationPanel: React.FC<CollaborationPanelProps> = ({
     setError(null);
     
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://prowrite.pythonanywhere.com/api'}/francisca/collaboration/add-collaborator`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://prowrite.pythonanywhere.com/api'}/prowrite-template/collaboration/add-collaborator`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -200,7 +200,7 @@ const FranciscaCollaborationPanel: React.FC<CollaborationPanelProps> = ({
     setError(null);
     
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://prowrite.pythonanywhere.com/api'}/francisca/collaboration/feedback`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://prowrite.pythonanywhere.com/api'}/prowrite-template/collaboration/feedback`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -244,7 +244,7 @@ const FranciscaCollaborationPanel: React.FC<CollaborationPanelProps> = ({
     setError(null);
     
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://prowrite.pythonanywhere.com/api'}/francisca/collaboration/version-control`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://prowrite.pythonanywhere.com/api'}/prowrite-template/collaboration/version-control`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -713,7 +713,7 @@ const FranciscaCollaborationPanel: React.FC<CollaborationPanelProps> = ({
   );
 };
 
-export default FranciscaCollaborationPanel;
+export default ProwriteTemplateCollaborationPanel;
 
 
 

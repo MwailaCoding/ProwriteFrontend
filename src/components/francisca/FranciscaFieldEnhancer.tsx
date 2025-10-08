@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Sparkles, Loader2, CheckCircle, X, Copy, RotateCcw } from 'lucide-react';
 import api from '../../config/api';
 
-interface FranciscaFieldEnhancerProps {
+interface ProwriteTemplateFieldEnhancerProps {
   fieldType: string;
   currentValue: string;
   profession?: string;
@@ -24,7 +24,7 @@ interface EnhancementResult {
   ats_focus?: boolean;
 }
 
-const FranciscaFieldEnhancer: React.FC<FranciscaFieldEnhancerProps> = ({
+const ProwriteTemplateFieldEnhancer: React.FC<ProwriteTemplateFieldEnhancerProps> = ({
   fieldType,
   currentValue,
   profession,
@@ -108,7 +108,7 @@ const FranciscaFieldEnhancer: React.FC<FranciscaFieldEnhancerProps> = ({
     setEnhancementResult(null);
 
     try {
-      const response = await api.post('/francisca/ai/enhance-field', {
+      const response = await api.post('/prowrite-template/ai/enhance-field', {
         content: currentValue,
         field_type: fieldType,
         profession: profession,
@@ -309,7 +309,7 @@ const FranciscaFieldEnhancer: React.FC<FranciscaFieldEnhancerProps> = ({
   );
 };
 
-export default FranciscaFieldEnhancer;
+export default ProwriteTemplateFieldEnhancer;
 
 
 

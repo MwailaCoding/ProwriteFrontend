@@ -80,7 +80,7 @@ interface ShareablePackage {
   individual_downloads: Record<string, string>;
 }
 
-const FranciscaExportIntegrationPanel: React.FC<ExportIntegrationPanelProps> = ({
+const ProwriteTemplateExportIntegrationPanel: React.FC<ExportIntegrationPanelProps> = ({
   resumeContent,
   isOpen,
   onClose
@@ -159,7 +159,7 @@ const FranciscaExportIntegrationPanel: React.FC<ExportIntegrationPanelProps> = (
     setError(null);
     
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://prowrite.pythonanywhere.com/api'}/francisca/export/export-resume`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://prowrite.pythonanywhere.com/api'}/prowrite-template/export/export-resume`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -193,7 +193,7 @@ const FranciscaExportIntegrationPanel: React.FC<ExportIntegrationPanelProps> = (
     setError(null);
     
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://prowrite.pythonanywhere.com/api'}/francisca/export/integrate-platform`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://prowrite.pythonanywhere.com/api'}/prowrite-template/export/integrate-platform`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -228,7 +228,7 @@ const FranciscaExportIntegrationPanel: React.FC<ExportIntegrationPanelProps> = (
     setError(null);
     
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://prowrite.pythonanywhere.com/api'}/francisca/export/shareable-package`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://prowrite.pythonanywhere.com/api'}/prowrite-template/export/shareable-package`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -259,7 +259,7 @@ const FranciscaExportIntegrationPanel: React.FC<ExportIntegrationPanelProps> = (
     setError(null);
     
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://prowrite.pythonanywhere.com/api'}/francisca/export/optimize-platform`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://prowrite.pythonanywhere.com/api'}/prowrite-template/export/optimize-platform`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -856,7 +856,7 @@ const FranciscaExportIntegrationPanel: React.FC<ExportIntegrationPanelProps> = (
   );
 };
 
-export default FranciscaExportIntegrationPanel;
+export default ProwriteTemplateExportIntegrationPanel;
 
 
 

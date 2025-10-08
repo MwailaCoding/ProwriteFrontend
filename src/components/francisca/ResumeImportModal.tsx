@@ -99,7 +99,7 @@ const ResumeImportModal: React.FC<ResumeImportModalProps> = ({
       setParsing(true);
       
       // Upload and parse file using API service with extended timeout
-      const response = await api.post('/api/francisca/import-resume', formData, {
+      const response = await api.post('/api/prowrite-template/import-resume', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

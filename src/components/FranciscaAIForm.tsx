@@ -7,7 +7,7 @@ interface AIFormProps {
   onAIEnhanced: (enhancedData: any) => void;
 }
 
-const FranciscaAIForm: React.FC<AIFormProps> = ({ onSubmit, onAIEnhanced }) => {
+const ProwriteTemplateAIForm: React.FC<AIFormProps> = ({ onSubmit, onAIEnhanced }) => {
   const { register, handleSubmit, watch } = useForm();
   const [useAI, setUseAI] = useState(false);
   const [theme, setTheme] = useState('professional');
@@ -25,7 +25,7 @@ const FranciscaAIForm: React.FC<AIFormProps> = ({ onSubmit, onAIEnhanced }) => {
       };
 
       // Generate resume
-      const result = await pdfTemplateService.generateFranciscaResume(enhancedData);
+      const result = await pdfTemplateService.generateProwriteTemplateResume(enhancedData);
 
       if (result.success) {
         // Handle AI analysis if available
@@ -242,5 +242,5 @@ const FranciscaAIForm: React.FC<AIFormProps> = ({ onSubmit, onAIEnhanced }) => {
   );
 };
 
-export default FranciscaAIForm;
+export default ProwriteTemplateAIForm;
 

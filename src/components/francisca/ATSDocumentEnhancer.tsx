@@ -45,7 +45,7 @@ const ATSDocumentEnhancer: React.FC<ATSDocumentEnhancerProps> = ({
     setEnhancementResult(null);
 
     try {
-      const response = await api.post('/francisca/ai/enhance-ats-compliance', {
+      const response = await api.post('/prowrite-template/ai/enhance-ats-compliance', {
         resume_data: resumeData,
         profession: profession,
         job_title: jobTitle

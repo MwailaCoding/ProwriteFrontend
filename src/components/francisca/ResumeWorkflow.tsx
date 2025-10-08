@@ -138,7 +138,7 @@ const ResumeWorkflow: React.FC<ResumeWorkflowProps> = ({
                 Template Selected
               </h2>
               <p className="text-gray-600 mb-6">
-                You've chosen to start with a blank form. The Francisca template has been selected for you.
+                You've chosen to start with a blank form. The ProwriteTemplate template has been selected for you.
               </p>
               <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
                 <div className="flex items-center justify-center mb-4">
@@ -147,7 +147,7 @@ const ResumeWorkflow: React.FC<ResumeWorkflowProps> = ({
                   </div>
                 </div>
                 <h3 className="text-lg font-semibold text-green-800 mb-2">
-                  Francisca Template Ready
+                  ProwriteTemplate Template Ready
                 </h3>
                 <p className="text-green-700">
                   This professional template is optimized for ATS systems and includes AI-powered features.

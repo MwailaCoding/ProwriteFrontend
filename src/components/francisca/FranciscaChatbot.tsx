@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageCircle, Send, Bot, User, Sparkles, X, Loader2, CheckCircle, AlertCircle, Wand2 } from 'lucide-react';
-import FranciscaGuidedWizard from './FranciscaGuidedWizard';
+import ProwriteTemplateGuidedWizard from './ProwriteTemplateGuidedWizard';
 
 interface Message {
   id: string;
@@ -21,13 +21,13 @@ interface ConversationState {
   summary?: string;
 }
 
-interface FranciscaChatbotProps {
+interface ProwriteTemplateChatbotProps {
   onAutoFill: (fieldData: Record<string, any>) => void;
   onClose: () => void;
   isOpen: boolean;
 }
 
-const FranciscaChatbot: React.FC<FranciscaChatbotProps> = ({
+const ProwriteTemplateChatbot: React.FC<ProwriteTemplateChatbotProps> = ({
   onAutoFill,
   onClose,
   isOpen
@@ -35,7 +35,7 @@ const FranciscaChatbot: React.FC<FranciscaChatbotProps> = ({
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: "Hi! I'm your AI assistant for building a professional Francisca resume. I can guide you through creating an impressive resume in two ways: through a structured step-by-step wizard or through a conversational chat. Which would you prefer?",
+      text: "Hi! I'm your AI assistant for building a professional ProwriteTemplate resume. I can guide you through creating an impressive resume in two ways: through a structured step-by-step wizard or through a conversational chat. Which would you prefer?",
       sender: 'ai',
       timestamp: new Date(),
       suggestions: [
@@ -396,7 +396,7 @@ const FranciscaChatbot: React.FC<FranciscaChatbotProps> = ({
     setIsAutoFilling(true);
     try {
       // Call the backend AI endpoint to generate comprehensive resume data
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://prowrite.pythonanywhere.com/api'}/francisca/ai/autofill`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://prowrite.pythonanywhere.com/api'}/prowrite-template/ai/autofill`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -450,7 +450,7 @@ const FranciscaChatbot: React.FC<FranciscaChatbotProps> = ({
               <Bot className="h-6 w-6" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold">Francisca AI Resume Builder</h3>
+              <h3 className="text-lg font-semibold">ProwriteTemplate AI Resume Builder</h3>
               <p className="text-sm text-purple-100">
                 {conversationState.stage === 'complete' ? 'Ready to create your resume!' : 'Let me help you build your resume'}
               </p>
@@ -646,7 +646,7 @@ const FranciscaChatbot: React.FC<FranciscaChatbotProps> = ({
       </div>
 
       {/* Guided Wizard Modal */}
-      <FranciscaGuidedWizard
+      <ProwriteTemplateGuidedWizard
         isOpen={showGuidedWizard}
         onClose={() => setShowGuidedWizard(false)}
         onComplete={(resumeData) => {
@@ -662,4 +662,4 @@ const FranciscaChatbot: React.FC<FranciscaChatbotProps> = ({
   );
 };
 
-export default FranciscaChatbot;
+export default ProwriteTemplateChatbot;

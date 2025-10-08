@@ -10,18 +10,18 @@ export interface ResumeTemplateCategory {
 
 export const resumeTemplateCategories: ResumeTemplateCategory[] = [
   {
-    id: 'francisca',
-    name: 'Francisca Professional',
+    id: 'prowrite-template',
+    name: 'ProwriteTemplate Professional',
     description: 'Advanced dynamic form system with preserved template styling',
     icon: '✨',
     templates: [
       {
-        id: 'francisca-professional',
-        name: 'Francisca Professional Resume',
+        id: 'prowrite-template-professional',
+        name: 'ProwriteTemplate Professional Resume',
         description: 'Experience our advanced dynamic form system with preserved template styling. Add unlimited entries to any section with our enhanced array management features.',
-        category: 'francisca',
-        thumbnailUrl: '/templates/francisca-professional-thumb.jpg',
-        pdfFile: '/templates/francisca-professional.pdf',
+        category: 'prowrite-template',
+        thumbnailUrl: '/templates/prowrite-template-professional-thumb.jpg',
+        pdfFile: '/templates/prowrite-template-professional.pdf',
         pageCount: 1,
         contentAreas: [
           {
@@ -74,7 +74,7 @@ export const resumeTemplateCategories: ResumeTemplateCategory[] = [
           pageCount: 1,
           orientation: 'portrait',
           pageSize: 'a4',
-          colorScheme: 'francisca',
+          colorScheme: 'prowrite-template',
           difficulty: 'advanced'
         },
         tags: ['dynamic', 'advanced', 'professional', 'style-preserved'],

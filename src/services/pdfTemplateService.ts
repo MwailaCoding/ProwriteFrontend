@@ -109,11 +109,11 @@ class PDFTemplateService {
   }
 
   /**
-   * Generate a resume using the Francisca template
+   * Generate a resume using the Prowrite Template template
    */
-  async generateFranciscaResume(resumeData: AIEnhancedData): Promise<GenerateResponse> {
+  async generateProwriteTemplateResume(resumeData: AIEnhancedData): Promise<GenerateResponse> {
     try {
-      const response = await api.post('/api/resumes/generate-francisca', {
+      const response = await api.post('/api/resumes/generate-prowrite-template', {
         resume_data: resumeData,
         use_ai: resumeData.use_ai,
         theme: resumeData.theme,
@@ -128,7 +128,7 @@ class PDFTemplateService {
         const downloadLink = document.createElement('a');
         downloadLink.href = `${this.baseUrl}${result.pdf_path}`;
         downloadLink.target = '_blank';
-        downloadLink.download = 'francisca_resume.pdf';
+        downloadLink.download = 'prowrite-template_resume.pdf';
         downloadLink.click();
       }
 

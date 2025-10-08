@@ -1,34 +1,34 @@
-/* Francisca Template Styles */
-.francisca-template {
+/* Prowrite Template Template Styles */
+.prowrite-template-template {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   line-height: 1.6;
   color: #333;
 }
 
-.francisca-template .header-section {
+.prowrite-template-template .header-section {
   text-align: center;
   padding-bottom: 2rem;
   border-bottom: 3px solid #2563eb;
   margin-bottom: 2rem;
 }
 
-.francisca-template h1 {
+.prowrite-template-template h1 {
   color: #1e40af;
   margin-bottom: 1rem;
   font-size: 2.5rem;
   font-weight: 700;
 }
 
-.francisca-template .contact-info {
+.prowrite-template-template .contact-info {
   font-size: 1rem;
   color: #6b7280;
 }
 
-.francisca-template .section {
+.prowrite-template-template .section {
   margin-bottom: 2rem;
 }
 
-.francisca-template .section h2 {
+.prowrite-template-template .section h2 {
   color: #1e40af;
   font-size: 1.5rem;
   font-weight: 600;
@@ -37,9 +37,9 @@
   border-bottom: 2px solid #2563eb;
 }
 
-.francisca-template .experience-item,
-.francisca-template .education-item,
-.francisca-template .project-item {
+.prowrite-template-template .experience-item,
+.prowrite-template-template .education-item,
+.prowrite-template-template .project-item {
   margin-bottom: 1.5rem;
   padding: 1rem;
   background-color: #f8fafc;
@@ -47,24 +47,24 @@
   border-left: 4px solid #2563eb;
 }
 
-.francisca-template .experience-item h3,
-.francisca-template .education-item h3,
-.francisca-template .project-item h3 {
+.prowrite-template-template .experience-item h3,
+.prowrite-template-template .education-item h3,
+.prowrite-template-template .project-item h3 {
   color: #1e40af;
   font-size: 1.25rem;
   font-weight: 600;
   margin-bottom: 0.5rem;
 }
 
-.francisca-template .experience-item .company,
-.francisca-template .education-item .institution {
+.prowrite-template-template .experience-item .company,
+.prowrite-template-template .education-item .institution {
   color: #2563eb;
   font-weight: 500;
   margin-bottom: 0.5rem;
 }
 
-.francisca-template .skills span,
-.francisca-template .languages span {
+.prowrite-template-template .skills span,
+.prowrite-template-template .languages span {
   display: inline-block;
   margin: 0.25rem;
   padding: 0.5rem 1rem;
@@ -73,17 +73,17 @@
   font-weight: 500;
 }
 
-.francisca-template .skills span {
+.prowrite-template-template .skills span {
   background-color: #dbeafe;
   color: #1e40af;
 }
 
-.francisca-template .languages span {
+.prowrite-template-template .languages span {
   background-color: #dcfce7;
   color: #166534;
 }
 
-.francisca-template .projects .technologies span {
+.prowrite-template-template .projects .technologies span {
   background-color: #f3f4f6;
   color: #374151;
   font-size: 0.75rem;
@@ -91,37 +91,37 @@
   border-radius: 4px;
 }
 
-.francisca-template .certifications ul {
+.prowrite-template-template .certifications ul {
   list-style: none;
   padding: 0;
 }
 
-.francisca-template .certifications li {
+.prowrite-template-template .certifications li {
   padding: 0.5rem 0;
   border-bottom: 1px solid #e5e7eb;
 }
 
-.francisca-template .certifications li:last-child {
+.prowrite-template-template .certifications li:last-child {
   border-bottom: none;
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .francisca-template {
+  .prowrite-template-template {
     padding: 1rem;
   }
   
-  .francisca-template h1 {
+  .prowrite-template-template h1 {
     font-size: 2rem;
   }
   
-  .francisca-template .section h2 {
+  .prowrite-template-template .section h2 {
     font-size: 1.25rem;
   }
   
-  .francisca-template .experience-item,
-  .francisca-template .education-item,
-  .francisca-template .project-item {
+  .prowrite-template-template .experience-item,
+  .prowrite-template-template .education-item,
+  .prowrite-template-template .project-item {
     padding: 0.75rem;
   }
 }

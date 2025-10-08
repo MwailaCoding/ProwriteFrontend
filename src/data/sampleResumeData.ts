@@ -1,4 +1,4 @@
-export const sampleFranciscaData = {
+export const sampleProwriteTemplateData = {
   personalInfo: {
     name: "John Smith",
     email: "john.smith@email.com",

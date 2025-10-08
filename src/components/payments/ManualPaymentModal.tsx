@@ -21,7 +21,7 @@ interface ManualPaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
   formData: any;
-  documentType: 'Francisca Resume' | 'Cover Letter';
+  documentType: 'Prowrite Template Resume' | 'Cover Letter';
   onSuccess?: (submissionId: number) => void;
 }
 
@@ -44,6 +44,8 @@ interface ValidationResult {
   submission_id?: number;
   status?: string;
   validation_method?: string;
+  auto_download?: boolean;
+  download_url?: string;
 }
 
 export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
@@ -61,8 +63,12 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
   const [error, setError] = useState('');
   const [retryCount, setRetryCount] = useState(0);
   const [maxRetries] = useState(3);
+  const [downloadUrl, setDownloadUrl] = useState<string>('');
+  const [pdfReady, setPdfReady] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  const [downloadStatus, setDownloadStatus] = useState<'idle' | 'downloading' | 'downloaded' | 'failed'>('idle');
 
-  const amount = documentType === 'Francisca Resume' ? 500 : 300;
+  const amount = documentType === 'Prowrite Template Resume' ? 500 : 300;
 
   const initiatePayment = async () => {
     // Validate email before proceeding
@@ -167,6 +173,12 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
         setCurrentStep('processing');
         toast.success('🚀 Payment validated! PDF is being generated in background...');
         
+        // Check if auto-download is available
+        if (data.auto_download && data.download_url) {
+          console.log('📥 Auto-download available:', data.download_url);
+          setDownloadUrl(data.download_url);
+        }
+        
         // Start polling for completion
         pollForCompletion();
       } else {
@@ -206,9 +218,36 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
         const data = await response.json();
         
         if (data.success) {
+          console.log('📊 Polling response:', data);
+          
           if (data.status === 'completed') {
             setCurrentStep('completed');
+            setPdfReady(true);
             toast.success('Document generated and sent to your email!');
+            
+            console.log('🎯 PDF completed - Download URL:', downloadUrl);
+            console.log('🎯 PDF completed - PDF Ready:', data.pdf_ready);
+            console.log('🎯 PDF completed - Download URL from response:', data.download_url);
+            
+            // Auto-download if available - improved logic
+            if (data.pdf_ready && data.download_url) {
+              console.log('📥 Auto-download triggered from response data');
+              setDownloadUrl(data.download_url);
+              setTimeout(() => {
+                handleAutoDownload();
+              }, 1000);
+            } else if (downloadUrl && data.pdf_ready) {
+              console.log('📥 Auto-download triggered from stored URL');
+              setTimeout(() => {
+                handleAutoDownload();
+              }, 1000);
+            } else {
+              console.log('⚠️ Auto-download not triggered - missing data');
+              console.log('   downloadUrl:', downloadUrl);
+              console.log('   data.pdf_ready:', data.pdf_ready);
+              console.log('   data.download_url:', data.download_url);
+            }
+            
             if (onSuccess) {
               onSuccess(data.submission_id);
             }
@@ -244,6 +283,70 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
     toast.success('Copied to clipboard!');
   };
 
+  const handleAutoDownload = async () => {
+    if (!downloadUrl) {
+      console.log('❌ No download URL available');
+      toast.error('❌ Download URL not available');
+      return;
+    }
+    
+    setDownloading(true);
+    setDownloadStatus('downloading');
+    
+    try {
+      console.log('📥 DOWNLOADING PDF FILE:', downloadUrl);
+      toast.success('📥 DOWNLOADING PDF FILE NOW...', { duration: 3000 });
+      
+      const fullUrl = `https://prowrite.pythonanywhere.com${downloadUrl}`;
+      console.log('📥 Download URL:', fullUrl);
+      
+      // FORCE DOWNLOAD - NOT OPEN IN TAB
+      const link = document.createElement('a');
+      link.href = fullUrl;
+      link.download = `resume_${submissionData?.reference || 'document'}.pdf`;
+      link.style.display = 'none';
+      
+      // Add to DOM, click, and remove
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      console.log('📥 PDF FILE DOWNLOAD INITIATED');
+      setDownloadStatus('downloaded');
+      toast.success('✅ PDF FILE DOWNLOADED! Check your Downloads folder!', { 
+        duration: 5000,
+        style: {
+          background: '#10B981',
+          color: 'white',
+          fontSize: '18px',
+          fontWeight: 'bold'
+        }
+      });
+      
+    } catch (error) {
+      console.error('❌ Download failed:', error);
+      setDownloadStatus('failed');
+      toast.error('❌ Download failed. Please try again.', {
+        duration: 3000,
+        style: {
+          background: '#EF4444',
+          color: 'white',
+          fontSize: '16px'
+        }
+      });
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  const handleManualDownload = () => {
+    if (downloadUrl) {
+      handleAutoDownload();
+    } else {
+      toast.error('Download not available yet');
+    }
+  };
+
   const handleClose = () => {
     if (currentStep === 'processing') {
       if (window.confirm('Document generation is in progress. Are you sure you want to close?')) {
@@ -261,6 +364,9 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
     setSubmissionData(null);
     setError('');
     setRetryCount(0);
+    setDownloadUrl('');
+    setPdfReady(false);
+    setDownloading(false);
   };
 
   const retryPayment = () => {
@@ -328,9 +434,9 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
         <div className="flex justify-between items-center">
           <span className="text-gray-600">Till Name:</span>
           <div className="flex items-center space-x-2">
-            <span className="font-semibold">FRANCISCA MAJALA MWAILA</span>
+            <span className="font-semibold">PROWRITE TEMPLATE MAJALA MWAILA</span>
             <button
-              onClick={() => copyToClipboard('FRANCISCA MAJALA MWAILA')}
+              onClick={() => copyToClipboard('PROWRITE TEMPLATE MAJALA MWAILA')}
               className="text-blue-600 hover:text-blue-800 transition-colors"
             >
               <Copy className="w-4 h-4" />
@@ -463,6 +569,31 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
       <p className="text-gray-600">
         Payment confirmed! Generating your document...
       </p>
+      
+      {downloadUrl && (
+        <div className="bg-green-50 border-2 border-green-300 rounded-lg p-4">
+          <p className="font-bold text-green-800 text-lg">📥 PDF READY FOR DOWNLOAD!</p>
+          <p className="text-green-700 mt-2">Click the button below to download your PDF</p>
+          
+          <button
+            onClick={handleAutoDownload}
+            disabled={downloading}
+            className="mt-3 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg text-lg transition-colors disabled:opacity-50"
+          >
+            {downloading ? (
+              <>
+                <Loader className="w-6 h-6 mr-2 animate-spin inline" />
+                DOWNLOADING PDF FILE...
+              </>
+            ) : (
+              <>
+                📥 DOWNLOAD PDF FILE NOW
+              </>
+            )}
+          </button>
+        </div>
+      )}
+      
       <div className="bg-blue-50 rounded-lg p-4 text-sm">
         <p className="font-medium text-blue-800">What's happening:</p>
         <ul className="list-disc list-inside text-blue-700 mt-2 space-y-1">
@@ -483,19 +614,78 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
       <p className="text-gray-600">
         Your {documentType} has been generated and sent to your email
       </p>
-      <div className="bg-green-50 rounded-lg p-4">
-        <div className="flex items-center justify-center space-x-2 text-green-700">
+      
+      {/* Download Status Indicators */}
+      {downloadStatus === 'downloading' && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="flex items-center justify-center space-x-2 text-blue-700">
+            <Loader className="w-5 h-5 animate-spin" />
+            <span className="text-sm font-medium">📥 Downloading PDF to your device...</span>
+          </div>
+        </div>
+      )}
+      
+      {downloadStatus === 'downloaded' && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+          <div className="flex items-center justify-center space-x-2 text-green-700">
+            <CheckCircle className="w-5 h-5" />
+            <span className="text-sm font-medium">✅ PDF downloaded to your device storage!</span>
+          </div>
+          <p className="text-xs text-green-600 mt-1">Check your Downloads folder</p>
+        </div>
+      )}
+      
+      {downloadStatus === 'failed' && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="flex items-center justify-center space-x-2 text-red-700">
+            <AlertCircle className="w-5 h-5" />
+            <span className="text-sm font-medium">❌ Download failed - try manual download</span>
+          </div>
+        </div>
+      )}
+      
+      <div className="bg-blue-50 rounded-lg p-4">
+        <div className="flex items-center justify-center space-x-2 text-blue-700">
           <CheckCircle className="w-5 h-5" />
           <span className="text-sm font-medium">Check your email for the document</span>
         </div>
       </div>
-      <Button
-        onClick={onClose}
-        className="w-full"
-        variant="primary"
-      >
-        Close
-      </Button>
+      
+      <div className="space-y-2">
+        {downloadUrl && (
+          <Button
+            onClick={handleManualDownload}
+            disabled={downloading}
+            className="w-full"
+            variant="primary"
+          >
+            {downloading ? (
+              <>
+                <Loader className="w-5 h-5 mr-2 animate-spin" />
+                Downloading to Device...
+              </>
+            ) : downloadStatus === 'downloaded' ? (
+              <>
+                <CheckCircle className="w-5 h-5 mr-2" />
+                Download Again
+              </>
+            ) : (
+              <>
+                <ExternalLink className="w-5 h-5 mr-2" />
+                Download PDF to Device
+              </>
+            )}
+          </Button>
+        )}
+        
+        <Button
+          onClick={onClose}
+          className="w-full"
+          variant="outline"
+        >
+          Close
+        </Button>
+      </div>
     </div>
   );
 

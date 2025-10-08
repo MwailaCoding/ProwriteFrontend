@@ -2,7 +2,7 @@ import api from '../config/api';
 
 export interface FormSubmissionData {
   form_data: any;
-  document_type: 'Francisca Resume' | 'Cover Letter';
+  document_type: 'Prowrite Template Resume' | 'Cover Letter';
   phone_number: string;
 }
 
@@ -211,8 +211,8 @@ class FormSubmissionService {
   /**
    * Get pricing for document types
    */
-  getPricing(documentType: 'Francisca Resume' | 'Cover Letter'): number {
-    return documentType === 'Francisca Resume' ? 500 : 300;
+  getPricing(documentType: 'Prowrite Template Resume' | 'Cover Letter'): number {
+    return documentType === 'Prowrite Template Resume' ? 500 : 300;
   }
 
   /**
