@@ -231,13 +231,27 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
             console.log('🎯 PDF completed - Download URL from response:', data.download_url);
             
             // Auto-download if available - improved logic
-            if (data.pdf_ready && data.download_url) {
+            if (data.pdf_ready) {
+              // Try multiple possible download URL patterns
+              const possibleUrls = [
+                `https://prowrite.pythonanywhere.com/api/downloads/resume_${submissionData.reference}.pdf`,
+                `https://prowrite.pythonanywhere.com/api/payments/download/${submissionData.reference}`,
+                `https://prowrite.pythonanywhere.com/api/resumes/download/${submissionData.reference}`,
+                `https://prowrite.pythonanywhere.com/static/resumes/resume_${submissionData.reference}.pdf`
+              ];
+              
+              console.log('📥 Auto-download triggered - trying URLs:', possibleUrls);
+              setDownloadUrl(possibleUrls[0]); // Use first URL as primary
+              setTimeout(() => {
+                handleAutoDownload();
+              }, 1000);
+            } else if (data.download_url) {
               console.log('📥 Auto-download triggered from response data');
               setDownloadUrl(data.download_url);
               setTimeout(() => {
                 handleAutoDownload();
               }, 1000);
-            } else if (downloadUrl && data.pdf_ready) {
+            } else if (downloadUrl) {
               console.log('📥 Auto-download triggered from stored URL');
               setTimeout(() => {
                 handleAutoDownload();
@@ -298,31 +312,56 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
       console.log('📥 DOWNLOADING PDF FILE:', downloadUrl);
       toast.success('📥 DOWNLOADING PDF FILE NOW...', { duration: 3000 });
       
-      const fullUrl = `https://prowrite.pythonanywhere.com${downloadUrl}`;
-      console.log('📥 Download URL:', fullUrl);
+      // Try multiple download URL patterns
+      const possibleUrls = [
+        downloadUrl,
+        `https://prowrite.pythonanywhere.com/api/downloads/resume_${submissionData?.reference}.pdf`,
+        `https://prowrite.pythonanywhere.com/api/payments/download/${submissionData?.reference}`,
+        `https://prowrite.pythonanywhere.com/api/resumes/download/${submissionData?.reference}`,
+        `https://prowrite.pythonanywhere.com/static/resumes/resume_${submissionData?.reference}.pdf`
+      ];
       
-      // FORCE DOWNLOAD - NOT OPEN IN TAB
-      const link = document.createElement('a');
-      link.href = fullUrl;
-      link.download = `resume_${submissionData?.reference || 'document'}.pdf`;
-      link.style.display = 'none';
+      let downloadSuccess = false;
       
-      // Add to DOM, click, and remove
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      console.log('📥 PDF FILE DOWNLOAD INITIATED');
-      setDownloadStatus('downloaded');
-      toast.success('✅ PDF FILE DOWNLOADED! Check your Downloads folder!', { 
-        duration: 5000,
-        style: {
-          background: '#10B981',
-          color: 'white',
-          fontSize: '18px',
-          fontWeight: 'bold'
+      for (const url of possibleUrls) {
+        try {
+          console.log('📥 Trying download URL:', url);
+          
+          // FORCE DOWNLOAD - NOT OPEN IN TAB
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `resume_${submissionData?.reference || 'document'}.pdf`;
+          link.style.display = 'none';
+          
+          // Add to DOM, click, and remove
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          
+          console.log('📥 PDF FILE DOWNLOAD INITIATED from:', url);
+          downloadSuccess = true;
+          break;
+          
+        } catch (urlError) {
+          console.log('❌ Download failed for URL:', url, urlError);
+          continue;
         }
-      });
+      }
+      
+      if (downloadSuccess) {
+        setDownloadStatus('downloaded');
+        toast.success('✅ PDF FILE DOWNLOADED! Check your Downloads folder!', { 
+          duration: 5000,
+          style: {
+            background: '#10B981',
+            color: 'white',
+            fontSize: '18px',
+            fontWeight: 'bold'
+          }
+        });
+      } else {
+        throw new Error('All download URLs failed');
+      }
       
     } catch (error) {
       console.error('❌ Download failed:', error);
