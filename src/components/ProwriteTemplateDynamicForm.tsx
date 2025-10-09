@@ -51,6 +51,7 @@ import {
   X
 } from 'lucide-react';
 import '../styles/prowriteTemplateTemplate.css';
+// Fixed CSS import path
 
 interface FormData {
   [key: string]: any;

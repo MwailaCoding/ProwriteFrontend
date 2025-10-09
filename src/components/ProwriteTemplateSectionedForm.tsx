@@ -40,6 +40,7 @@ import ProwriteTemplateJobDescriptionAnalyzer from './prowrite-template/Prowrite
 import ProwriteTemplateCollaborationPanel from './prowrite-template/ProwriteTemplateCollaborationPanel';
 import ProwriteTemplateExportIntegrationPanel from './prowrite-template/ProwriteTemplateExportIntegrationPanel';
 import '../styles/prowriteTemplateTemplate.css';
+// Fixed CSS import path
 
 interface FormData {
   [key: string]: any;

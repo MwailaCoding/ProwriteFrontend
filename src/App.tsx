@@ -37,7 +37,7 @@ import ProwriteTemplateStyleTemplate from './components/resume/ProwriteTemplateS
 import { sampleProwriteTemplateData } from './data/sampleResumeData';
 import './styles/prowriteTemplateTemplate.css';
 
-// Simple test component to show Prowrite template template - Updated for deployment
+// Simple test component to show Prowrite template template - Updated for deployment - Force rebuild
 const ProwriteTemplateTest: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-100 p-8">
