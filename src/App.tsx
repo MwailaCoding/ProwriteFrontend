@@ -36,6 +36,7 @@ import ProfilePage from './pages/profile/ProfilePage';
 import ProwriteTemplateStyleTemplate from './components/resume/ProwriteTemplateStyleTemplate';
 import { sampleProwriteTemplateData } from './data/sampleResumeData';
 import './styles/prowriteTemplateTemplate.css';
+// Ensure CSS is loaded
 
 // Simple test component to show Prowrite template template - Updated for deployment - Force rebuild
 const ProwriteTemplateTest: React.FC = () => {

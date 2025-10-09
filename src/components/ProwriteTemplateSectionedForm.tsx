@@ -39,8 +39,8 @@ import ProwriteTemplateATSAnalysis from './prowrite-template/ProwriteTemplateATS
 import ProwriteTemplateJobDescriptionAnalyzer from './prowrite-template/ProwriteTemplateJobDescriptionAnalyzer';
 import ProwriteTemplateCollaborationPanel from './prowrite-template/ProwriteTemplateCollaborationPanel';
 import ProwriteTemplateExportIntegrationPanel from './prowrite-template/ProwriteTemplateExportIntegrationPanel';
-import '../styles/prowriteTemplateTemplate.css';
-// Fixed CSS import path
+// import '../styles/prowriteTemplateTemplate.css';
+// Temporarily disabled CSS import to test deployment
 
 interface FormData {
   [key: string]: any;
