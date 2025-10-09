@@ -97,7 +97,8 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
         body: JSON.stringify({
           form_data: formData,
           document_type: documentType,
-          user_email: userEmail.trim()
+          user_email: userEmail.trim(),
+          phone_number: userEmail.trim() // Add phone number field that backend might expect
         })
       });
 
