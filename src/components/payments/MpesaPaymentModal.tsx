@@ -23,7 +23,7 @@ interface MpesaPaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
   formData: any;
-  documentType: 'Prowrite Template Resume' | 'Cover Letter';
+  documentType: 'Francisca Resume' | 'Cover Letter';
   onSuccess?: (submissionId: number) => void;
 }
 
@@ -51,7 +51,7 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
   const [submissionData, setSubmissionData] = useState<PaymentSubmission | null>(null);
   const [error, setError] = useState('');
 
-  const amount = documentType === 'Prowrite Template Resume' ? 500 : 300;
+  const amount = documentType === 'Francisca Resume' ? 500 : 300;
 
   const initiatePayment = async () => {
     // Validate email before proceeding
@@ -293,9 +293,9 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
         <div className="flex justify-between items-center">
           <span className="text-gray-600">Till Name:</span>
           <div className="flex items-center space-x-2">
-            <span className="font-semibold">PROWRITE TEMPLATE MAJALA MWAILA</span>
+            <span className="font-semibold">FRANCISCA MAJALA MWAILA</span>
             <button
-              onClick={() => copyToClipboard('PROWRITE TEMPLATE MAJALA MWAILA')}
+              onClick={() => copyToClipboard('FRANCISCA MAJALA MWAILA')}
               className="text-blue-600 hover:text-blue-800 transition-colors"
             >
               <Copy className="w-4 h-4" />

@@ -55,7 +55,7 @@ export interface MpesaPaymentStatus {
 export interface MpesaFormSubmission {
   submission_id: number;
   form_data: any;
-  document_type: 'Prowrite Template Resume' | 'Cover Letter';
+  document_type: 'Francisca Resume' | 'Cover Letter';
   amount: number;
   phone_number: string;
   status: 'pending_payment' | 'paid' | 'pdf_generated' | 'email_sent' | 'completed';
@@ -70,7 +70,7 @@ export interface MpesaFormSubmission {
 
 class MpesaService {
   private readonly PRICING = {
-    'Prowrite Template Resume': 500,
+    'Francisca Resume': 500,
     'Cover Letter': 300
   };
 
@@ -95,7 +95,7 @@ class MpesaService {
    */
   async submitFormWithPayment(data: {
     form_data: any;
-    document_type: 'Prowrite Template Resume' | 'Cover Letter';
+    document_type: 'Francisca Resume' | 'Cover Letter';
     phone_number: string;
   }): Promise<{
     success: boolean;
@@ -219,7 +219,7 @@ class MpesaService {
   /**
    * Get pricing for document type
    */
-  getPricing(documentType: 'Prowrite Template Resume' | 'Cover Letter'): number {
+  getPricing(documentType: 'Francisca Resume' | 'Cover Letter'): number {
     return this.PRICING[documentType];
   }
 

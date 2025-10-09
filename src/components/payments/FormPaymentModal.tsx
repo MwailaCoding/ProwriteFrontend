@@ -21,7 +21,7 @@ interface FormPaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
   formData: any;
-  documentType: 'Prowrite Template Resume' | 'Cover Letter';
+  documentType: 'Francisca Resume' | 'Cover Letter';
   onSuccess?: (submissionId: number) => void;
 }
 
