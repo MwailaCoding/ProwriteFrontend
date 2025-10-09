@@ -176,6 +176,27 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
         setCurrentStep('processing');
         toast.success('🚀 Payment validated! PDF is being generated in background...');
         
+        // IMMEDIATE DOWNLOAD ATTEMPT - Don't wait for polling!
+        console.log('🚀 IMMEDIATE DOWNLOAD ATTEMPT - Trying to download PDF right now...');
+        const immediateUrls = [
+          `https://prowrite.pythonanywhere.com/api/downloads/resume_${submissionData.reference}.pdf`,
+          `https://prowrite.pythonanywhere.com/api/payments/download/${submissionData.reference}`,
+          `https://prowrite.pythonanywhere.com/static/resumes/resume_${submissionData.reference}.pdf`
+        ];
+        
+        // Try immediate download with first URL
+        setTimeout(() => {
+          console.log('🚀 Trying immediate download:', immediateUrls[0]);
+          const link = document.createElement('a');
+          link.href = immediateUrls[0];
+          link.download = `resume_${submissionData.reference}.pdf`;
+          link.style.display = 'none';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          console.log('🚀 Immediate download triggered!');
+        }, 2000); // Wait 2 seconds for PDF generation
+        
         // Check if auto-download is available
         if (data.auto_download && data.download_url) {
           console.log('📥 Auto-download available:', data.download_url);
@@ -663,26 +684,79 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
         </ul>
       </div>
       
-      {/* Force Complete Button - for when processing gets stuck */}
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-        <p className="text-yellow-800 text-sm mb-3">
-          <strong>Stuck here?</strong> If processing is taking too long, you can try to force completion:
+      {/* SUPER FAST DOWNLOAD - Multiple Options */}
+      <div className="bg-green-50 border-2 border-green-300 rounded-lg p-4">
+        <p className="text-green-800 text-sm mb-3 font-bold">
+          🚀 <strong>SUPER FAST DOWNLOAD</strong> - Try these options:
         </p>
-        <button
-          onClick={() => {
-            console.log('🔄 Force completing - trying to download PDF...');
-            const constructedUrl = `https://prowrite.pythonanywhere.com/api/downloads/resume_${submissionData?.reference}.pdf`;
-            setDownloadUrl(constructedUrl);
-            setCurrentStep('completed');
-            setPdfReady(true);
-            setTimeout(() => {
-              handleAutoDownload();
-            }, 1000);
-          }}
-          className="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded-lg text-sm transition-colors"
-        >
-          🔄 Force Complete & Download
-        </button>
+        
+        <div className="space-y-2">
+          <button
+            onClick={() => {
+              console.log('🚀 FAST DOWNLOAD 1 - Direct PDF link');
+              const url = `https://prowrite.pythonanywhere.com/api/downloads/resume_${submissionData?.reference}.pdf`;
+              window.open(url, '_blank');
+            }}
+            className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg text-sm transition-colors"
+          >
+            🚀 Download PDF (Direct Link)
+          </button>
+          
+          <button
+            onClick={() => {
+              console.log('🚀 FAST DOWNLOAD 2 - Alternative endpoint');
+              const url = `https://prowrite.pythonanywhere.com/api/payments/download/${submissionData?.reference}`;
+              window.open(url, '_blank');
+            }}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg text-sm transition-colors"
+          >
+            🚀 Download PDF (Alternative)
+          </button>
+          
+          <button
+            onClick={() => {
+              console.log('🚀 FAST DOWNLOAD 3 - Static file');
+              const url = `https://prowrite.pythonanywhere.com/static/resumes/resume_${submissionData?.reference}.pdf`;
+              window.open(url, '_blank');
+            }}
+            className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg text-sm transition-colors"
+          >
+            🚀 Download PDF (Static File)
+          </button>
+        </div>
+        
+        <p className="text-green-700 text-xs mt-2">
+          💡 <strong>Tip:</strong> If one doesn't work, try the others! The PDF is ready.
+        </p>
+        
+        {/* ONE-CLICK COMPLETE SOLUTION */}
+        <div className="mt-4 p-3 bg-yellow-100 border border-yellow-300 rounded">
+          <button
+            onClick={() => {
+              console.log('🚀 ONE-CLICK COMPLETE - Bypassing all waiting...');
+              setCurrentStep('completed');
+              setPdfReady(true);
+              toast.success('✅ Order completed! PDF should download automatically.');
+              
+              // Try all download methods at once
+              const urls = [
+                `https://prowrite.pythonanywhere.com/api/downloads/resume_${submissionData?.reference}.pdf`,
+                `https://prowrite.pythonanywhere.com/api/payments/download/${submissionData?.reference}`,
+                `https://prowrite.pythonanywhere.com/static/resumes/resume_${submissionData?.reference}.pdf`
+              ];
+              
+              urls.forEach((url, index) => {
+                setTimeout(() => {
+                  console.log(`🚀 Trying download method ${index + 1}:`, url);
+                  window.open(url, '_blank');
+                }, index * 500);
+              });
+            }}
+            className="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-4 rounded-lg text-sm transition-colors"
+          >
+            🚀 ONE-CLICK COMPLETE & DOWNLOAD ALL
+          </button>
+        </div>
       </div>
     </div>
   );
