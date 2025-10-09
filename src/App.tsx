@@ -35,6 +35,7 @@ import { PaymentHistoryPage } from './pages/payments/PaymentHistoryPage';
 import ProfilePage from './pages/profile/ProfilePage';
 import ProwriteTemplateStyleTemplate from './components/resume/ProwriteTemplateStyleTemplate';
 import { sampleProwriteTemplateData } from './data/sampleResumeData';
+import SharedDocumentPage from './pages/SharedDocumentPage';
 import './styles/prowriteTemplateTemplate.css';
 
 // Simple test component to show Prowrite template template - Updated for deployment - Force rebuild
@@ -74,6 +75,9 @@ function App() {
             </ProtectedRoute>
           } />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
+          
+          {/* Shared Document Route - Public access */}
+          <Route path="/shared/:reference" element={<SharedDocumentPage />} />
 
           {/* Protected Routes */}
           <Route path="/app" element={

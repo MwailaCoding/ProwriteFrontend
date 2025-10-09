@@ -16,6 +16,7 @@ import { Button } from '../common/Button';
 import { LoadingSpinner } from '../common/LoadingSpinner';
 import { toast } from 'react-hot-toast';
 import api from '../../config/api';
+import PDFDownloadModal from './PDFDownloadModal';
 
 interface ManualPaymentModalProps {
   isOpen: boolean;
@@ -69,6 +70,7 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
   const [pdfReady, setPdfReady] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [downloadStatus, setDownloadStatus] = useState<'idle' | 'downloading' | 'downloaded' | 'failed'>('idle');
+  const [showPDFDownloadModal, setShowPDFDownloadModal] = useState(false);
 
   const amount = documentType === 'Francisca Resume' ? 500 : 300;
 
@@ -174,37 +176,19 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
       if (data.success) {
         console.log('🚀 ULTRA-FAST MANUAL VALIDATION - SUCCESS!', data);
         setCurrentStep('processing');
-        toast.success('🚀 Payment validated! PDF is being generated in background...');
+        toast.success('🚀 Payment validated! PDF is being generated...');
         
-        // IMMEDIATE DOWNLOAD ATTEMPT - Don't wait for polling!
-        console.log('🚀 IMMEDIATE DOWNLOAD ATTEMPT - Trying to download PDF right now...');
-        const immediateUrls = [
-          `https://prowrite.pythonanywhere.com/api/downloads/resume_${submissionData.reference}.pdf`,
-          `https://prowrite.pythonanywhere.com/api/payments/download/${submissionData.reference}`,
-          `https://prowrite.pythonanywhere.com/static/resumes/resume_${submissionData.reference}.pdf`
-        ];
+        // IMMEDIATE TRANSITION TO PDF DOWNLOAD MODAL - No more slow polling!
+        console.log('🚀 IMMEDIATE TRANSITION - Opening PDF Download Modal in 3 seconds...');
         
-        // Try immediate download with first URL
         setTimeout(() => {
-          console.log('🚀 Trying immediate download:', immediateUrls[0]);
-          const link = document.createElement('a');
-          link.href = immediateUrls[0];
-          link.download = `resume_${submissionData.reference}.pdf`;
-          link.style.display = 'none';
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          console.log('🚀 Immediate download triggered!');
-        }, 2000); // Wait 2 seconds for PDF generation
-        
-        // Check if auto-download is available
-        if (data.auto_download && data.download_url) {
-          console.log('📥 Auto-download available:', data.download_url);
-          setDownloadUrl(data.download_url);
-        }
-        
-        // Start polling for completion
-        pollForCompletion();
+          console.log('🚀 Opening PDF Download Modal...');
+          setCurrentStep('completed');
+          setPdfReady(true);
+          setDownloadUrl(`https://prowrite.pythonanywhere.com/api/downloads/resume_${submissionData.reference}.pdf`);
+          setShowPDFDownloadModal(true);
+          toast.success('✅ Your document is ready!');
+        }, 3000); // 3 seconds for PDF generation
       } else {
         setError(data.error || 'Validation failed');
         
@@ -642,121 +626,34 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
   );
 
   const renderProcessing = () => (
-    <div className="text-center space-y-4">
-      <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
-        <Loader className="w-8 h-8 text-blue-600 animate-spin" />
+    <div className="text-center space-y-6">
+      <div className="mx-auto w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center">
+        <Loader className="w-10 h-10 text-blue-600 animate-spin" />
       </div>
-      <h3 className="text-lg font-semibold">Processing Your Order</h3>
-      <p className="text-gray-600">
-        Payment confirmed! Generating your document...
+      <h3 className="text-xl font-semibold">Generating Your Document</h3>
+      <p className="text-gray-600 text-lg">
+        Payment confirmed! Your {documentType} is being created...
       </p>
       
-      {downloadUrl && (
-        <div className="bg-green-50 border-2 border-green-300 rounded-lg p-4">
-          <p className="font-bold text-green-800 text-lg">📥 PDF READY FOR DOWNLOAD!</p>
-          <p className="text-green-700 mt-2">Click the button below to download your PDF</p>
-          
-          <button
-            onClick={handleAutoDownload}
-            disabled={downloading}
-            className="mt-3 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg text-lg transition-colors disabled:opacity-50"
-          >
-            {downloading ? (
-              <>
-                <Loader className="w-6 h-6 mr-2 animate-spin inline" />
-                DOWNLOADING PDF FILE...
-              </>
-            ) : (
-              <>
-                📥 DOWNLOAD PDF FILE NOW
-              </>
-            )}
-          </button>
+      {/* Progress Indicator */}
+      <div className="bg-blue-50 rounded-lg p-6">
+        <div className="flex items-center justify-center space-x-3 mb-4">
+          <div className="w-3 h-3 bg-blue-600 rounded-full animate-pulse"></div>
+          <div className="w-3 h-3 bg-blue-600 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
+          <div className="w-3 h-3 bg-blue-600 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
         </div>
-      )}
-      
-      <div className="bg-blue-50 rounded-lg p-4 text-sm">
-        <p className="font-medium text-blue-800">What's happening:</p>
-        <ul className="list-disc list-inside text-blue-700 mt-2 space-y-1">
-          <li>Generating your {documentType}</li>
-          <li>Preparing email delivery</li>
-          <li>Almost ready!</li>
-        </ul>
+        <p className="text-blue-800 font-medium">This will take about 3 seconds...</p>
+        <p className="text-blue-600 text-sm mt-2">Your download interface will appear automatically</p>
       </div>
       
-      {/* SUPER FAST DOWNLOAD - Multiple Options */}
-      <div className="bg-green-50 border-2 border-green-300 rounded-lg p-4">
-        <p className="text-green-800 text-sm mb-3 font-bold">
-          🚀 <strong>SUPER FAST DOWNLOAD</strong> - Try these options:
-        </p>
-        
-        <div className="space-y-2">
-          <button
-            onClick={() => {
-              console.log('🚀 FAST DOWNLOAD 1 - Direct PDF link');
-              const url = `https://prowrite.pythonanywhere.com/api/downloads/resume_${submissionData?.reference}.pdf`;
-              window.open(url, '_blank');
-            }}
-            className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg text-sm transition-colors"
-          >
-            🚀 Download PDF (Direct Link)
-          </button>
-          
-          <button
-            onClick={() => {
-              console.log('🚀 FAST DOWNLOAD 2 - Alternative endpoint');
-              const url = `https://prowrite.pythonanywhere.com/api/payments/download/${submissionData?.reference}`;
-              window.open(url, '_blank');
-            }}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg text-sm transition-colors"
-          >
-            🚀 Download PDF (Alternative)
-          </button>
-          
-          <button
-            onClick={() => {
-              console.log('🚀 FAST DOWNLOAD 3 - Static file');
-              const url = `https://prowrite.pythonanywhere.com/static/resumes/resume_${submissionData?.reference}.pdf`;
-              window.open(url, '_blank');
-            }}
-            className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg text-sm transition-colors"
-          >
-            🚀 Download PDF (Static File)
-          </button>
-        </div>
-        
-        <p className="text-green-700 text-xs mt-2">
-          💡 <strong>Tip:</strong> If one doesn't work, try the others! The PDF is ready.
-        </p>
-        
-        {/* ONE-CLICK COMPLETE SOLUTION */}
-        <div className="mt-4 p-3 bg-yellow-100 border border-yellow-300 rounded">
-          <button
-            onClick={() => {
-              console.log('🚀 ONE-CLICK COMPLETE - Bypassing all waiting...');
-              setCurrentStep('completed');
-              setPdfReady(true);
-              toast.success('✅ Order completed! PDF should download automatically.');
-              
-              // Try all download methods at once
-              const urls = [
-                `https://prowrite.pythonanywhere.com/api/downloads/resume_${submissionData?.reference}.pdf`,
-                `https://prowrite.pythonanywhere.com/api/payments/download/${submissionData?.reference}`,
-                `https://prowrite.pythonanywhere.com/static/resumes/resume_${submissionData?.reference}.pdf`
-              ];
-              
-              urls.forEach((url, index) => {
-                setTimeout(() => {
-                  console.log(`🚀 Trying download method ${index + 1}:`, url);
-                  window.open(url, '_blank');
-                }, index * 500);
-              });
-            }}
-            className="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-4 rounded-lg text-sm transition-colors"
-          >
-            🚀 ONE-CLICK COMPLETE & DOWNLOAD ALL
-          </button>
-        </div>
+      <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+        <p className="text-green-800 font-medium">✨ What happens next:</p>
+        <ul className="text-green-700 text-sm mt-2 space-y-1">
+          <li>• PDF preview will open automatically</li>
+          <li>• Download buttons for PDF and DOCX</li>
+          <li>• Share link generation</li>
+          <li>• Collaboration features</li>
+        </ul>
       </div>
     </div>
   );
@@ -934,6 +831,16 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
             </motion.div>
           </div>
         </div>
+      )}
+      
+      {/* PDF Download Modal */}
+      {showPDFDownloadModal && submissionData && (
+        <PDFDownloadModal
+          isOpen={showPDFDownloadModal}
+          onClose={() => setShowPDFDownloadModal(false)}
+          reference={submissionData.reference}
+          documentType={documentType}
+        />
       )}
     </AnimatePresence>
   );
