@@ -50,7 +50,7 @@ import {
   Upload,
   X
 } from 'lucide-react';
-import '../styles/prowrite-templateTemplate.css';
+import '../styles/prowriteTemplateTemplate.css';
 
 interface FormData {
   [key: string]: any;
