@@ -183,11 +183,20 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
         
         setTimeout(() => {
           console.log('🚀 Opening PDF Download Modal...');
-          setCurrentStep('completed');
-          setPdfReady(true);
-          setDownloadUrl(`https://prowrite.pythonanywhere.com/api/downloads/resume_${submissionData.reference}.pdf`);
-          setShowPDFDownloadModal(true);
-          toast.success('✅ Your document is ready!');
+          console.log('🚀 SubmissionData:', submissionData);
+          console.log('🚀 Reference:', submissionData?.reference);
+          
+          if (submissionData && submissionData.reference) {
+            setCurrentStep('completed');
+            setPdfReady(true);
+            setDownloadUrl(`https://prowrite.pythonanywhere.com/api/downloads/resume_${submissionData.reference}.pdf`);
+            setShowPDFDownloadModal(true);
+            toast.success('✅ Your document is ready!');
+            console.log('🚀 PDF Download Modal should now be visible!');
+          } else {
+            console.error('❌ No submissionData or reference found!');
+            toast.error('❌ Error: No payment reference found');
+          }
         }, 3000); // 3 seconds for PDF generation
       } else {
         setError(data.error || 'Validation failed');
@@ -655,6 +664,29 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
           <li>• Collaboration features</li>
         </ul>
       </div>
+      
+      {/* FALLBACK DOWNLOAD BUTTON - Shows after 3 seconds if modal doesn't appear */}
+      {submissionData && submissionData.reference && (
+        <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4 mt-4">
+          <p className="text-yellow-800 font-bold text-center mb-3">
+            🚀 DIRECT DOWNLOAD (Fallback)
+          </p>
+          <button
+            onClick={() => {
+              const url = `https://prowrite.pythonanywhere.com/api/downloads/resume_${submissionData.reference}.pdf`;
+              console.log('🚀 Direct download URL:', url);
+              window.open(url, '_blank');
+              toast.success('🚀 PDF download started!');
+            }}
+            className="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-4 rounded-lg transition-colors"
+          >
+            📥 DOWNLOAD PDF NOW
+          </button>
+          <p className="text-yellow-700 text-xs mt-2 text-center">
+            Reference: {submissionData.reference}
+          </p>
+        </div>
+      )}
     </div>
   );
 
