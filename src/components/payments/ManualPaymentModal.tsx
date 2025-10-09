@@ -62,7 +62,9 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
   const [submissionData, setSubmissionData] = useState<PaymentSubmission | null>(null);
   const [error, setError] = useState('');
   const [retryCount, setRetryCount] = useState(0);
-  const [maxRetries] = useState(3);
+  const [pollingStartTime, setPollingStartTime] = useState<number | null>(null);
+  const [maxRetries] = useState(10);
+  const maxPollingTime = 60000; // 60 seconds timeout
   const [downloadUrl, setDownloadUrl] = useState<string>('');
   const [pdfReady, setPdfReady] = useState(false);
   const [downloading, setDownloading] = useState(false);
@@ -206,7 +208,17 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
   const pollForCompletion = async () => {
     if (!submissionData) return;
 
+    // Set polling start time
+    setPollingStartTime(Date.now());
+
     const poll = async () => {
+      // Check for timeout
+      if (pollingStartTime && Date.now() - pollingStartTime > maxPollingTime) {
+        console.log('⏰ Polling timeout reached, stopping...');
+        toast.error('Processing is taking longer than expected. Please check your email or contact support.');
+        setCurrentStep('failed');
+        return;
+      }
       try {
         // Use absolute URL to ensure it goes to the backend
         const backendURL = 'https://prowrite.pythonanywhere.com/api';
@@ -220,8 +232,12 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
         
         if (data.success) {
           console.log('📊 Polling response:', data);
+          console.log('📊 Status:', data.status);
+          console.log('📊 PDF Ready:', data.pdf_ready);
+          console.log('📊 Download URL:', data.download_url);
           
-          if (data.status === 'completed') {
+          // Check for completion with multiple possible status values
+          if (data.status === 'completed' || data.status === 'processed' || data.pdf_ready || data.download_url) {
             setCurrentStep('completed');
             setPdfReady(true);
             toast.success('Document generated and sent to your email!');
@@ -266,14 +282,18 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
             if (onSuccess) {
               onSuccess(data.submission_id);
             }
-          } else if (data.status === 'processing') {
+          } else if (data.status === 'processing' || data.status === 'generating' || data.status === 'paid') {
             // Ultra-fast polling for processing status
-            setTimeout(poll, 1000); // Poll every 1 second instead of 3
-          } else if (data.status === 'paid') {
-            setTimeout(poll, 2000); // Poll every 2 seconds for paid status
+            console.log('🔄 Still processing, polling again in 1 second...');
+            setTimeout(poll, 1000); // Poll every 1 second
           } else if (data.status === 'pending_admin_confirmation') {
-            // Admin confirmation pending - reduced from 5 to 3 seconds
+            // Admin confirmation pending
+            console.log('⏳ Waiting for admin confirmation...');
             setTimeout(poll, 3000);
+          } else {
+            // Unknown status - log it and continue polling
+            console.log('❓ Unknown status:', data.status, '- continuing to poll...');
+            setTimeout(poll, 2000);
           }
         }
       } catch (error) {
@@ -641,6 +661,28 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
           <li>Preparing email delivery</li>
           <li>Almost ready!</li>
         </ul>
+      </div>
+      
+      {/* Force Complete Button - for when processing gets stuck */}
+      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <p className="text-yellow-800 text-sm mb-3">
+          <strong>Stuck here?</strong> If processing is taking too long, you can try to force completion:
+        </p>
+        <button
+          onClick={() => {
+            console.log('🔄 Force completing - trying to download PDF...');
+            const constructedUrl = `https://prowrite.pythonanywhere.com/api/downloads/resume_${submissionData?.reference}.pdf`;
+            setDownloadUrl(constructedUrl);
+            setCurrentStep('completed');
+            setPdfReady(true);
+            setTimeout(() => {
+              handleAutoDownload();
+            }, 1000);
+          }}
+          className="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded-lg text-sm transition-colors"
+        >
+          🔄 Force Complete & Download
+        </button>
       </div>
     </div>
   );
