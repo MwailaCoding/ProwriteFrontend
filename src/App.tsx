@@ -33,10 +33,9 @@ import { CreateCoverLetterPage } from './pages/cover-letters/CreateCoverLetterPa
 import { EditCoverLetterPage } from './pages/cover-letters/EditCoverLetterPage';
 import { PaymentHistoryPage } from './pages/payments/PaymentHistoryPage';
 import ProfilePage from './pages/profile/ProfilePage';
-// import ProwriteTemplateStyleTemplate from './components/resume/ProwriteTemplateStyleTemplate';
-// import { sampleProwriteTemplateData } from './data/sampleResumeData';
-// import './styles/prowriteTemplateTemplate.css';
-// Temporarily disabled to test deployment
+import ProwriteTemplateStyleTemplate from './components/resume/ProwriteTemplateStyleTemplate';
+import { sampleProwriteTemplateData } from './data/sampleResumeData';
+import './styles/prowriteTemplateTemplate.css';
 
 // Simple test component to show Prowrite template template - Updated for deployment - Force rebuild
 const ProwriteTemplateTest: React.FC = () => {
@@ -45,8 +44,7 @@ const ProwriteTemplateTest: React.FC = () => {
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl font-bold text-center mb-8">Prowrite Template Template Test</h1>
         <div className="bg-white rounded-lg shadow-lg p-8">
-          {/* <ProwriteTemplateStyleTemplate resumeData={sampleProwriteTemplateData} /> */}
-          <p>Prowrite Template Test - Components temporarily disabled for deployment testing</p>
+          <ProwriteTemplateStyleTemplate resumeData={sampleProwriteTemplateData} />
         </div>
       </div>
     </div>

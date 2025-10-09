@@ -11,12 +11,12 @@ import {
   X,
   RotateCcw
 } from 'lucide-react';
-import prowrite-templateQuestionService, { 
+import prowriteTemplateQuestionService, { 
   QuestionStep, 
   Progress, 
   Enhancement, 
   ResumeData 
-} from '../../services/prowrite-templateQuestionService';
+} from '../../services/prowriteTemplateQuestionService';
 
 interface ProwriteTemplateGuidedWizardProps {
   isOpen: boolean;
@@ -51,7 +51,7 @@ const ProwriteTemplateGuidedWizard: React.FC<ProwriteTemplateGuidedWizardProps> 
     try {
       setIsLoading(true);
       setError(null);
-      const { question, progress } = await prowrite-templateQuestionService.startQuestionFlow();
+      const { question, progress } = await prowriteTemplateQuestionService.startQuestionFlow();
       setCurrentQuestion(question);
       setProgress(progress);
     } catch (err: any) {
@@ -68,7 +68,7 @@ const ProwriteTemplateGuidedWizard: React.FC<ProwriteTemplateGuidedWizardProps> 
     if (value.trim()) {
       setIsEnhancing(prev => ({ ...prev, [field]: true }));
       try {
-        const enhancement = await prowrite-templateQuestionService.enhanceAnswer(
+        const enhancement = await prowriteTemplateQuestionService.enhanceAnswer(
           field, 
           value, 
           { profession: answers.profession || 'Professional' }
@@ -88,7 +88,7 @@ const ProwriteTemplateGuidedWizard: React.FC<ProwriteTemplateGuidedWizardProps> 
 
     try {
       setIsLoading(true);
-      const response = await prowrite-templateQuestionService.submitAnswer(
+      const response = await prowriteTemplateQuestionService.submitAnswer(
         field,
         answer,
         { profession: answers.profession || 'Professional' }
@@ -114,7 +114,7 @@ const ProwriteTemplateGuidedWizard: React.FC<ProwriteTemplateGuidedWizardProps> 
   const handleNext = async () => {
     try {
       setIsLoading(true);
-      const { question, progress } = await prowrite-templateQuestionService.getNextQuestion();
+      const { question, progress } = await prowriteTemplateQuestionService.getNextQuestion();
       setCurrentQuestion(question);
       setProgress(progress);
     } catch (err: any) {
@@ -127,7 +127,7 @@ const ProwriteTemplateGuidedWizard: React.FC<ProwriteTemplateGuidedWizardProps> 
   const handlePrevious = async () => {
     try {
       setIsLoading(true);
-      const { question, progress } = await prowrite-templateQuestionService.getPreviousQuestion();
+      const { question, progress } = await prowriteTemplateQuestionService.getPreviousQuestion();
       setCurrentQuestion(question);
       setProgress(progress);
     } catch (err: any) {
@@ -139,7 +139,7 @@ const ProwriteTemplateGuidedWizard: React.FC<ProwriteTemplateGuidedWizardProps> 
 
   const handleComplete = async () => {
     try {
-      const { resume_data } = await prowrite-templateQuestionService.getResumeData();
+      const { resume_data } = await prowriteTemplateQuestionService.getResumeData();
       onComplete(resume_data);
     } catch (err: any) {
       setError(err.message);
@@ -148,7 +148,7 @@ const ProwriteTemplateGuidedWizard: React.FC<ProwriteTemplateGuidedWizardProps> 
 
   const handleAutoFill = async () => {
     try {
-      const { resume_data } = await prowrite-templateQuestionService.getResumeData();
+      const { resume_data } = await prowriteTemplateQuestionService.getResumeData();
       onAutoFill(resume_data);
     } catch (err: any) {
       setError(err.message);
