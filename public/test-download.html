@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Download - No Cache</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+</head>
+<body>
+    <h1>🚀 Test PDF Download (No Cache)</h1>
+    
+    <div style="padding: 20px; border: 2px solid #4CAF50; margin: 20px; border-radius: 10px;">
+        <h2>Direct Download Test</h2>
+        <p>Enter your payment reference:</p>
+        <input type="text" id="reference" placeholder="PAY-6B8F1069" style="padding: 10px; width: 200px;">
+        <br><br>
+        <button onclick="downloadPDF()" style="padding: 15px 30px; background: #4CAF50; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer;">
+            📥 DOWNLOAD PDF NOW
+        </button>
+    </div>
+    
+    <div style="padding: 20px; border: 2px solid #2196F3; margin: 20px; border-radius: 10px;">
+        <h2>Share Link Test</h2>
+        <p>Test the share link:</p>
+        <button onclick="testShareLink()" style="padding: 15px 30px; background: #2196F3; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer;">
+            🔗 TEST SHARE LINK
+        </button>
+    </div>
+    
+    <script>
+        function downloadPDF() {
+            const reference = document.getElementById('reference').value;
+            if (!reference) {
+                alert('Please enter a payment reference');
+                return;
+            }
+            
+            const url = `https://prowrite.pythonanywhere.com/api/downloads/resume_${reference}.pdf`;
+            console.log('Downloading from:', url);
+            
+            // Try direct download
+            window.open(url, '_blank');
+            
+            // Also try creating a link
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `resume_${reference}.pdf`;
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        function testShareLink() {
+            const reference = document.getElementById('reference').value;
+            if (!reference) {
+                alert('Please enter a payment reference');
+                return;
+            }
+            
+            const shareUrl = `https://prowrite.vercel.app/shared/${reference}`;
+            console.log('Share URL:', shareUrl);
+            window.open(shareUrl, '_blank');
+        }
+    </script>
+</body>
+</html>
