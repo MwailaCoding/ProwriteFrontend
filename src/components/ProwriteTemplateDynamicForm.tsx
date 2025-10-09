@@ -2919,7 +2919,7 @@ const ProwriteTemplateDynamicForm: React.FC = () => {
         isOpen={showPaymentModal}
         onClose={() => setShowPaymentModal(false)}
         formData={formData}
-        documentType="ProwriteTemplate Resume"
+        documentType="Francisca Resume"
         onSuccess={handlePaymentSuccess}
       />
     </div>
