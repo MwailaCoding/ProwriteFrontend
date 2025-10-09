@@ -113,7 +113,7 @@ class PDFTemplateService {
    */
   async generateProwriteTemplateResume(resumeData: AIEnhancedData): Promise<GenerateResponse> {
     try {
-      const response = await api.post('/api/resumes/generate-prowrite-template', {
+      const response = await api.post('/api/resumes/generate-francisca', {
         resume_data: resumeData,
         use_ai: resumeData.use_ai,
         theme: resumeData.theme,
