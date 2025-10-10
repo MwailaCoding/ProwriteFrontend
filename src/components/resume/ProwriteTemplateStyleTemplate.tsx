@@ -31,13 +31,13 @@ interface ResumeData {
   }>;
 }
 
-interface FranciscaStyleTemplateProps {
+interface ProwriteTemplateStyleTemplateProps {
   resumeData: ResumeData;
 }
 
-export const FranciscaStyleTemplate: React.FC<FranciscaStyleTemplateProps> = ({ resumeData }) => {
+export const ProwriteTemplateStyleTemplate: React.FC<ProwriteTemplateStyleTemplateProps> = ({ resumeData }) => {
   return (
-    <div className="francisca-template bg-white p-8 max-w-4xl mx-auto font-sans">
+    <div className="prowrite-template-template bg-white p-8 max-w-4xl mx-auto font-sans">
       {/* Header */}
       <div className="header-section mb-8">
         <h1 className="text-4xl font-bold text-gray-900 mb-2">{resumeData.personalInfo.name}</h1>
@@ -180,6 +180,6 @@ export const FranciscaStyleTemplate: React.FC<FranciscaStyleTemplateProps> = ({ 
   );
 };
 
-export default FranciscaStyleTemplate;
+export default ProwriteTemplateStyleTemplate;
 
 

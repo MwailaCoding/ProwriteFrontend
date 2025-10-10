@@ -1,5 +1,5 @@
 /**
- * Francisca Question Flow Service
+ * Prowrite Template Question Flow Service
  * Handles the guided resume building process with real-time enhancement
  */
 
@@ -57,7 +57,7 @@ export interface ResumeData {
   [key: string]: string;
 }
 
-class FranciscaQuestionService {
+class ProwriteTemplateQuestionService {
   private baseURL: string;
 
   constructor() {
@@ -232,8 +232,8 @@ class FranciscaQuestionService {
 }
 
 // Create and export singleton instance
-const franciscaQuestionService = new FranciscaQuestionService();
-export default franciscaQuestionService;
+const prowriteTemplateQuestionService = new ProwriteTemplateQuestionService();
+export default prowriteTemplateQuestionService;
 
 
 

@@ -58,7 +58,7 @@ interface ATSAnalysisResult {
   };
 }
 
-const FranciscaATSAnalysis: React.FC<ATSAnalysisProps> = ({
+const ProwriteTemplateATSAnalysis: React.FC<ATSAnalysisProps> = ({
   isOpen,
   onClose,
   resumeContent,
@@ -80,7 +80,7 @@ const FranciscaATSAnalysis: React.FC<ATSAnalysisProps> = ({
     setError(null);
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://prowrite.pythonanywhere.com/api'}/francisca/ats-analysis`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://prowrite.pythonanywhere.com/api'}/prowrite-template/ats-analysis`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -402,7 +402,7 @@ const FranciscaATSAnalysis: React.FC<ATSAnalysisProps> = ({
   );
 };
 
-export default FranciscaATSAnalysis;
+export default ProwriteTemplateATSAnalysis;
 
 
 

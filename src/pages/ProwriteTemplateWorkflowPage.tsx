@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import ResumeWorkflow from '../components/francisca/ResumeWorkflow';
-import FranciscaDynamicForm from '../components/FranciscaDynamicForm';
+import ResumeWorkflow from '../components/prowrite-template/ResumeWorkflow';
+import ProwriteTemplateDynamicForm from '../components/ProwriteTemplateDynamicForm';
 
-const FranciscaWorkflowPage: React.FC = () => {
+const ProwriteTemplateWorkflowPage: React.FC = () => {
   const [currentView, setCurrentView] = useState<'workflow' | 'form'>('workflow');
   const [importedData, setImportedData] = useState<any>(null);
 
@@ -48,12 +48,12 @@ const FranciscaWorkflowPage: React.FC = () => {
       </div>
 
       {/* Render the form */}
-      <FranciscaDynamicForm 
+      <ProwriteTemplateDynamicForm 
         initialData={importedData} 
       />
     </div>
   );
 };
 
-export default FranciscaWorkflowPage;
+export default ProwriteTemplateWorkflowPage;
 

@@ -214,7 +214,7 @@ const EnhancedATSAnalysis: React.FC<EnhancedATSAnalysisProps> = ({
       console.log('Starting ATS analysis with content:', resumeContent.substring(0, 100) + '...');
       
       // First try the test ATS analysis endpoint (no auth required)
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://prowrite.pythonanywhere.com/api'}/francisca/test-ats-analysis`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://prowrite.pythonanywhere.com/api'}/prowrite-template/test-ats-analysis`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -249,7 +249,7 @@ const EnhancedATSAnalysis: React.FC<EnhancedATSAnalysisProps> = ({
       }
 
       // Fallback to regular ATS analysis
-      const fallbackResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://prowrite.pythonanywhere.com/api'}/francisca/enhanced-ats-analysis`, {
+      const fallbackResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://prowrite.pythonanywhere.com/api'}/prowrite-template/enhanced-ats-analysis`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

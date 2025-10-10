@@ -32,14 +32,14 @@ import {
 } from 'lucide-react';
 import { Button } from './common/Button';
 import { Card } from './common/Card';
-import FranciscaFieldEnhancer from './francisca/FranciscaFieldEnhancer';
-import FranciscaChatbot from './francisca/FranciscaChatbot';
-import FranciscaSmartPromptGenerator from './francisca/FranciscaSmartPromptGenerator';
-import FranciscaATSAnalysis from './francisca/FranciscaATSAnalysis';
-import FranciscaJobDescriptionAnalyzer from './francisca/FranciscaJobDescriptionAnalyzer';
-import FranciscaCollaborationPanel from './francisca/FranciscaCollaborationPanel';
-import FranciscaExportIntegrationPanel from './francisca/FranciscaExportIntegrationPanel';
-import '../styles/franciscaTemplate.css';
+import ProwriteTemplateFieldEnhancer from './prowrite-template/ProwriteTemplateFieldEnhancer';
+import ProwriteTemplateChatbot from './prowrite-template/ProwriteTemplateChatbot';
+import ProwriteTemplateSmartPromptGenerator from './prowrite-template/ProwriteTemplateSmartPromptGenerator';
+import ProwriteTemplateATSAnalysis from './prowrite-template/ProwriteTemplateATSAnalysis';
+import ProwriteTemplateJobDescriptionAnalyzer from './prowrite-template/ProwriteTemplateJobDescriptionAnalyzer';
+import ProwriteTemplateCollaborationPanel from './prowrite-template/ProwriteTemplateCollaborationPanel';
+import ProwriteTemplateExportIntegrationPanel from './prowrite-template/ProwriteTemplateExportIntegrationPanel';
+import '../styles/prowriteTemplateTemplate.css';
 
 interface FormData {
   [key: string]: any;
@@ -111,12 +111,12 @@ const stepConfigs = [
   }
 ];
 
-const FranciscaSectionedForm: React.FC = () => {
+const ProwriteTemplateSectionedForm: React.FC = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState<FormData>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [selectedProfession, setSelectedProfession] = useState<string>('');
-  const [selectedTemplate, setSelectedTemplate] = useState<string>('francisca');
+  const [selectedTemplate, setSelectedTemplate] = useState<string>('prowrite-template');
   const [jobDescription, setJobDescription] = useState<string>('');
   const [atsScore, setAtsScore] = useState<number>(0);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -130,7 +130,7 @@ const FranciscaSectionedForm: React.FC = () => {
   const [schemaLoading, setSchemaLoading] = useState(true);
   const [schemaError, setSchemaError] = useState<string | null>(null);
 
-  // Fetch the Francisca template schema from API
+  // Fetch the ProwriteTemplate template schema from API
   useEffect(() => {
     const fetchSchema = async () => {
       try {
@@ -156,7 +156,7 @@ const FranciscaSectionedForm: React.FC = () => {
 
   // Auto-save functionality
   useEffect(() => {
-    const savedData = localStorage.getItem('franciscaFormData');
+    const savedData = localStorage.getItem('prowrite-templateFormData');
     if (savedData) {
       try {
         setFormData(JSON.parse(savedData));
@@ -167,7 +167,7 @@ const FranciscaSectionedForm: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('franciscaFormData', JSON.stringify(formData));
+    localStorage.setItem('prowrite-templateFormData', JSON.stringify(formData));
   }, [formData]);
 
   const handleInputChange = (fieldName: string, value: any) => {
@@ -733,7 +733,7 @@ const FranciscaSectionedForm: React.FC = () => {
               <Card className="p-6">
                 <h4 className="text-lg font-semibold text-gray-900 mb-4">Choose Template</h4>
                 <div className="space-y-3">
-                  {['Francisca Professional', 'Modern Clean', 'Creative Design', 'Classic Style'].map((template) => (
+                  {['ProwriteTemplate Professional', 'Modern Clean', 'Creative Design', 'Classic Style'].map((template) => (
                     <div
                       key={template}
                       onClick={() => setSelectedTemplate(template.toLowerCase().replace(' ', '-'))}
@@ -2037,7 +2037,7 @@ const FranciscaSectionedForm: React.FC = () => {
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Francisca Resume Builder</h1>
+            <h1 className="text-3xl font-bold text-gray-900">ProwriteTemplate Resume Builder</h1>
             <p className="text-gray-600">Create your professional resume with preserved styling</p>
           </div>
           <div className="flex items-center space-x-3">
@@ -2132,7 +2132,7 @@ const FranciscaSectionedForm: React.FC = () => {
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-gray-700">
-              Francisca Professional Resume
+              ProwriteTemplate Professional Resume
             </span>
             <span className="text-sm text-gray-500">
               {progress}% Complete
@@ -2232,7 +2232,7 @@ const FranciscaSectionedForm: React.FC = () => {
               </div>
             </div>
             <div className="p-6">
-              <FranciscaChatbot
+              <ProwriteTemplateChatbot
                 onClose={() => setShowChatbot(false)}
                 onAutoFill={handleChatbotAutoFill}
               />
@@ -2270,7 +2270,7 @@ const FranciscaSectionedForm: React.FC = () => {
               </div>
             </div>
             <div className="p-6">
-              <FranciscaSmartPromptGenerator
+              <ProwriteTemplateSmartPromptGenerator
                 onClose={() => setShowPromptGenerator(false)}
                 fieldName={currentFieldForGeneration}
                 onGenerate={(content) => {
@@ -2312,7 +2312,7 @@ const FranciscaSectionedForm: React.FC = () => {
               </div>
             </div>
             <div className="p-6">
-              <FranciscaATSAnalysis
+              <ProwriteTemplateATSAnalysis
                 onClose={() => setShowATSAnalysis(false)}
                 resumeContent={generateResumeContent()}
               />
@@ -2350,7 +2350,7 @@ const FranciscaSectionedForm: React.FC = () => {
               </div>
             </div>
             <div className="p-6">
-              <FranciscaJobDescriptionAnalyzer
+              <ProwriteTemplateJobDescriptionAnalyzer
                 onClose={() => setShowJobDescriptionAnalyzer(false)}
                 onAnalyze={(analysis) => {
                   console.log('Job analysis:', analysis);
@@ -2391,7 +2391,7 @@ const FranciscaSectionedForm: React.FC = () => {
               </div>
             </div>
             <div className="p-6">
-              <FranciscaCollaborationPanel
+              <ProwriteTemplateCollaborationPanel
                 onClose={() => setShowCollaborationPanel(false)}
                 resumeId="current"
               />
@@ -2429,7 +2429,7 @@ const FranciscaSectionedForm: React.FC = () => {
               </div>
             </div>
             <div className="p-6">
-              <FranciscaExportIntegrationPanel
+              <ProwriteTemplateExportIntegrationPanel
                 onClose={() => setShowExportIntegrationPanel(false)}
                 resumeData={formData}
               />
@@ -2441,4 +2441,4 @@ const FranciscaSectionedForm: React.FC = () => {
   );
 };
 
-export default FranciscaSectionedForm;
+export default ProwriteTemplateSectionedForm;

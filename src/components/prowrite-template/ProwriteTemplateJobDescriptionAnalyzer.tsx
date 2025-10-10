@@ -59,7 +59,7 @@ interface JobAnalysisResult {
   };
 }
 
-const FranciscaJobDescriptionAnalyzer: React.FC<JobDescriptionAnalyzerProps> = ({
+const ProwriteTemplateJobDescriptionAnalyzer: React.FC<JobDescriptionAnalyzerProps> = ({
   isOpen, onClose, resumeContent, profession
 }) => {
   const [jobDescription, setJobDescription] = useState('');
@@ -77,7 +77,7 @@ const FranciscaJobDescriptionAnalyzer: React.FC<JobDescriptionAnalyzerProps> = (
     setError(null);
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://prowrite.pythonanywhere.com/api'}/francisca/job-description-analysis`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://prowrite.pythonanywhere.com/api'}/prowrite-template/job-description-analysis`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -376,7 +376,7 @@ const FranciscaJobDescriptionAnalyzer: React.FC<JobDescriptionAnalyzerProps> = (
   );
 };
 
-export default FranciscaJobDescriptionAnalyzer;
+export default ProwriteTemplateJobDescriptionAnalyzer;
 
 
 

@@ -11,21 +11,21 @@ import {
   X,
   RotateCcw
 } from 'lucide-react';
-import franciscaQuestionService, { 
+import prowriteTemplateQuestionService, { 
   QuestionStep, 
   Progress, 
   Enhancement, 
   ResumeData 
-} from '../../services/franciscaQuestionService';
+} from '../../services/prowriteTemplateQuestionService';
 
-interface FranciscaGuidedWizardProps {
+interface ProwriteTemplateGuidedWizardProps {
   isOpen: boolean;
   onClose: () => void;
   onComplete: (resumeData: ResumeData) => void;
   onAutoFill: (resumeData: ResumeData) => void;
 }
 
-const FranciscaGuidedWizard: React.FC<FranciscaGuidedWizardProps> = ({
+const ProwriteTemplateGuidedWizard: React.FC<ProwriteTemplateGuidedWizardProps> = ({
   isOpen,
   onClose,
   onComplete,
@@ -51,7 +51,7 @@ const FranciscaGuidedWizard: React.FC<FranciscaGuidedWizardProps> = ({
     try {
       setIsLoading(true);
       setError(null);
-      const { question, progress } = await franciscaQuestionService.startQuestionFlow();
+      const { question, progress } = await prowriteTemplateQuestionService.startQuestionFlow();
       setCurrentQuestion(question);
       setProgress(progress);
     } catch (err: any) {
@@ -68,7 +68,7 @@ const FranciscaGuidedWizard: React.FC<FranciscaGuidedWizardProps> = ({
     if (value.trim()) {
       setIsEnhancing(prev => ({ ...prev, [field]: true }));
       try {
-        const enhancement = await franciscaQuestionService.enhanceAnswer(
+        const enhancement = await prowriteTemplateQuestionService.enhanceAnswer(
           field, 
           value, 
           { profession: answers.profession || 'Professional' }
@@ -88,7 +88,7 @@ const FranciscaGuidedWizard: React.FC<FranciscaGuidedWizardProps> = ({
 
     try {
       setIsLoading(true);
-      const response = await franciscaQuestionService.submitAnswer(
+      const response = await prowriteTemplateQuestionService.submitAnswer(
         field,
         answer,
         { profession: answers.profession || 'Professional' }
@@ -114,7 +114,7 @@ const FranciscaGuidedWizard: React.FC<FranciscaGuidedWizardProps> = ({
   const handleNext = async () => {
     try {
       setIsLoading(true);
-      const { question, progress } = await franciscaQuestionService.getNextQuestion();
+      const { question, progress } = await prowriteTemplateQuestionService.getNextQuestion();
       setCurrentQuestion(question);
       setProgress(progress);
     } catch (err: any) {
@@ -127,7 +127,7 @@ const FranciscaGuidedWizard: React.FC<FranciscaGuidedWizardProps> = ({
   const handlePrevious = async () => {
     try {
       setIsLoading(true);
-      const { question, progress } = await franciscaQuestionService.getPreviousQuestion();
+      const { question, progress } = await prowriteTemplateQuestionService.getPreviousQuestion();
       setCurrentQuestion(question);
       setProgress(progress);
     } catch (err: any) {
@@ -139,7 +139,7 @@ const FranciscaGuidedWizard: React.FC<FranciscaGuidedWizardProps> = ({
 
   const handleComplete = async () => {
     try {
-      const { resume_data } = await franciscaQuestionService.getResumeData();
+      const { resume_data } = await prowriteTemplateQuestionService.getResumeData();
       onComplete(resume_data);
     } catch (err: any) {
       setError(err.message);
@@ -148,7 +148,7 @@ const FranciscaGuidedWizard: React.FC<FranciscaGuidedWizardProps> = ({
 
   const handleAutoFill = async () => {
     try {
-      const { resume_data } = await franciscaQuestionService.getResumeData();
+      const { resume_data } = await prowriteTemplateQuestionService.getResumeData();
       onAutoFill(resume_data);
     } catch (err: any) {
       setError(err.message);
@@ -190,7 +190,7 @@ const FranciscaGuidedWizard: React.FC<FranciscaGuidedWizardProps> = ({
             <div>
               <h2 className="text-2xl font-bold flex items-center gap-2">
                 <Sparkles className="w-6 h-6" />
-                Francisca AI Resume Builder
+                ProwriteTemplate AI Resume Builder
               </h2>
               <p className="text-purple-100 mt-1">Guided resume creation with AI enhancement</p>
             </div>
@@ -460,7 +460,7 @@ const FranciscaGuidedWizard: React.FC<FranciscaGuidedWizardProps> = ({
   );
 };
 
-export default FranciscaGuidedWizard;
+export default ProwriteTemplateGuidedWizard;
 
 
 

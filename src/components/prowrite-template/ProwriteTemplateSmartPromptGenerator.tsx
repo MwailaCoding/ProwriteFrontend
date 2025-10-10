@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { MessageSquare, Sparkles, Loader2, X, Copy, Check } from 'lucide-react';
 import axios from 'axios';
 
-interface FranciscaSmartPromptGeneratorProps {
+interface ProwriteTemplateSmartPromptGeneratorProps {
   fieldType: string;
   profession?: string;
   onGenerateContent: (content: string) => void;
@@ -10,7 +10,7 @@ interface FranciscaSmartPromptGeneratorProps {
   onClose: () => void;
 }
 
-const FranciscaSmartPromptGenerator: React.FC<FranciscaSmartPromptGeneratorProps> = ({
+const ProwriteTemplateSmartPromptGenerator: React.FC<ProwriteTemplateSmartPromptGeneratorProps> = ({
   fieldType,
   profession,
   onGenerateContent,
@@ -85,7 +85,7 @@ const FranciscaSmartPromptGenerator: React.FC<FranciscaSmartPromptGeneratorProps
     setGeneratedContent('');
 
     try {
-      const response = await axios.post('/api/francisca/ai/generate-content', {
+      const response = await axios.post('/api/prowrite-template/ai/generate-content', {
           prompt: prompt.trim(),
           field_type: fieldType,
           context: {
@@ -254,7 +254,7 @@ const FranciscaSmartPromptGenerator: React.FC<FranciscaSmartPromptGeneratorProps
   );
 };
 
-export default FranciscaSmartPromptGenerator;
+export default ProwriteTemplateSmartPromptGenerator;
 
 
 

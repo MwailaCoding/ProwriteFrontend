@@ -446,7 +446,7 @@ export const DashboardPage: React.FC = () => {
               transition={{ duration: 0.8, delay: 0.4 }}
               className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto px-4"
             >
-              Create professional documents with our Francisca templates and cover letter builder.
+              Create professional documents with our Prowrite template templates and cover letter builder.
             </motion.p>
           </div>
         </motion.div>
@@ -490,7 +490,7 @@ export const DashboardPage: React.FC = () => {
 
         {/* Main Navigation Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
-          {/* Francisca Templates Section */}
+          {/* Prowrite Template Templates Section */}
           <motion.div variants={itemVariants} className="space-y-6">
             <Card className="relative overflow-hidden border-0 shadow-xl">
               <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-indigo-500/5" />
@@ -499,13 +499,13 @@ export const DashboardPage: React.FC = () => {
                   <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl text-white shadow-lg">
                     <FileText className="h-8 w-8" />
                   </div>
-                  <span>Francisca Resume Templates</span>
+                  <span>Prowrite Template Resume Templates</span>
                 </CardTitle>
                 <p className="text-gray-600 mt-2">Professional ATS-friendly resume templates</p>
               </CardHeader>
               <CardContent className="relative space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Link to="/francisca">
+                  <Link to="/prowrite-template">
                     <div className="p-6 bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-lg transition-all duration-300 cursor-pointer group">
                       <div className="flex items-center space-x-4">
                         <div className="p-3 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
@@ -513,7 +513,7 @@ export const DashboardPage: React.FC = () => {
                         </div>
                         <div>
                           <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">Create New Resume</h3>
-                          <p className="text-sm text-gray-600">Start with Francisca template</p>
+                          <p className="text-sm text-gray-600">Start with Prowrite template template</p>
                         </div>
                       </div>
                     </div>
@@ -539,7 +539,7 @@ export const DashboardPage: React.FC = () => {
                       <Sparkles className="h-5 w-5 text-blue-600" />
                     </div>
                     <div>
-                      <h4 className="font-semibold text-blue-900">Francisca Features</h4>
+                      <h4 className="font-semibold text-blue-900">Prowrite Template Features</h4>
                       <ul className="text-sm text-blue-700 mt-2 space-y-1">
                         <li>• ATS-optimized formatting</li>
                         <li>• Professional design templates</li>
@@ -692,7 +692,7 @@ export const DashboardPage: React.FC = () => {
           </div>
           
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <Link to="/francisca">
+            <Link to="/prowrite-template">
               <div className="p-4 bg-blue-50 hover:bg-blue-100 rounded-xl border border-blue-200 hover:border-blue-300 transition-all duration-300 cursor-pointer group text-center">
                 <div className="p-3 bg-blue-100 rounded-lg mx-auto mb-3 group-hover:bg-blue-200 transition-colors w-fit">
                   <FileText className="h-6 w-6 text-blue-600" />

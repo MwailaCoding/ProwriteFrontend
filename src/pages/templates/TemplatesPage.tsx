@@ -187,7 +187,7 @@ export const TemplatesPage: React.FC = () => {
                   </div>
 
                   <h2 className="text-4xl font-bold text-slate-900 leading-tight">
-                    Francisca Professional Resume
+                    ProwriteTemplate Professional Resume
                   </h2>
                   
                   <p className="text-lg text-slate-600 leading-relaxed">
@@ -219,11 +219,11 @@ export const TemplatesPage: React.FC = () => {
                     <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                                       <Button 
                   onClick={() => {
-                    console.log('Button clicked, navigating to Francisca form...');
+                    console.log('Button clicked, navigating to ProwriteTemplate form...');
                     console.log('Current location:', window.location.pathname);
-                    console.log('Target path: /app/francisca');
+                    console.log('Target path: /app/prowrite-template');
                     try {
-                      navigate('/app/francisca');
+                      navigate('/app/prowrite-template');
                       console.log('Navigation successful');
                     } catch (error) {
                       console.error('Navigation error:', error);
@@ -232,7 +232,7 @@ export const TemplatesPage: React.FC = () => {
                   className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
                 >
                   <Play className="h-5 w-5 mr-2" />
-                  Try Francisca Form
+                  Try ProwriteTemplate Form
                   <ArrowRight className="h-5 w-5 ml-2" />
                 </Button>
                     </motion.div>
@@ -294,7 +294,7 @@ export const TemplatesPage: React.FC = () => {
             </h3>
             
             <p className="text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed mb-8">
-              The Francisca Professional Resume template represents the pinnacle of resume creation technology. 
+              The ProwriteTemplate Professional Resume template represents the pinnacle of resume creation technology. 
               With advanced AI-powered formatting, dynamic content management, and guaranteed ATS compatibility, 
               it's designed to give you a competitive edge in today's job market.
             </p>

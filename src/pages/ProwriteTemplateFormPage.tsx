@@ -1,7 +1,7 @@
 import React from 'react';
-import FranciscaDynamicForm from '../components/FranciscaDynamicForm';
+import ProwriteTemplateDynamicForm from '../components/ProwriteTemplateDynamicForm';
 
-const FranciscaFormPage: React.FC = () => {
+const ProwriteTemplateFormPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Header */}
@@ -70,7 +70,7 @@ const FranciscaFormPage: React.FC = () => {
 
       {/* Main Content */}
       <div className="py-8">
-        <FranciscaDynamicForm />
+        <ProwriteTemplateDynamicForm />
       </div>
 
       {/* Footer */}
@@ -80,7 +80,7 @@ const FranciscaFormPage: React.FC = () => {
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-4">About This Template</h3>
               <p className="text-gray-600 text-sm">
-                The Francisca Professional Resume template features a clean, modern design with preserved styling 
+                The ProwriteTemplate Professional Resume template features a clean, modern design with preserved styling 
                 that ensures your resume looks exactly as intended. Perfect for professionals in any industry.
               </p>
             </div>
@@ -128,5 +128,5 @@ const FranciscaFormPage: React.FC = () => {
   );
 };
 
-export default FranciscaFormPage;
+export default ProwriteTemplateFormPage;
 
