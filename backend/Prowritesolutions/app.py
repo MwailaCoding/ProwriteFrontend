@@ -8796,6 +8796,66 @@ def invite_collaborator(reference):
             'error': 'Internal server error'
         }), 500
 
+@app.route('/api/debug/payments', methods=['GET'])
+def debug_payments():
+    """Debug endpoint to see what payments exist in the database"""
+    try:
+        connection = auth_system.get_db_connection()
+        if not connection:
+            return jsonify({
+                'success': False,
+                'error': 'Database connection failed'
+            }), 500
+        
+        try:
+            cursor = connection.cursor()
+            
+            # Get all payment tables
+            cursor.execute("SHOW TABLES LIKE '%payment%'")
+            payment_tables = cursor.fetchall()
+            
+            result = {
+                'success': True,
+                'payment_tables': [table[0] for table in payment_tables],
+                'recent_payments': []
+            }
+            
+            # Check manual_payments table
+            if ('manual_payments',) in payment_tables:
+                cursor.execute("SELECT reference, status, created_at, user_email FROM manual_payments ORDER BY created_at DESC LIMIT 10")
+                manual_payments = cursor.fetchall()
+                result['manual_payments'] = [
+                    {
+                        'reference': row[0],
+                        'status': row[1], 
+                        'created_at': row[2].isoformat() if row[2] else None,
+                        'user_email': row[3]
+                    } for row in manual_payments
+                ]
+            
+            # Check other possible payment tables
+            for table_name, in payment_tables:
+                if table_name != 'manual_payments':
+                    try:
+                        cursor.execute(f"SELECT * FROM {table_name} ORDER BY created_at DESC LIMIT 5")
+                        table_data = cursor.fetchall()
+                        result[f'{table_name}_sample'] = table_data
+                    except Exception as e:
+                        result[f'{table_name}_error'] = str(e)
+            
+            return jsonify(result), 200
+                
+        finally:
+            if connection:
+                connection.close()
+            
+    except Exception as e:
+        logger.error(f"Debug payments failed: {e}")
+        return jsonify({
+            'success': False,
+            'error': f'Debug failed: {str(e)}'
+        }), 500
+
 if __name__ == '__main__':
     app.run(
         host='0.0.0.0',
