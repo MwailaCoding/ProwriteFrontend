@@ -183,26 +183,11 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
         console.log('🚀 Current submissionData:', submissionData);
         console.log('🚀 Current reference:', submissionData?.reference);
         
-        // SIMPLE DIRECT DOWNLOAD - EASIEST ALTERNATIVE
-        console.log('🚀 SIMPLE DIRECT DOWNLOAD - Opening PDF immediately...');
+        // SIMPLE SOLUTION - Just show download button in processing screen
+        console.log('🚀 SIMPLE SOLUTION - Payment validated, showing download button');
         if (submissionData && submissionData.reference) {
-          console.log('🚀 Direct download URL:', `https://prowrite.pythonanywhere.com/api/downloads/resume_${submissionData.reference}.pdf`);
-          
-          // Open PDF directly in new tab
-          const pdfUrl = `https://prowrite.pythonanywhere.com/api/downloads/resume_${submissionData.reference}.pdf`;
-          window.open(pdfUrl, '_blank');
-          
-          // Also trigger download
-          const link = document.createElement('a');
-          link.href = pdfUrl;
-          link.download = `resume_${submissionData.reference}.pdf`;
-          link.style.display = 'none';
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          
-          toast.success('🚀 PDF opened and downloaded! Check your downloads folder!');
-          console.log('🚀 PDF download completed!');
+          console.log('🚀 Reference found:', submissionData.reference);
+          toast.success('✅ Payment validated! Download button will appear below.');
         } else {
           console.error('❌ No submissionData or reference found!');
           toast.error('❌ Error: No payment reference found');
@@ -695,45 +680,42 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
         </ul>
       </div>
       
-      {/* ALWAYS VISIBLE DIRECT DOWNLOAD BUTTON */}
+      {/* SIMPLE DOWNLOAD BUTTON - ALWAYS VISIBLE */}
       {submissionData && submissionData.reference && (
-        <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4 mt-4">
-          <p className="text-yellow-800 font-bold text-center mb-3">
-            🚀 DIRECT DOWNLOAD (Always Available)
+        <div className="bg-green-50 border-2 border-green-300 rounded-lg p-6 mt-4">
+          <h3 className="text-green-800 font-bold text-center mb-4 text-xl">
+            ✅ YOUR PDF IS READY!
+          </h3>
+          <p className="text-green-700 text-center mb-4">
+            Reference: <strong>{submissionData.reference}</strong>
           </p>
-          <div className="space-y-2">
-            <button
-              onClick={() => {
-                const url = `https://prowrite.pythonanywhere.com/api/downloads/resume_${submissionData.reference}.pdf`;
-                console.log('🚀 Direct download URL:', url);
-                window.open(url, '_blank');
-                toast.success('🚀 PDF download started!');
-              }}
-              className="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-4 rounded-lg transition-colors"
-            >
-              📥 DOWNLOAD PDF NOW
-            </button>
-            <button
-              onClick={() => {
-                console.log('🚀 MANUAL TRIGGER - Opening PDF Download Modal...');
-                console.log('🚀 Current step before:', currentStep);
-                setCurrentStep('completed');
-                setPdfReady(true);
-                setDownloadUrl(`https://prowrite.pythonanywhere.com/api/downloads/resume_${submissionData.reference}.pdf`);
-                setShowPDFDownloadModal(true);
-                toast.success('🚀 PDF Download Modal opened!');
-                console.log('🚀 Modal state set to true');
-              }}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-colors"
-            >
-              🎯 FORCE OPEN DOWNLOAD MODAL
-            </button>
-          </div>
-          <p className="text-yellow-700 text-xs mt-2 text-center">
-            Reference: {submissionData.reference}
-          </p>
-          <p className="text-yellow-600 text-xs mt-1 text-center">
-            Both buttons work immediately - no waiting!
+          
+          <button
+            onClick={() => {
+              const url = `https://prowrite.pythonanywhere.com/api/downloads/resume_${submissionData.reference}.pdf`;
+              console.log('🚀 Downloading PDF:', url);
+              
+              // Open in new tab
+              window.open(url, '_blank');
+              
+              // Also download
+              const link = document.createElement('a');
+              link.href = url;
+              link.download = `resume_${submissionData.reference}.pdf`;
+              link.style.display = 'none';
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+              
+              toast.success('🚀 PDF downloaded! Check your downloads folder!');
+            }}
+            className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-lg transition-colors text-lg"
+          >
+            📥 DOWNLOAD YOUR PDF NOW
+          </button>
+          
+          <p className="text-green-600 text-sm mt-3 text-center">
+            This button works immediately - no waiting!
           </p>
         </div>
       )}
@@ -915,26 +897,7 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
         </div>
       )}
       
-      {/* PDF Download Modal */}
-      {showPDFDownloadModal && submissionData && (
-        <div style={{position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', zIndex: 9999, background: 'red'}}>
-          <div style={{position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: 'white', padding: '20px', borderRadius: '10px', zIndex: 10000}}>
-            <h2>DEBUG: Modal should be visible!</h2>
-            <p>Reference: {submissionData.reference}</p>
-            <button onClick={() => setShowPDFDownloadModal(false)}>Close Debug</button>
-          </div>
-        </div>
-      )}
-      
-      {/* PDF Download Modal - Original */}
-      {showPDFDownloadModal && submissionData && (
-        <PDFDownloadModal
-          isOpen={showPDFDownloadModal}
-          onClose={() => setShowPDFDownloadModal(false)}
-          reference={submissionData.reference}
-          documentType={documentType}
-        />
-      )}
+      {/* SIMPLE SOLUTION - No complex modals */}
     </AnimatePresence>
   );
 };
