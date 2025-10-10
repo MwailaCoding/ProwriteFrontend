@@ -154,7 +154,7 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
       if (data.success) {
         console.log('🚀 ULTRA-FAST VALIDATION - SUCCESS!', data);
         setCurrentStep('processing');
-        toast.success('🚀 Payment validated! PDF is being generated in background...');
+        toast.success('🚀 Payment validated! PDF is being generated in background... Your download interface will appear in 3 seconds!');
         pollForCompletion();
       } else {
         setError(data.error || 'Validation failed');
@@ -193,7 +193,7 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
         if (data.success) {
           if (data.status === 'completed') {
             setCurrentStep('completed');
-            toast.success('Document generated and sent to your email!');
+            toast.success('✅ Document ready for download and sharing!');
             if (onSuccess) {
               onSuccess(data.submission_id);
             }

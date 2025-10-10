@@ -263,7 +263,7 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
           if (data.status === 'completed' || data.status === 'processed' || data.pdf_ready || data.download_url) {
             setCurrentStep('completed');
             setPdfReady(true);
-            toast.success('Document generated and sent to your email!');
+            toast.success('✅ Document ready for download and sharing!');
             
             console.log('🎯 PDF completed - Download URL:', downloadUrl);
             console.log('🎯 PDF completed - PDF Ready:', data.pdf_ready);
