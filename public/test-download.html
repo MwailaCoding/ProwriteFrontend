@@ -1,66 +1,181 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Test Download - No Cache</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prowrite Download Test</title>
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+        }
+        .success { border-color: #4CAF50; background-color: #f1f8e9; }
+        .info { border-color: #2196F3; background-color: #e3f2fd; }
+        input {
+            padding: 12px;
+            width: 300px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        button {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        .download-btn { background: #4CAF50; color: white; }
+        .share-btn { background: #2196F3; color: white; }
+        .test-btn { background: #FF9800; color: white; }
+        button:hover { opacity: 0.8; }
+        .result {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .success-result { background: #d4edda; color: #155724; }
+        .error-result { background: #f8d7da; color: #721c24; }
+    </style>
 </head>
 <body>
-    <h1>🚀 Test PDF Download (No Cache)</h1>
-    
-    <div style="padding: 20px; border: 2px solid #4CAF50; margin: 20px; border-radius: 10px;">
-        <h2>Direct Download Test</h2>
-        <p>Enter your payment reference:</p>
-        <input type="text" id="reference" placeholder="PAY-6B8F1069" style="padding: 10px; width: 200px;">
-        <br><br>
-        <button onclick="downloadPDF()" style="padding: 15px 30px; background: #4CAF50; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer;">
-            📥 DOWNLOAD PDF NOW
-        </button>
-    </div>
-    
-    <div style="padding: 20px; border: 2px solid #2196F3; margin: 20px; border-radius: 10px;">
-        <h2>Share Link Test</h2>
-        <p>Test the share link:</p>
-        <button onclick="testShareLink()" style="padding: 15px 30px; background: #2196F3; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer;">
-            🔗 TEST SHARE LINK
-        </button>
+    <div class="container">
+        <h1>🚀 Prowrite Download Test</h1>
+        <p>This page tests the new on-demand PDF generation system.</p>
+        
+        <div class="test-section success">
+            <h2>📥 Direct PDF Download Test</h2>
+            <p>Enter your payment reference (e.g., PAY-6B8F1069):</p>
+            <input type="text" id="reference" placeholder="PAY-6B8F1069">
+            <br><br>
+            <button class="download-btn" onclick="downloadPDF()">📥 DOWNLOAD PDF NOW</button>
+            <button class="test-btn" onclick="testBackend()">🔧 TEST BACKEND</button>
+            <div id="downloadResult"></div>
+        </div>
+        
+        <div class="test-section info">
+            <h2>🔗 Share Link Test</h2>
+            <p>Test the public sharing functionality:</p>
+            <button class="share-btn" onclick="testShareLink()">🔗 TEST SHARE LINK</button>
+            <div id="shareResult"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>📊 System Status</h2>
+            <p>Backend URL: <code>https://prowrite.pythonanywhere.com</code></p>
+            <p>Frontend URL: <code>https://prowrite.vercel.app</code></p>
+            <button class="test-btn" onclick="checkSystemStatus()">🔍 CHECK SYSTEM STATUS</button>
+            <div id="statusResult"></div>
+        </div>
     </div>
     
     <script>
+        function showResult(elementId, message, isSuccess = true) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = message;
+            element.className = 'result ' + (isSuccess ? 'success-result' : 'error-result');
+        }
+        
         function downloadPDF() {
-            const reference = document.getElementById('reference').value;
+            const reference = document.getElementById('reference').value.trim();
             if (!reference) {
-                alert('Please enter a payment reference');
+                showResult('downloadResult', '❌ Please enter a payment reference', false);
                 return;
             }
             
             const url = `https://prowrite.pythonanywhere.com/api/downloads/resume_${reference}.pdf`;
             console.log('Downloading from:', url);
             
-            // Try direct download
-            window.open(url, '_blank');
+            showResult('downloadResult', '⏳ Downloading PDF...', true);
             
-            // Also try creating a link
+            // Try direct download
             const link = document.createElement('a');
             link.href = url;
             link.download = `resume_${reference}.pdf`;
+            link.target = '_blank';
             link.style.display = 'none';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+            
+            showResult('downloadResult', '✅ Download initiated! Check your downloads folder.', true);
+        }
+        
+        function testBackend() {
+            const reference = document.getElementById('reference').value.trim();
+            if (!reference) {
+                showResult('downloadResult', '❌ Please enter a payment reference', false);
+                return;
+            }
+            
+            const url = `https://prowrite.pythonanywhere.com/api/downloads/resume_${reference}.pdf`;
+            showResult('downloadResult', '⏳ Testing backend connection...', true);
+            
+            fetch(url, { method: 'HEAD' })
+                .then(response => {
+                    if (response.ok) {
+                        showResult('downloadResult', '✅ Backend is working! PDF endpoint is accessible.', true);
+                    } else {
+                        showResult('downloadResult', `❌ Backend error: ${response.status} ${response.statusText}`, false);
+                    }
+                })
+                .catch(error => {
+                    showResult('downloadResult', `❌ Connection error: ${error.message}`, false);
+                });
         }
         
         function testShareLink() {
-            const reference = document.getElementById('reference').value;
+            const reference = document.getElementById('reference').value.trim();
             if (!reference) {
-                alert('Please enter a payment reference');
+                showResult('shareResult', '❌ Please enter a payment reference', false);
                 return;
             }
             
             const shareUrl = `https://prowrite.vercel.app/shared/${reference}`;
             console.log('Share URL:', shareUrl);
+            
+            showResult('shareResult', '⏳ Opening share link...', true);
             window.open(shareUrl, '_blank');
+            
+            showResult('shareResult', '✅ Share link opened in new tab!', true);
+        }
+        
+        function checkSystemStatus() {
+            showResult('statusResult', '⏳ Checking system status...', true);
+            
+            // Test backend health
+            fetch('https://prowrite.pythonanywhere.com/api/health')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'healthy') {
+                        showResult('statusResult', '✅ System is healthy! Backend is running properly.', true);
+                    } else {
+                        showResult('statusResult', '⚠️ Backend responded but status unclear.', false);
+                    }
+                })
+                .catch(error => {
+                    showResult('statusResult', `❌ Backend health check failed: ${error.message}`, false);
+                });
         }
     </script>
 </body>
