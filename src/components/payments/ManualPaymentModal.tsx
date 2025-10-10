@@ -648,9 +648,9 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
       <div className="mx-auto w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center">
         <Loader className="w-10 h-10 text-blue-600 animate-spin" />
       </div>
-      <h3 className="text-xl font-semibold">Generating Your Document</h3>
+      <h3 className="text-xl font-semibold">🚀 Payment Validated!</h3>
       <p className="text-gray-600 text-lg">
-        Payment confirmed! Your {documentType} is being created...
+        PDF is being generated in background... Your download interface will appear in 3 seconds!
       </p>
       
       {/* Progress Indicator */}
@@ -722,9 +722,9 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
       <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
         <CheckCircle className="w-8 h-8 text-green-600" />
       </div>
-      <h3 className="text-lg font-semibold text-green-800">Order Complete!</h3>
+      <h3 className="text-lg font-semibold text-green-800">✅ Document Ready!</h3>
       <p className="text-gray-600">
-        Your {documentType} has been generated and sent to your email
+        Your {documentType} is ready for download and sharing!
       </p>
       
       {/* Download Status Indicators */}
@@ -756,10 +756,10 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
         </div>
       )}
       
-      <div className="bg-blue-50 rounded-lg p-4">
-        <div className="flex items-center justify-center space-x-2 text-blue-700">
+      <div className="bg-green-50 rounded-lg p-4">
+        <div className="flex items-center justify-center space-x-2 text-green-700">
           <CheckCircle className="w-5 h-5" />
-          <span className="text-sm font-medium">Check your email for the document</span>
+          <span className="text-sm font-medium">🎉 PDF Download Modal is now available!</span>
         </div>
       </div>
       
