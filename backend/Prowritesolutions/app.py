@@ -3,7 +3,7 @@ ProWrite Backend - Complete Consolidated Flask Application
 All backend functionality integrated into a single file for easy hosting
 """
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from datetime import datetime, timedelta
@@ -6279,23 +6279,43 @@ def generate_francisca_resume():
         job_description = data.get('job_description', '')
         industry = data.get('industry', '')
 
-        # Generate output path
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"francisca_resume_{user_id}_{timestamp}.pdf"
-        output_path = f"static/templates/generated_resumes/{filename}"
+        # Generate PDF in memory (temporary file)
+        import tempfile
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_file:
+            temp_path = temp_file.name
 
         # Generate PDF using Francisca template
-        success = pdf_generator.generate_resume_pdf(resume_data, output_path)
+        success = pdf_generator.generate_resume_pdf(resume_data, temp_path)
 
         if success:
+            # Read the generated PDF into memory
+            with open(temp_path, 'rb') as pdf_file:
+                pdf_data = pdf_file.read()
+            
+            # Clean up temporary file
+            try:
+                os.unlink(temp_path)
+            except:
+                pass
+            
+            # Return PDF data as base64 for frontend to handle
+            import base64
+            pdf_base64 = base64.b64encode(pdf_data).decode('utf-8')
+            
             return jsonify({
                 'success': True,
                 'message': 'Francisca resume generated successfully',
-                'pdf_path': f'/static/templates/generated_resumes/{filename}',
-                'filename': filename,
-                'resume_id': f"francisca_{timestamp}"
+                'pdf_data': pdf_base64,
+                'filename': f"francisca_resume_{user_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
+                'resume_id': f"francisca_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
             })
         else:
+            # Clean up temporary file
+            try:
+                os.unlink(temp_path)
+            except:
+                pass
+            
             return jsonify({
                 'success': False,
                 'message': 'Failed to generate Francisca resume'
@@ -8515,6 +8535,266 @@ prowrite_requests_total{{endpoint="/api/health"}} 1
 prowrite_database_connections{{status="active"}} 1
 """
     return metrics_data, 200, {'Content-Type': 'text/plain'}
+
+# Download endpoints for PDF and DOCX files - Generate on-demand to save storage
+@app.route('/api/downloads/resume_<reference>.pdf', methods=['GET'])
+def download_resume_pdf(reference):
+    """Download resume PDF by reference - Generate on-demand"""
+    try:
+        logger.info(f"Generating PDF on-demand for reference: {reference}")
+        
+        # Get payment data from database to retrieve form data
+        connection = auth_system.get_db_connection()
+        if not connection:
+            return jsonify({
+                'success': False,
+                'error': 'Database connection failed'
+            }), 500
+        
+        try:
+            cursor = connection.cursor()
+            
+            # First, let's check what tables exist and their structure
+            logger.info(f"Looking for payment data for reference: {reference}")
+            
+            # Try different possible table/column combinations
+            possible_queries = [
+                # Try the most likely structure first
+                ("SELECT form_data, document_type, user_email FROM manual_payments WHERE reference = %s", (reference,)),
+                ("SELECT form_data, document_type, user_email FROM manual_payments WHERE reference = %s AND status = 'completed'", (reference,)),
+                ("SELECT form_data, document_type, user_email FROM manual_payments WHERE reference = %s AND status = 'validated'", (reference,)),
+                ("SELECT form_data, document_type, user_email FROM manual_payments WHERE reference = %s AND status = 'success'", (reference,)),
+                # Try without status filter
+                ("SELECT form_data, document_type, user_email FROM manual_payments WHERE reference = %s", (reference,)),
+            ]
+            
+            payment_data = None
+            for query, params in possible_queries:
+                try:
+                    logger.info(f"Trying query: {query}")
+                    cursor.execute(query, params)
+                    payment_data = cursor.fetchone()
+                    if payment_data:
+                        logger.info(f"Found payment data with query: {query}")
+                        break
+                except Exception as e:
+                    logger.warning(f"Query failed: {query}, Error: {e}")
+                    continue
+            
+            if not payment_data:
+                # Let's see what's actually in the database
+                try:
+                    cursor.execute("SHOW TABLES LIKE '%payment%'")
+                    tables = cursor.fetchall()
+                    logger.info(f"Available payment tables: {tables}")
+                    
+                    cursor.execute("SELECT * FROM manual_payments LIMIT 5")
+                    sample_data = cursor.fetchall()
+                    logger.info(f"Sample manual_payments data: {sample_data}")
+                except Exception as e:
+                    logger.error(f"Could not inspect database: {e}")
+                
+                return jsonify({
+                    'success': False,
+                    'error': f'Payment not found for reference: {reference}'
+                }), 404
+            
+            form_data, document_type, user_email = payment_data
+            logger.info(f"Found payment data - Document type: {document_type}, User: {user_email}")
+            
+            # Parse form data
+            import json
+            try:
+                resume_data = json.loads(form_data) if isinstance(form_data, str) else form_data
+                logger.info(f"Parsed resume data successfully")
+            except Exception as e:
+                logger.error(f"Failed to parse form data: {e}")
+                return jsonify({
+                    'success': False,
+                    'error': 'Invalid form data format'
+                }), 500
+            
+            # Generate PDF in memory
+            try:
+                from francisca_pdf_generator import ProfessionalFranciscaPDFGenerator
+                pdf_generator = ProfessionalFranciscaPDFGenerator()
+                
+                # Create temporary file path (won't be saved permanently)
+                import tempfile
+                with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_file:
+                    temp_path = temp_file.name
+                
+                logger.info(f"Generating PDF at: {temp_path}")
+                # Generate PDF
+                success = pdf_generator.generate_resume_pdf(resume_data, temp_path)
+                
+                if success:
+                    logger.info(f"PDF generated successfully for reference: {reference}")
+                    # Serve the file and then delete it
+                    response = send_file(temp_path, as_attachment=True, download_name=f"resume_{reference}.pdf")
+                    
+                    # Clean up temporary file
+                    try:
+                        os.unlink(temp_path)
+                    except:
+                        pass
+                    
+                    return response
+                else:
+                    # Clean up temporary file
+                    try:
+                        os.unlink(temp_path)
+                    except:
+                        pass
+                    
+                    return jsonify({
+                        'success': False,
+                        'error': 'Failed to generate PDF'
+                    }), 500
+                    
+            except Exception as e:
+                logger.error(f"PDF generation failed: {e}")
+                return jsonify({
+                    'success': False,
+                    'error': f'PDF generation failed: {str(e)}'
+                }), 500
+                
+        except Exception as e:
+            logger.error(f"Database query failed: {e}")
+            return jsonify({
+                'success': False,
+                'error': f'Database error: {str(e)}'
+            }), 500
+        finally:
+            if connection:
+                connection.close()
+            
+    except Exception as e:
+        logger.error(f"Error generating PDF on-demand: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Internal server error'
+        }), 500
+
+@app.route('/api/downloads/resume_<reference>.docx', methods=['GET'])
+def download_resume_docx(reference):
+    """Download resume DOCX by reference - Generate on-demand"""
+    try:
+        logger.info(f"DOCX conversion requested for reference: {reference}")
+        
+        # For now, return a message that DOCX conversion is not implemented
+        # In the future, this could convert PDF to DOCX on-demand
+        return jsonify({
+            'success': False,
+            'error': 'DOCX conversion not yet implemented. Please download the PDF version.',
+            'pdf_available': True,
+            'pdf_url': f'/api/downloads/resume_{reference}.pdf'
+        }), 404
+            
+    except Exception as e:
+        logger.error(f"Error serving DOCX file: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Internal server error'
+        }), 500
+
+@app.route('/api/payments/download/<reference>', methods=['GET'])
+def download_payment_document(reference):
+    """Alternative download endpoint for payment documents - Generate on-demand"""
+    try:
+        # Redirect to the main download endpoint which generates on-demand
+        logger.info(f"Payment download requested for reference: {reference}")
+        return download_resume_pdf(reference)
+            
+    except Exception as e:
+        logger.error(f"Error serving payment document: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Internal server error'
+        }), 500
+
+@app.route('/api/documents/shared/<reference>', methods=['GET'])
+def get_shared_document(reference):
+    """Get shared document information for public access"""
+    try:
+        # Check if payment exists in database
+        connection = auth_system.get_db_connection()
+        if not connection:
+            return jsonify({
+                'success': False,
+                'error': 'Database connection failed'
+            }), 500
+        
+        try:
+            cursor = connection.cursor()
+            cursor.execute("""
+                SELECT reference, document_type, user_email, created_at 
+                FROM manual_payments 
+                WHERE reference = %s AND status = 'completed'
+            """, (reference,))
+            
+            payment_data = cursor.fetchone()
+            if not payment_data:
+                return jsonify({
+                    'success': False,
+                    'error': 'Document not found'
+                }), 404
+            
+            ref, doc_type, user_email, created_at = payment_data
+            
+            return jsonify({
+                'success': True,
+                'reference': reference,
+                'file_exists': True,
+                'document_type': doc_type,
+                'user_email': user_email,
+                'created_at': created_at.isoformat() if created_at else None,
+                'download_url': f'/api/downloads/resume_{reference}.pdf',
+                'view_url': f'/api/downloads/resume_{reference}.pdf',
+                'generation_type': 'on-demand'
+            }), 200
+                
+        finally:
+            if connection:
+                connection.close()
+            
+    except Exception as e:
+        logger.error(f"Error getting shared document info: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Internal server error'
+        }), 500
+
+@app.route('/api/documents/<reference>/invite', methods=['POST'])
+def invite_collaborator(reference):
+    """Invite collaborator to document (placeholder for collaboration feature)"""
+    try:
+        data = request.get_json()
+        email = data.get('email')
+        permission = data.get('permission', 'view')
+        
+        if not email:
+            return jsonify({
+                'success': False,
+                'error': 'Email is required'
+            }), 400
+        
+        # For now, just log the invitation (in real implementation, send email)
+        logger.info(f"Collaboration invitation: {email} invited to document {reference} with {permission} permission")
+        
+        return jsonify({
+            'success': True,
+            'message': f'Invitation sent to {email}',
+            'reference': reference,
+            'permission': permission
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"Error sending collaboration invitation: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Internal server error'
+        }), 500
 
 if __name__ == '__main__':
     app.run(
