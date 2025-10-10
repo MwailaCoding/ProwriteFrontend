@@ -917,6 +917,17 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
       
       {/* PDF Download Modal */}
       {showPDFDownloadModal && submissionData && (
+        <div style={{position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', zIndex: 9999, background: 'red'}}>
+          <div style={{position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: 'white', padding: '20px', borderRadius: '10px', zIndex: 10000}}>
+            <h2>DEBUG: Modal should be visible!</h2>
+            <p>Reference: {submissionData.reference}</p>
+            <button onClick={() => setShowPDFDownloadModal(false)}>Close Debug</button>
+          </div>
+        </div>
+      )}
+      
+      {/* PDF Download Modal - Original */}
+      {showPDFDownloadModal && submissionData && (
         <PDFDownloadModal
           isOpen={showPDFDownloadModal}
           onClose={() => setShowPDFDownloadModal(false)}
