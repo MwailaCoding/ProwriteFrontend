@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Download Test</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            max-width: 600px;
+            width: 100%;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        .test-box {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+        .success { border-color: #28a745; background: #d4edda; }
+        .info { border-color: #17a2b8; background: #d1ecf1; }
+        .warning { border-color: #ffc107; background: #fff3cd; }
+        
+        input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            margin: 10px 0;
+            transition: border-color 0.3s;
+        }
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn {
+            padding: 15px 25px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px 5px;
+            transition: all 0.3s;
+            display: inline-block;
+            text-decoration: none;
+        }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-info { background: #17a2b8; color: white; }
+        .btn-warning { background: #ffc107; color: #333; }
+        
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: bold;
+            text-align: center;
+        }
+        .success-result { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error-result { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info-result { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        
+        .status {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: #e9ecef;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 PDF Download Test</h1>
+        
+        <div class="test-box success">
+            <h2>📥 PDF Download Test</h2>
+            <p>Enter your payment reference:</p>
+            <input type="text" id="reference" placeholder="PAY-6B8F1069" value="PAY-6B8F1069">
+            <br>
+            <button class="btn btn-success" onclick="downloadPDF()">📥 Download PDF</button>
+            <button class="btn btn-warning" onclick="testBackend()">🔧 Test Backend</button>
+            <div id="downloadResult"></div>
+        </div>
+        
+        <div class="test-box info">
+            <h2>🔗 Share Link Test</h2>
+            <button class="btn btn-info" onclick="testShareLink()">🔗 Test Share Link</button>
+            <div id="shareResult"></div>
+        </div>
+        
+        <div class="test-box warning">
+            <h2>📊 System Status</h2>
+            <div class="status">
+                <p><strong>Backend:</strong> https://prowrite.pythonanywhere.com</p>
+                <p><strong>Frontend:</strong> https://prowrite.vercel.app</p>
+            </div>
+            <button class="btn btn-primary" onclick="checkHealth()">🔍 Check Health</button>
+            <div id="healthResult"></div>
+        </div>
+    </div>
+    
+    <script>
+        function showResult(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.innerHTML = message;
+            element.className = 'result ' + type + '-result';
+        }
+        
+        function downloadPDF() {
+            const reference = document.getElementById('reference').value.trim();
+            if (!reference) {
+                showResult('downloadResult', '❌ Please enter a payment reference', 'error');
+                return;
+            }
+            
+            const url = `https://prowrite.pythonanywhere.com/api/downloads/resume_${reference}.pdf`;
+            console.log('Downloading from:', url);
+            
+            showResult('downloadResult', '⏳ Downloading PDF...', 'info');
+            
+            // Create download link
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `resume_${reference}.pdf`;
+            link.target = '_blank';
+            link.style.display = 'none';
+            
+            // Add to body and click
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showResult('downloadResult', '✅ Download started! Check your downloads folder.', 'success');
+        }
+        
+        function testBackend() {
+            const reference = document.getElementById('reference').value.trim();
+            if (!reference) {
+                showResult('downloadResult', '❌ Please enter a payment reference', 'error');
+                return;
+            }
+            
+            const url = `https://prowrite.pythonanywhere.com/api/downloads/resume_${reference}.pdf`;
+            showResult('downloadResult', '⏳ Testing backend...', 'info');
+            
+            fetch(url, { method: 'HEAD' })
+                .then(response => {
+                    if (response.ok) {
+                        showResult('downloadResult', '✅ Backend is working! PDF endpoint accessible.', 'success');
+                    } else {
+                        showResult('downloadResult', `❌ Backend error: ${response.status}`, 'error');
+                    }
+                })
+                .catch(error => {
+                    showResult('downloadResult', `❌ Connection failed: ${error.message}`, 'error');
+                });
+        }
+        
+        function testShareLink() {
+            const reference = document.getElementById('reference').value.trim();
+            if (!reference) {
+                showResult('shareResult', '❌ Please enter a payment reference', 'error');
+                return;
+            }
+            
+            const shareUrl = `https://prowrite.vercel.app/shared/${reference}`;
+            showResult('shareResult', '⏳ Opening share link...', 'info');
+            
+            window.open(shareUrl, '_blank');
+            showResult('shareResult', '✅ Share link opened in new tab!', 'success');
+        }
+        
+        function checkHealth() {
+            showResult('healthResult', '⏳ Checking system health...', 'info');
+            
+            fetch('https://prowrite.pythonanywhere.com/api/health')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'healthy') {
+                        showResult('healthResult', '✅ System is healthy!', 'success');
+                    } else {
+                        showResult('healthResult', '⚠️ System status unclear', 'error');
+                    }
+                })
+                .catch(error => {
+                    showResult('healthResult', `❌ Health check failed: ${error.message}`, 'error');
+                });
+        }
+        
+        // Auto-focus on input
+        document.getElementById('reference').focus();
+    </script>
+</body>
+</html>
