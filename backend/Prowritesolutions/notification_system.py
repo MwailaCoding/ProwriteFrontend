@@ -1,0 +1,646 @@
+"""
+Advanced Notification System for ProWrite
+Real-time notifications with WebSocket support, database storage, and comprehensive notification types
+"""
+
+import json
+import asyncio
+import websockets
+from datetime import datetime, timedelta
+from typing import Dict, List, Optional, Any, Set
+from dataclasses import dataclass, asdict
+from enum import Enum
+import sqlite3
+import threading
+import uuid
+from collections import defaultdict
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+class NotificationType(Enum):
+    """Notification types for different categories"""
+    SYSTEM = "system"
+    PAYMENT = "payment"
+    AI_ENHANCEMENT = "ai_enhancement"
+    COLLABORATION = "collaboration"
+    SECURITY = "security"
+    TEMPLATE = "template"
+    RESUME = "resume"
+    COVER_LETTER = "cover_letter"
+    MARKET_INSIGHTS = "market_insights"
+    REMINDER = "reminder"
+    ACHIEVEMENT = "achievement"
+    WELCOME = "welcome"
+    UPDATES = "updates"
+    MAINTENANCE = "maintenance"
+
+class NotificationPriority(Enum):
+    """Notification priority levels"""
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
+    URGENT = "urgent"
+
+class NotificationStatus(Enum):
+    """Notification status"""
+    UNREAD = "unread"
+    READ = "read"
+    ARCHIVED = "archived"
+    DELETED = "deleted"
+
+@dataclass
+class Notification:
+    """Notification data structure"""
+    id: str
+    user_id: int
+    title: str
+    message: str
+    notification_type: NotificationType
+    priority: NotificationPriority
+    status: NotificationStatus
+    created_at: datetime
+    read_at: Optional[datetime] = None
+    archived_at: Optional[datetime] = None
+    data: Optional[Dict[str, Any]] = None
+    action_url: Optional[str] = None
+    expires_at: Optional[datetime] = None
+    category: Optional[str] = None
+    icon: Optional[str] = None
+    color: Optional[str] = None
+
+class NotificationDatabase:
+    """Database operations for notifications"""
+    
+    def __init__(self, db_path: str = "prowrite.db"):
+        self.db_path = db_path
+        self.init_database()
+    
+    def init_database(self):
+        """Initialize notification tables"""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        
+        # Create notifications table
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS notifications (
+                id TEXT PRIMARY KEY,
+                user_id INTEGER NOT NULL,
+                title TEXT NOT NULL,
+                message TEXT NOT NULL,
+                notification_type TEXT NOT NULL,
+                priority TEXT NOT NULL,
+                status TEXT NOT NULL DEFAULT 'unread',
+                created_at TIMESTAMP NOT NULL,
+                read_at TIMESTAMP,
+                archived_at TIMESTAMP,
+                data TEXT,
+                action_url TEXT,
+                expires_at TIMESTAMP,
+                category TEXT,
+                icon TEXT,
+                color TEXT,
+                FOREIGN KEY (user_id) REFERENCES users (id)
+            )
+        ''')
+        
+        # Create notification preferences table
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS notification_preferences (
+                user_id INTEGER PRIMARY KEY,
+                email_enabled BOOLEAN DEFAULT 1,
+                push_enabled BOOLEAN DEFAULT 1,
+                in_app_enabled BOOLEAN DEFAULT 1,
+                marketing_enabled BOOLEAN DEFAULT 1,
+                security_enabled BOOLEAN DEFAULT 1,
+                updates_enabled BOOLEAN DEFAULT 1,
+                reminders_enabled BOOLEAN DEFAULT 1,
+                quiet_hours_start TIME,
+                quiet_hours_end TIME,
+                timezone TEXT DEFAULT 'UTC',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users (id)
+            )
+        ''')
+        
+        # Create notification categories table
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS notification_categories (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                description TEXT,
+                icon TEXT,
+                color TEXT,
+                enabled_by_default BOOLEAN DEFAULT 1,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        
+        # Insert default categories
+        default_categories = [
+            ('System', 'System notifications and updates', 'settings', '#3B82F6', 1),
+            ('Payments', 'Payment and billing notifications', 'credit-card', '#10B981', 1),
+            ('AI Features', 'AI enhancement and analysis notifications', 'brain', '#8B5CF6', 1),
+            ('Collaboration', 'Team collaboration and sharing notifications', 'users', '#F59E0B', 1),
+            ('Security', 'Security alerts and account notifications', 'shield', '#EF4444', 1),
+            ('Templates', 'Template updates and new releases', 'file-text', '#06B6D4', 1),
+            ('Resumes', 'Resume generation and optimization notifications', 'file-user', '#84CC16', 1),
+            ('Cover Letters', 'Cover letter generation notifications', 'mail', '#EC4899', 1),
+            ('Market Insights', 'Job market insights and trends', 'trending-up', '#F97316', 1),
+            ('Achievements', 'Achievement and milestone notifications', 'trophy', '#EAB308', 1)
+        ]
+        
+        cursor.execute('SELECT COUNT(*) FROM notification_categories')
+        if cursor.fetchone()[0] == 0:
+            cursor.executemany('''
+                INSERT INTO notification_categories (name, description, icon, color, enabled_by_default)
+                VALUES (?, ?, ?, ?, ?)
+            ''', default_categories)
+        
+        conn.commit()
+        conn.close()
+    
+    def create_notification(self, notification: Notification) -> bool:
+        """Create a new notification"""
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            
+            cursor.execute('''
+                INSERT INTO notifications (
+                    id, user_id, title, message, notification_type, priority, status,
+                    created_at, read_at, archived_at, data, action_url, expires_at,
+                    category, icon, color
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (
+                notification.id, notification.user_id, notification.title, notification.message,
+                notification.notification_type.value, notification.priority.value, notification.status.value,
+                notification.created_at.isoformat(), notification.read_at.isoformat() if notification.read_at else None,
+                notification.archived_at.isoformat() if notification.archived_at else None,
+                json.dumps(notification.data) if notification.data else None,
+                notification.action_url, notification.expires_at.isoformat() if notification.expires_at else None,
+                notification.category, notification.icon, notification.color
+            ))
+            
+            conn.commit()
+            conn.close()
+            return True
+        except Exception as e:
+            logger.error(f"Error creating notification: {e}")
+            return False
+    
+    def get_user_notifications(self, user_id: int, limit: int = 50, offset: int = 0, 
+                             status: Optional[NotificationStatus] = None,
+                             notification_type: Optional[NotificationType] = None) -> List[Notification]:
+        """Get notifications for a user"""
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            
+            query = '''
+                SELECT id, user_id, title, message, notification_type, priority, status,
+                       created_at, read_at, archived_at, data, action_url, expires_at,
+                       category, icon, color
+                FROM notifications
+                WHERE user_id = ?
+            '''
+            params = [user_id]
+            
+            if status:
+                query += ' AND status = ?'
+                params.append(status.value)
+            
+            if notification_type:
+                query += ' AND notification_type = ?'
+                params.append(notification_type.value)
+            
+            query += ' ORDER BY created_at DESC LIMIT ? OFFSET ?'
+            params.extend([limit, offset])
+            
+            cursor.execute(query, params)
+            rows = cursor.fetchall()
+            conn.close()
+            
+            notifications = []
+            for row in rows:
+                notification = Notification(
+                    id=row[0], user_id=row[1], title=row[2], message=row[3],
+                    notification_type=NotificationType(row[4]), priority=NotificationPriority(row[5]),
+                    status=NotificationStatus(row[6]), created_at=datetime.fromisoformat(row[7]),
+                    read_at=datetime.fromisoformat(row[8]) if row[8] else None,
+                    archived_at=datetime.fromisoformat(row[9]) if row[9] else None,
+                    data=json.loads(row[10]) if row[10] else None,
+                    action_url=row[11], expires_at=datetime.fromisoformat(row[12]) if row[12] else None,
+                    category=row[13], icon=row[14], color=row[15]
+                )
+                notifications.append(notification)
+            
+            return notifications
+        except Exception as e:
+            logger.error(f"Error getting user notifications: {e}")
+            return []
+    
+    def mark_as_read(self, notification_id: str, user_id: int) -> bool:
+        """Mark notification as read"""
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            
+            cursor.execute('''
+                UPDATE notifications
+                SET status = ?, read_at = ?
+                WHERE id = ? AND user_id = ?
+            ''', (NotificationStatus.READ.value, datetime.now().isoformat(), notification_id, user_id))
+            
+            conn.commit()
+            conn.close()
+            return cursor.rowcount > 0
+        except Exception as e:
+            logger.error(f"Error marking notification as read: {e}")
+            return False
+    
+    def mark_all_as_read(self, user_id: int) -> bool:
+        """Mark all notifications as read for a user"""
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            
+            cursor.execute('''
+                UPDATE notifications
+                SET status = ?, read_at = ?
+                WHERE user_id = ? AND status = ?
+            ''', (NotificationStatus.READ.value, datetime.now().isoformat(), user_id, NotificationStatus.UNREAD.value))
+            
+            conn.commit()
+            conn.close()
+            return True
+        except Exception as e:
+            logger.error(f"Error marking all notifications as read: {e}")
+            return False
+    
+    def delete_notification(self, notification_id: str, user_id: int) -> bool:
+        """Delete a notification"""
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            
+            cursor.execute('''
+                UPDATE notifications
+                SET status = ?
+                WHERE id = ? AND user_id = ?
+            ''', (NotificationStatus.DELETED.value, notification_id, user_id))
+            
+            conn.commit()
+            conn.close()
+            return cursor.rowcount > 0
+        except Exception as e:
+            logger.error(f"Error deleting notification: {e}")
+            return False
+    
+    def get_unread_count(self, user_id: int) -> int:
+        """Get unread notification count for a user"""
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            
+            cursor.execute('''
+                SELECT COUNT(*) FROM notifications
+                WHERE user_id = ? AND status = ?
+            ''', (user_id, NotificationStatus.UNREAD.value))
+            
+            count = cursor.fetchone()[0]
+            conn.close()
+            return count
+        except Exception as e:
+            logger.error(f"Error getting unread count: {e}")
+            return 0
+
+class WebSocketManager:
+    """WebSocket connection manager for real-time notifications"""
+    
+    def __init__(self):
+        self.connections: Dict[int, Set[websockets.WebSocketServerProtocol]] = defaultdict(set)
+        self.lock = threading.Lock()
+    
+    async def register_connection(self, user_id: int, websocket: websockets.WebSocketServerProtocol):
+        """Register a new WebSocket connection for a user"""
+        with self.lock:
+            self.connections[user_id].add(websocket)
+        logger.info(f"User {user_id} connected. Total connections: {len(self.connections[user_id])}")
+    
+    async def unregister_connection(self, user_id: int, websocket: websockets.WebSocketServerProtocol):
+        """Unregister a WebSocket connection"""
+        with self.lock:
+            self.connections[user_id].discard(websocket)
+            if not self.connections[user_id]:
+                del self.connections[user_id]
+        logger.info(f"User {user_id} disconnected. Total connections: {len(self.connections.get(user_id, set()))}")
+    
+    async def send_notification(self, user_id: int, notification: Notification):
+        """Send notification to user's WebSocket connections"""
+        with self.lock:
+            user_connections = self.connections.get(user_id, set()).copy()
+        
+        if not user_connections:
+            logger.warning(f"No active connections for user {user_id}")
+            return
+        
+        message = {
+            "type": "notification",
+            "data": {
+                "id": notification.id,
+                "title": notification.title,
+                "message": notification.message,
+                "notification_type": notification.notification_type.value,
+                "priority": notification.priority.value,
+                "created_at": notification.created_at.isoformat(),
+                "action_url": notification.action_url,
+                "icon": notification.icon,
+                "color": notification.color
+            }
+        }
+        
+        disconnected = set()
+        for websocket in user_connections:
+            try:
+                await websocket.send(json.dumps(message))
+            except websockets.exceptions.ConnectionClosed:
+                disconnected.add(websocket)
+            except Exception as e:
+                logger.error(f"Error sending notification to user {user_id}: {e}")
+                disconnected.add(websocket)
+        
+        # Clean up disconnected connections
+        if disconnected:
+            with self.lock:
+                self.connections[user_id] -= disconnected
+                if not self.connections[user_id]:
+                    del self.connections[user_id]
+
+class NotificationService:
+    """Main notification service"""
+    
+    def __init__(self, db_path: str = "prowrite.db"):
+        self.db = NotificationDatabase(db_path)
+        self.websocket_manager = WebSocketManager()
+        self.notification_templates = self._load_notification_templates()
+    
+    def _load_notification_templates(self) -> Dict[str, Dict[str, Any]]:
+        """Load notification templates for different types"""
+        return {
+            "welcome": {
+                "title": "Welcome to ProWrite!",
+                "message": "Get started by creating your first professional resume",
+                "icon": "welcome",
+                "color": "#10B981",
+                "priority": NotificationPriority.MEDIUM
+            },
+            "payment_success": {
+                "title": "Payment Successful",
+                "message": "Your payment has been processed successfully",
+                "icon": "check-circle",
+                "color": "#10B981",
+                "priority": NotificationPriority.HIGH
+            },
+            "ai_enhancement_complete": {
+                "title": "AI Enhancement Complete",
+                "message": "Your resume has been enhanced with AI-powered suggestions",
+                "icon": "brain",
+                "color": "#8B5CF6",
+                "priority": NotificationPriority.MEDIUM
+            },
+            "template_uploaded": {
+                "title": "Template Uploaded",
+                "message": "Your custom template has been successfully uploaded",
+                "icon": "file-text",
+                "color": "#06B6D4",
+                "priority": NotificationPriority.LOW
+            },
+            "collaboration_invite": {
+                "title": "Collaboration Invite",
+                "message": "You've been invited to collaborate on a resume",
+                "icon": "users",
+                "color": "#F59E0B",
+                "priority": NotificationPriority.HIGH
+            },
+            "security_alert": {
+                "title": "Security Alert",
+                "message": "Unusual activity detected on your account",
+                "icon": "shield",
+                "color": "#EF4444",
+                "priority": NotificationPriority.URGENT
+            }
+        }
+    
+    def create_notification(self, user_id: int, title: str, message: str,
+                          notification_type: NotificationType,
+                          priority: NotificationPriority = NotificationPriority.MEDIUM,
+                          data: Optional[Dict[str, Any]] = None,
+                          action_url: Optional[str] = None,
+                          expires_at: Optional[datetime] = None,
+                          category: Optional[str] = None,
+                          icon: Optional[str] = None,
+                          color: Optional[str] = None) -> Optional[Notification]:
+        """Create and send a notification"""
+        try:
+            notification = Notification(
+                id=str(uuid.uuid4()),
+                user_id=user_id,
+                title=title,
+                message=message,
+                notification_type=notification_type,
+                priority=priority,
+                status=NotificationStatus.UNREAD,
+                created_at=datetime.now(),
+                data=data,
+                action_url=action_url,
+                expires_at=expires_at,
+                category=category,
+                icon=icon,
+                color=color
+            )
+            
+            # Save to database
+            if self.db.create_notification(notification):
+                # Send via WebSocket
+                asyncio.create_task(self.websocket_manager.send_notification(user_id, notification))
+                logger.info(f"Notification created for user {user_id}: {title}")
+                return notification
+            else:
+                logger.error(f"Failed to create notification for user {user_id}")
+                return None
+                
+        except Exception as e:
+            logger.error(f"Error creating notification: {e}")
+            return None
+    
+    def create_template_notification(self, template_name: str, user_id: int) -> Optional[Notification]:
+        """Create notification from template"""
+        template = self.notification_templates.get(template_name)
+        if not template:
+            return None
+        
+        return self.create_notification(
+            user_id=user_id,
+            title=template["title"],
+            message=template["message"],
+            notification_type=NotificationType.SYSTEM,
+            priority=template["priority"],
+            icon=template["icon"],
+            color=template["color"]
+        )
+    
+    def get_user_notifications(self, user_id: int, limit: int = 50, offset: int = 0,
+                             status: Optional[NotificationStatus] = None,
+                             notification_type: Optional[NotificationType] = None) -> List[Notification]:
+        """Get notifications for a user"""
+        return self.db.get_user_notifications(user_id, limit, offset, status, notification_type)
+    
+    def mark_as_read(self, notification_id: str, user_id: int) -> bool:
+        """Mark notification as read"""
+        return self.db.mark_as_read(notification_id, user_id)
+    
+    def mark_all_as_read(self, user_id: int) -> bool:
+        """Mark all notifications as read"""
+        return self.db.mark_all_as_read(user_id)
+    
+    def delete_notification(self, notification_id: str, user_id: int) -> bool:
+        """Delete a notification"""
+        return self.db.delete_notification(notification_id, user_id)
+    
+    def get_unread_count(self, user_id: int) -> int:
+        """Get unread notification count"""
+        return self.db.get_unread_count(user_id)
+    
+    async def start_websocket_server(self, host: str = "localhost", port: int = 8765):
+        """Start WebSocket server for real-time notifications"""
+        async def handle_connection(websocket, path):
+            try:
+                # Extract user_id from query parameters
+                query_params = dict(param.split('=') for param in path.split('?')[1].split('&') if '=' in param)
+                user_id = int(query_params.get('user_id', 0))
+                
+                if user_id <= 0:
+                    await websocket.close(code=1008, reason="Invalid user_id")
+                    return
+                
+                await self.websocket_manager.register_connection(user_id, websocket)
+                
+                # Send initial unread count
+                unread_count = self.get_unread_count(user_id)
+                await websocket.send(json.dumps({
+                    "type": "unread_count",
+                    "data": {"count": unread_count}
+                }))
+                
+                # Keep connection alive
+                async for message in websocket:
+                    try:
+                        data = json.loads(message)
+                        if data.get("type") == "ping":
+                            await websocket.send(json.dumps({"type": "pong"}))
+                    except json.JSONDecodeError:
+                        pass
+                        
+            except Exception as e:
+                logger.error(f"WebSocket connection error: {e}")
+            finally:
+                if 'user_id' in locals():
+                    await self.websocket_manager.unregister_connection(user_id, websocket)
+        
+        logger.info(f"Starting WebSocket server on {host}:{port}")
+        async with websockets.serve(handle_connection, host, port):
+            await asyncio.Future()  # Run forever
+
+# Global notification service instance
+notification_service = NotificationService()
+
+# Convenience functions for common notifications
+def notify_payment_success(user_id: int, amount: float, currency: str = "USD"):
+    """Send payment success notification"""
+    return notification_service.create_notification(
+        user_id=user_id,
+        title="Payment Successful",
+        message=f"Your payment of {currency} {amount:.2f} has been processed successfully",
+        notification_type=NotificationType.PAYMENT,
+        priority=NotificationPriority.HIGH,
+        icon="check-circle",
+        color="#10B981",
+        action_url="/billing"
+    )
+
+def notify_ai_enhancement_complete(user_id: int, resume_title: str):
+    """Send AI enhancement completion notification"""
+    return notification_service.create_notification(
+        user_id=user_id,
+        title="AI Enhancement Complete",
+        message=f"Your resume '{resume_title}' has been enhanced with AI-powered suggestions",
+        notification_type=NotificationType.AI_ENHANCEMENT,
+        priority=NotificationPriority.MEDIUM,
+        icon="brain",
+        color="#8B5CF6",
+        action_url="/resumes"
+    )
+
+def notify_template_uploaded(user_id: int, template_name: str):
+    """Send template upload notification"""
+    return notification_service.create_notification(
+        user_id=user_id,
+        title="Template Uploaded",
+        message=f"Your template '{template_name}' has been successfully uploaded and is ready to use",
+        notification_type=NotificationType.TEMPLATE,
+        priority=NotificationPriority.LOW,
+        icon="file-text",
+        color="#06B6D4",
+        action_url="/templates"
+    )
+
+def notify_collaboration_invite(user_id: int, inviter_name: str, resume_title: str):
+    """Send collaboration invite notification"""
+    return notification_service.create_notification(
+        user_id=user_id,
+        title="Collaboration Invite",
+        message=f"{inviter_name} has invited you to collaborate on '{resume_title}'",
+        notification_type=NotificationType.COLLABORATION,
+        priority=NotificationPriority.HIGH,
+        icon="users",
+        color="#F59E0B",
+        action_url="/collaboration"
+    )
+
+def notify_security_alert(user_id: int, alert_type: str, details: str):
+    """Send security alert notification"""
+    return notification_service.create_notification(
+        user_id=user_id,
+        title="Security Alert",
+        message=f"{alert_type}: {details}",
+        notification_type=NotificationType.SECURITY,
+        priority=NotificationPriority.URGENT,
+        icon="shield",
+        color="#EF4444",
+        action_url="/security"
+    )
+
+if __name__ == "__main__":
+    # Test the notification system
+    import asyncio
+    
+    async def test_notifications():
+        # Create test notifications
+        notify_payment_success(1, 29.99)
+        notify_ai_enhancement_complete(1, "Software Engineer Resume")
+        notify_template_uploaded(1, "Modern Professional Template")
+        
+        # Get notifications
+        notifications = notification_service.get_user_notifications(1)
+        print(f"Created {len(notifications)} notifications")
+        
+        # Start WebSocket server
+        await notification_service.start_websocket_server()
+    
+    # Run test
+    asyncio.run(test_notifications())
+

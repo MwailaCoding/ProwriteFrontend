@@ -1,0 +1,35 @@
+{
+  "personalName": "Hamilton Mwaila",
+  "personalEmail": "hamiltonmwaila06@gmail.com",
+  "personalPhone": "0769491949",
+  "personalAddress": "Nairobi, Kenya",
+  "jobTitle": "Senior Software Engineer",
+  "companyName": "Prime Tech",
+  "employerName": "John Smith",
+  "employerEmail": "hiring@primetech.com",
+  "employerAddress": "Nairobi, Kenya",
+  "jobBoard": "LinkedIn",
+  "whyThisRole": "I am passionate about building scalable software solutions that solve real-world problems",
+  "relevantExperience": "Senior Software Developer at TechCorp",
+  "technicalSkills": ["React", "Node.js", "Python", "JavaScript", "TypeScript"],
+  "softSkills": ["Leadership", "Problem Solving", "Team Collaboration"],
+  "keyAchievements": [
+    "Led development of web application that increased user engagement by 40%",
+    "Implemented microservices architecture reducing system downtime by 60%"
+  ],
+  "quantifiableResults": [
+    "Reduced system response time by 50%",
+    "Improved code coverage to 95%",
+    "Increased team productivity by 30%"
+  ],
+  "whyThisCompany": "your innovative approach to technology and commitment to excellence in software development",
+  "uniqueValue": "I bring a unique combination of technical expertise and leadership experience that drives both individual and team success",
+  "projectHighlights": [
+    "E-commerce platform serving 10,000+ users",
+    "Real-time chat application with 99.9% uptime"
+  ],
+  "leadershipExperience": "Led a team of 5 developers and mentored 3 junior developers",
+  "companyValues": ["Innovation", "Excellence", "Collaboration", "Integrity"],
+  "personalSummary": "Experienced software engineer with 5+ years in full-stack development, passionate about creating impactful solutions"
+}
+

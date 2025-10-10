@@ -1,0 +1,52 @@
+# M-Pesa Daraja API Configuration
+MPESA_CONSUMER_KEY=JhER2QNVQOCW1O4SG9J7y7pRduOtg1EpYvlE4b34YRI34YzNM
+MPESA_CONSUMER_SECRET=uG5jOnzxoFelO2FSsZdlsLoMQATZpH4RGKGu3PahGIxOz5OnjA7Cuk8W4aZnUQfi
+MPESA_BUSINESS_SHORT_CODE=174379
+MPESA_PASSKEY=bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919
+
+# Environment
+MPESA_ENVIRONMENT=sandbox
+
+# Development Mode (set to true to use mock responses when M-Pesa is unavailable)
+MPESA_DEVELOPMENT_MODE=true
+
+# Callback URL
+MPESA_CALLBACK_URL=http://localhost:5000/api/payments/mpesa-callback
+
+# Database Configuration
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=
+DB_NAME=aiprowrite2
+
+# JWT Configuration
+JWT_SECRET_KEY=your_jwt_secret_key_here
+SECRET_KEY=your_secret_key_here
+
+# Server Configuration
+FLASK_ENV=development
+FLASK_DEBUG=True
+HOST=127.0.0.1
+PORT=5000
+
+# CORS Configuration
+CORS_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+
+# OpenAI Configuration
+OPENAI_API_KEY=your-openai-api-key-here
+
+# Email Service Configuration (SMTP - Legacy)
+SMTP_SERVER=smtp.gmail.com
+SMTP_PORT=587
+SMTP_EMAIL=hamiltonmwaila06@gmail.com
+SMTP_PASSWORD=your-gmail-app-password-here
+SMTP_FROM_NAME=ProWrite
+
+# SendGrid Configuration (Primary Email Service)
+SENDGRID_API_KEY=your-sendgrid-api-key-here
+SENDGRID_FROM_EMAIL=hamiltonmwaila06@gmail.com
+SENDGRID_FROM_NAME=ProWrite
+
+
+
+
