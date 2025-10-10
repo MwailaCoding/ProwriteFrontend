@@ -665,11 +665,11 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
         </ul>
       </div>
       
-      {/* FALLBACK DOWNLOAD BUTTON - Shows after 3 seconds if modal doesn't appear */}
+      {/* ALWAYS VISIBLE DIRECT DOWNLOAD BUTTON */}
       {submissionData && submissionData.reference && (
         <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4 mt-4">
           <p className="text-yellow-800 font-bold text-center mb-3">
-            🚀 DIRECT DOWNLOAD (Fallback)
+            🚀 DIRECT DOWNLOAD (Always Available)
           </p>
           <button
             onClick={() => {
@@ -684,6 +684,9 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
           </button>
           <p className="text-yellow-700 text-xs mt-2 text-center">
             Reference: {submissionData.reference}
+          </p>
+          <p className="text-yellow-600 text-xs mt-1 text-center">
+            This button works immediately - no waiting!
           </p>
         </div>
       )}
