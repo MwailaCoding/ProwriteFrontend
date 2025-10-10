@@ -183,26 +183,38 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
         console.log('🚀 Current submissionData:', submissionData);
         console.log('🚀 Current reference:', submissionData?.reference);
         
+        // IMMEDIATE MODAL OPENING - No delay for testing
+        console.log('🚀 OPENING MODAL IMMEDIATELY FOR TESTING...');
+        if (submissionData && submissionData.reference) {
+          console.log('🚀 Setting modal state immediately...');
+          setCurrentStep('completed');
+          setPdfReady(true);
+          setDownloadUrl(`https://prowrite.pythonanywhere.com/api/downloads/resume_${submissionData.reference}.pdf`);
+          setShowPDFDownloadModal(true);
+          toast.success('✅ Your document is ready!');
+          console.log('🚀 PDF Download Modal opened immediately!');
+        } else {
+          console.error('❌ No submissionData or reference found!');
+          console.error('❌ submissionData:', submissionData);
+          toast.error('❌ Error: No payment reference found');
+        }
+        
+        // Also keep the 3-second version as backup
         setTimeout(() => {
-          console.log('🚀 Opening PDF Download Modal...');
+          console.log('🚀 3-SECOND TIMEOUT - Opening PDF Download Modal...');
           console.log('🚀 SubmissionData:', submissionData);
           console.log('🚀 Reference:', submissionData?.reference);
           
           if (submissionData && submissionData.reference) {
-            console.log('🚀 Setting modal state...');
+            console.log('🚀 Setting modal state from timeout...');
             setCurrentStep('completed');
             setPdfReady(true);
             setDownloadUrl(`https://prowrite.pythonanywhere.com/api/downloads/resume_${submissionData.reference}.pdf`);
-            
-            // Force a small delay to ensure state updates
-            setTimeout(() => {
-              console.log('🚀 Opening PDF Download Modal NOW!');
-              setShowPDFDownloadModal(true);
-              toast.success('✅ Your document is ready!');
-              console.log('🚀 PDF Download Modal should now be visible!');
-            }, 100);
+            setShowPDFDownloadModal(true);
+            toast.success('✅ Your document is ready!');
+            console.log('🚀 PDF Download Modal opened from timeout!');
           } else {
-            console.error('❌ No submissionData or reference found!');
+            console.error('❌ No submissionData or reference found in timeout!');
             console.error('❌ submissionData:', submissionData);
             toast.error('❌ Error: No payment reference found');
           }
