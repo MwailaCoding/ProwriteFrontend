@@ -8566,26 +8566,15 @@ def download_resume_pdf(reference):
             # Build queries based on actual column structure
             possible_queries = []
             
-            # Try different column combinations
+            # Try different column combinations based on actual structure
             if 'form_data' in column_names and 'document_type' in column_names:
-                if 'user_email' in column_names:
-                    possible_queries.extend([
-                        ("SELECT form_data, document_type, user_email FROM manual_payments WHERE reference = %s", (reference,)),
-                        ("SELECT form_data, document_type, user_email FROM manual_payments WHERE reference = %s AND status = 'completed'", (reference,)),
-                        ("SELECT form_data, document_type, user_email FROM manual_payments WHERE reference = %s AND status = 'validated'", (reference,)),
-                    ])
-                elif 'email' in column_names:
-                    possible_queries.extend([
-                        ("SELECT form_data, document_type, email FROM manual_payments WHERE reference = %s", (reference,)),
-                        ("SELECT form_data, document_type, email FROM manual_payments WHERE reference = %s AND status = 'completed'", (reference,)),
-                        ("SELECT form_data, document_type, email FROM manual_payments WHERE reference = %s AND status = 'validated'", (reference,)),
-                    ])
-                else:
-                    possible_queries.extend([
-                        ("SELECT form_data, document_type FROM manual_payments WHERE reference = %s", (reference,)),
-                        ("SELECT form_data, document_type FROM manual_payments WHERE reference = %s AND status = 'completed'", (reference,)),
-                        ("SELECT form_data, document_type FROM manual_payments WHERE reference = %s AND status = 'validated'", (reference,)),
-                    ])
+                # Use the actual column structure we found
+                possible_queries.extend([
+                    ("SELECT form_data, document_type FROM manual_payments WHERE reference = %s", (reference,)),
+                    ("SELECT form_data, document_type FROM manual_payments WHERE reference = %s AND status = 'completed'", (reference,)),
+                    ("SELECT form_data, document_type FROM manual_payments WHERE reference = %s AND status = 'validated'", (reference,)),
+                    ("SELECT form_data, document_type FROM manual_payments WHERE reference = %s AND status = 'success'", (reference,)),
+                ])
             
             # If form_data doesn't exist, try other possible column names
             if not possible_queries:
@@ -8628,12 +8617,11 @@ def download_resume_pdf(reference):
                     'error': f'Payment not found for reference: {reference}'
                 }), 404
             
-            # Handle different numbers of columns returned
+            # Handle the payment data (form_data, document_type)
             if len(payment_data) >= 2:
                 form_data = payment_data[0]
                 document_type = payment_data[1]
-                user_email = payment_data[2] if len(payment_data) > 2 else None
-                logger.info(f"Found payment data - Document type: {document_type}, User: {user_email}")
+                logger.info(f"Found payment data - Document type: {document_type}")
             else:
                 logger.error(f"Unexpected payment data format: {payment_data}")
                 return jsonify({
