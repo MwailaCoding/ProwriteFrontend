@@ -8557,16 +8557,45 @@ def download_resume_pdf(reference):
             # First, let's check what tables exist and their structure
             logger.info(f"Looking for payment data for reference: {reference}")
             
-            # Try different possible table/column combinations
-            possible_queries = [
-                # Try the most likely structure first
-                ("SELECT form_data, document_type, user_email FROM manual_payments WHERE reference = %s", (reference,)),
-                ("SELECT form_data, document_type, user_email FROM manual_payments WHERE reference = %s AND status = 'completed'", (reference,)),
-                ("SELECT form_data, document_type, user_email FROM manual_payments WHERE reference = %s AND status = 'validated'", (reference,)),
-                ("SELECT form_data, document_type, user_email FROM manual_payments WHERE reference = %s AND status = 'success'", (reference,)),
-                # Try without status filter
-                ("SELECT form_data, document_type, user_email FROM manual_payments WHERE reference = %s", (reference,)),
-            ]
+            # First, get the actual column structure
+            cursor.execute("DESCRIBE manual_payments")
+            columns = cursor.fetchall()
+            column_names = [col[0] for col in columns]
+            logger.info(f"Available columns in manual_payments: {column_names}")
+            
+            # Build queries based on actual column structure
+            possible_queries = []
+            
+            # Try different column combinations
+            if 'form_data' in column_names and 'document_type' in column_names:
+                if 'user_email' in column_names:
+                    possible_queries.extend([
+                        ("SELECT form_data, document_type, user_email FROM manual_payments WHERE reference = %s", (reference,)),
+                        ("SELECT form_data, document_type, user_email FROM manual_payments WHERE reference = %s AND status = 'completed'", (reference,)),
+                        ("SELECT form_data, document_type, user_email FROM manual_payments WHERE reference = %s AND status = 'validated'", (reference,)),
+                    ])
+                elif 'email' in column_names:
+                    possible_queries.extend([
+                        ("SELECT form_data, document_type, email FROM manual_payments WHERE reference = %s", (reference,)),
+                        ("SELECT form_data, document_type, email FROM manual_payments WHERE reference = %s AND status = 'completed'", (reference,)),
+                        ("SELECT form_data, document_type, email FROM manual_payments WHERE reference = %s AND status = 'validated'", (reference,)),
+                    ])
+                else:
+                    possible_queries.extend([
+                        ("SELECT form_data, document_type FROM manual_payments WHERE reference = %s", (reference,)),
+                        ("SELECT form_data, document_type FROM manual_payments WHERE reference = %s AND status = 'completed'", (reference,)),
+                        ("SELECT form_data, document_type FROM manual_payments WHERE reference = %s AND status = 'validated'", (reference,)),
+                    ])
+            
+            # If form_data doesn't exist, try other possible column names
+            if not possible_queries:
+                for data_col in ['data', 'form_data', 'resume_data', 'content']:
+                    if data_col in column_names:
+                        for type_col in ['document_type', 'type', 'doc_type']:
+                            if type_col in column_names:
+                                possible_queries.append((f"SELECT {data_col}, {type_col} FROM manual_payments WHERE reference = %s", (reference,)))
+                                break
+                        break
             
             payment_data = None
             for query, params in possible_queries:
@@ -8599,8 +8628,18 @@ def download_resume_pdf(reference):
                     'error': f'Payment not found for reference: {reference}'
                 }), 404
             
-            form_data, document_type, user_email = payment_data
-            logger.info(f"Found payment data - Document type: {document_type}, User: {user_email}")
+            # Handle different numbers of columns returned
+            if len(payment_data) >= 2:
+                form_data = payment_data[0]
+                document_type = payment_data[1]
+                user_email = payment_data[2] if len(payment_data) > 2 else None
+                logger.info(f"Found payment data - Document type: {document_type}, User: {user_email}")
+            else:
+                logger.error(f"Unexpected payment data format: {payment_data}")
+                return jsonify({
+                    'success': False,
+                    'error': 'Invalid payment data format'
+                }), 500
             
             # Parse form data
             import json
@@ -8820,18 +8859,37 @@ def debug_payments():
                 'recent_payments': []
             }
             
-            # Check manual_payments table
+            # Check manual_payments table - first get the column structure
             if ('manual_payments',) in payment_tables:
-                cursor.execute("SELECT reference, status, created_at, user_email FROM manual_payments ORDER BY created_at DESC LIMIT 10")
+                # Get column names first
+                cursor.execute("DESCRIBE manual_payments")
+                columns = cursor.fetchall()
+                column_names = [col[0] for col in columns]
+                result['manual_payments_columns'] = column_names
+                
+                # Build query based on available columns
+                select_columns = ['reference', 'status', 'created_at']
+                if 'user_email' in column_names:
+                    select_columns.append('user_email')
+                elif 'email' in column_names:
+                    select_columns.append('email')
+                elif 'user_id' in column_names:
+                    select_columns.append('user_id')
+                
+                query = f"SELECT {', '.join(select_columns)} FROM manual_payments ORDER BY created_at DESC LIMIT 10"
+                cursor.execute(query)
                 manual_payments = cursor.fetchall()
-                result['manual_payments'] = [
-                    {
+                
+                result['manual_payments'] = []
+                for row in manual_payments:
+                    payment_dict = {
                         'reference': row[0],
                         'status': row[1], 
-                        'created_at': row[2].isoformat() if row[2] else None,
-                        'user_email': row[3]
-                    } for row in manual_payments
-                ]
+                        'created_at': row[2].isoformat() if row[2] else None
+                    }
+                    if len(row) > 3:
+                        payment_dict['user_info'] = row[3]
+                    result['manual_payments'].append(payment_dict)
             
             # Check other possible payment tables
             for table_name, in payment_tables:
