@@ -23,7 +23,7 @@ interface MpesaPaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
   formData: any;
-  documentType: 'Francisca Resume' | 'Cover Letter';
+  documentType: 'Prowrite Template Resume' | 'Cover Letter';
   onSuccess?: (submissionId: number) => void;
 }
 
@@ -51,7 +51,7 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
   const [submissionData, setSubmissionData] = useState<PaymentSubmission | null>(null);
   const [error, setError] = useState('');
 
-  const amount = documentType === 'Francisca Resume' ? 500 : 300;
+  const amount = documentType === 'Prowrite Template Resume' ? 500 : 300;
 
   const initiatePayment = async () => {
     // Validate email before proceeding
@@ -431,6 +431,46 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
           <li>Almost ready!</li>
         </ul>
       </div>
+      
+      {/* SIMPLE DOWNLOAD BUTTON - ALWAYS VISIBLE */}
+      {submissionData && submissionData.reference && (
+        <div className="bg-green-50 border-2 border-green-300 rounded-lg p-6 mt-4">
+          <h3 className="text-green-800 font-bold text-center mb-4 text-xl">
+            ✅ YOUR PDF IS READY!
+          </h3>
+          <p className="text-green-700 text-center mb-4">
+            Reference: <strong>{submissionData.reference}</strong>
+          </p>
+          
+          <button
+            onClick={() => {
+              const url = `https://prowrite.pythonanywhere.com/api/downloads/resume_${submissionData.reference}.pdf`;
+              console.log('🚀 Downloading PDF:', url);
+              
+              // Open in new tab
+              window.open(url, '_blank');
+              
+              // Also download
+              const link = document.createElement('a');
+              link.href = url;
+              link.download = `resume_${submissionData.reference}.pdf`;
+              link.style.display = 'none';
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+              
+              toast.success('🚀 PDF downloaded! Check your downloads folder!');
+            }}
+            className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-lg transition-colors text-lg"
+          >
+            📥 DOWNLOAD YOUR PDF NOW
+          </button>
+          
+          <p className="text-green-600 text-sm mt-3 text-center">
+            This button works immediately - no waiting!
+          </p>
+        </div>
+      )}
     </div>
   );
 
