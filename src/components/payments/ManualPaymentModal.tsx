@@ -22,7 +22,7 @@ interface ManualPaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
   formData: any;
-  documentType: 'Francisca Resume' | 'Cover Letter';
+  documentType: 'Prowrite Template Resume' | 'Cover Letter';
   onSuccess?: (submissionId: number) => void;
 }
 
@@ -72,7 +72,7 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
   const [downloadStatus, setDownloadStatus] = useState<'idle' | 'downloading' | 'downloaded' | 'failed'>('idle');
   const [showPDFDownloadModal, setShowPDFDownloadModal] = useState(false);
 
-  const amount = documentType === 'Francisca Resume' ? 500 : 300;
+  const amount = documentType === 'Prowrite Template Resume' ? 500 : 300;
 
   const initiatePayment = async () => {
     // Validate email before proceeding
@@ -707,15 +707,17 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
             <button
               onClick={() => {
                 console.log('🚀 MANUAL TRIGGER - Opening PDF Download Modal...');
+                console.log('🚀 Current step before:', currentStep);
                 setCurrentStep('completed');
                 setPdfReady(true);
                 setDownloadUrl(`https://prowrite.pythonanywhere.com/api/downloads/resume_${submissionData.reference}.pdf`);
                 setShowPDFDownloadModal(true);
                 toast.success('🚀 PDF Download Modal opened!');
+                console.log('🚀 Modal state set to true');
               }}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-colors"
             >
-              🎯 OPEN DOWNLOAD MODAL
+              🎯 FORCE OPEN DOWNLOAD MODAL
             </button>
           </div>
           <p className="text-yellow-700 text-xs mt-2 text-center">
