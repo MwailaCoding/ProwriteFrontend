@@ -180,6 +180,8 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
         
         // IMMEDIATE TRANSITION TO PDF DOWNLOAD MODAL - No more slow polling!
         console.log('🚀 IMMEDIATE TRANSITION - Opening PDF Download Modal in 3 seconds...');
+        console.log('🚀 Current submissionData:', submissionData);
+        console.log('🚀 Current reference:', submissionData?.reference);
         
         setTimeout(() => {
           console.log('🚀 Opening PDF Download Modal...');
@@ -187,14 +189,21 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
           console.log('🚀 Reference:', submissionData?.reference);
           
           if (submissionData && submissionData.reference) {
+            console.log('🚀 Setting modal state...');
             setCurrentStep('completed');
             setPdfReady(true);
             setDownloadUrl(`https://prowrite.pythonanywhere.com/api/downloads/resume_${submissionData.reference}.pdf`);
-            setShowPDFDownloadModal(true);
-            toast.success('✅ Your document is ready!');
-            console.log('🚀 PDF Download Modal should now be visible!');
+            
+            // Force a small delay to ensure state updates
+            setTimeout(() => {
+              console.log('🚀 Opening PDF Download Modal NOW!');
+              setShowPDFDownloadModal(true);
+              toast.success('✅ Your document is ready!');
+              console.log('🚀 PDF Download Modal should now be visible!');
+            }, 100);
           } else {
             console.error('❌ No submissionData or reference found!');
+            console.error('❌ submissionData:', submissionData);
             toast.error('❌ Error: No payment reference found');
           }
         }, 3000); // 3 seconds for PDF generation
@@ -671,22 +680,37 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
           <p className="text-yellow-800 font-bold text-center mb-3">
             🚀 DIRECT DOWNLOAD (Always Available)
           </p>
-          <button
-            onClick={() => {
-              const url = `https://prowrite.pythonanywhere.com/api/downloads/resume_${submissionData.reference}.pdf`;
-              console.log('🚀 Direct download URL:', url);
-              window.open(url, '_blank');
-              toast.success('🚀 PDF download started!');
-            }}
-            className="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-4 rounded-lg transition-colors"
-          >
-            📥 DOWNLOAD PDF NOW
-          </button>
+          <div className="space-y-2">
+            <button
+              onClick={() => {
+                const url = `https://prowrite.pythonanywhere.com/api/downloads/resume_${submissionData.reference}.pdf`;
+                console.log('🚀 Direct download URL:', url);
+                window.open(url, '_blank');
+                toast.success('🚀 PDF download started!');
+              }}
+              className="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-4 rounded-lg transition-colors"
+            >
+              📥 DOWNLOAD PDF NOW
+            </button>
+            <button
+              onClick={() => {
+                console.log('🚀 MANUAL TRIGGER - Opening PDF Download Modal...');
+                setCurrentStep('completed');
+                setPdfReady(true);
+                setDownloadUrl(`https://prowrite.pythonanywhere.com/api/downloads/resume_${submissionData.reference}.pdf`);
+                setShowPDFDownloadModal(true);
+                toast.success('🚀 PDF Download Modal opened!');
+              }}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-colors"
+            >
+              🎯 OPEN DOWNLOAD MODAL
+            </button>
+          </div>
           <p className="text-yellow-700 text-xs mt-2 text-center">
             Reference: {submissionData.reference}
           </p>
           <p className="text-yellow-600 text-xs mt-1 text-center">
-            This button works immediately - no waiting!
+            Both buttons work immediately - no waiting!
           </p>
         </div>
       )}
