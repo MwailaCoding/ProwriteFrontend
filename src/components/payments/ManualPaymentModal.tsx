@@ -183,19 +183,28 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
         console.log('🚀 Current submissionData:', submissionData);
         console.log('🚀 Current reference:', submissionData?.reference);
         
-        // IMMEDIATE MODAL OPENING - No delay for testing
-        console.log('🚀 OPENING MODAL IMMEDIATELY FOR TESTING...');
+        // SIMPLE DIRECT DOWNLOAD - EASIEST ALTERNATIVE
+        console.log('🚀 SIMPLE DIRECT DOWNLOAD - Opening PDF immediately...');
         if (submissionData && submissionData.reference) {
-          console.log('🚀 Setting modal state immediately...');
-          setCurrentStep('completed');
-          setPdfReady(true);
-          setDownloadUrl(`https://prowrite.pythonanywhere.com/api/downloads/resume_${submissionData.reference}.pdf`);
-          setShowPDFDownloadModal(true);
-          toast.success('✅ Your document is ready!');
-          console.log('🚀 PDF Download Modal opened immediately!');
+          console.log('🚀 Direct download URL:', `https://prowrite.pythonanywhere.com/api/downloads/resume_${submissionData.reference}.pdf`);
+          
+          // Open PDF directly in new tab
+          const pdfUrl = `https://prowrite.pythonanywhere.com/api/downloads/resume_${submissionData.reference}.pdf`;
+          window.open(pdfUrl, '_blank');
+          
+          // Also trigger download
+          const link = document.createElement('a');
+          link.href = pdfUrl;
+          link.download = `resume_${submissionData.reference}.pdf`;
+          link.style.display = 'none';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          
+          toast.success('🚀 PDF opened and downloaded! Check your downloads folder!');
+          console.log('🚀 PDF download completed!');
         } else {
           console.error('❌ No submissionData or reference found!');
-          console.error('❌ submissionData:', submissionData);
           toast.error('❌ Error: No payment reference found');
         }
         
