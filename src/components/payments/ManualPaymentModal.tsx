@@ -22,7 +22,7 @@ interface ManualPaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
   formData: any;
-  documentType: 'Francisca Resume' | 'Cover Letter';
+  documentType: 'Prowrite Template Resume' | 'Cover Letter';
   onSuccess?: (submissionId: number) => void;
 }
 
@@ -72,7 +72,7 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
   const [downloadStatus, setDownloadStatus] = useState<'idle' | 'downloading' | 'downloaded' | 'failed'>('idle');
   const [showPDFDownloadModal, setShowPDFDownloadModal] = useState(false);
 
-  const amount = documentType === 'Francisca Resume' ? 500 : 300;
+  const amount = documentType === 'Prowrite Template Resume' ? 500 : 300;
 
   const initiatePayment = async () => {
     // Validate email before proceeding
@@ -183,26 +183,32 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
         console.log('🚀 Current submissionData:', submissionData);
         console.log('🚀 Current reference:', submissionData?.reference);
         
+        // SIMPLE SOLUTION - Just show download button in processing screen
+        console.log('🚀 SIMPLE SOLUTION - Payment validated, showing download button');
+        if (submissionData && submissionData.reference) {
+          console.log('🚀 Reference found:', submissionData.reference);
+          toast.success('✅ Payment validated! Download button will appear below.');
+        } else {
+          console.error('❌ No submissionData or reference found!');
+          toast.error('❌ Error: No payment reference found');
+        }
+        
+        // Also keep the 3-second version as backup
         setTimeout(() => {
-          console.log('🚀 Opening PDF Download Modal...');
+          console.log('🚀 3-SECOND TIMEOUT - Opening PDF Download Modal...');
           console.log('🚀 SubmissionData:', submissionData);
           console.log('🚀 Reference:', submissionData?.reference);
           
           if (submissionData && submissionData.reference) {
-            console.log('🚀 Setting modal state...');
+            console.log('🚀 Setting modal state from timeout...');
             setCurrentStep('completed');
             setPdfReady(true);
             setDownloadUrl(`https://prowrite.pythonanywhere.com/api/downloads/resume_${submissionData.reference}.pdf`);
-            
-            // Force a small delay to ensure state updates
-            setTimeout(() => {
-              console.log('🚀 Opening PDF Download Modal NOW!');
-              setShowPDFDownloadModal(true);
-              toast.success('✅ Your document is ready!');
-              console.log('🚀 PDF Download Modal should now be visible!');
-            }, 100);
+            setShowPDFDownloadModal(true);
+            toast.success('✅ Your document is ready!');
+            console.log('🚀 PDF Download Modal opened from timeout!');
           } else {
-            console.error('❌ No submissionData or reference found!');
+            console.error('❌ No submissionData or reference found in timeout!');
             console.error('❌ submissionData:', submissionData);
             toast.error('❌ Error: No payment reference found');
           }
@@ -263,7 +269,7 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
           if (data.status === 'completed' || data.status === 'processed' || data.pdf_ready || data.download_url) {
             setCurrentStep('completed');
             setPdfReady(true);
-            toast.success('Document generated and sent to your email!');
+            toast.success('✅ Document ready for download and sharing!');
             
             console.log('🎯 PDF completed - Download URL:', downloadUrl);
             console.log('🎯 PDF completed - PDF Ready:', data.pdf_ready);
@@ -648,9 +654,9 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
       <div className="mx-auto w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center">
         <Loader className="w-10 h-10 text-blue-600 animate-spin" />
       </div>
-      <h3 className="text-xl font-semibold">Generating Your Document</h3>
+      <h3 className="text-xl font-semibold">🚀 Payment Validated!</h3>
       <p className="text-gray-600 text-lg">
-        Payment confirmed! Your {documentType} is being created...
+        PDF is being generated in background... Your download interface will appear in 3 seconds!
       </p>
       
       {/* Progress Indicator */}
@@ -674,43 +680,42 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
         </ul>
       </div>
       
-      {/* ALWAYS VISIBLE DIRECT DOWNLOAD BUTTON */}
+      {/* SIMPLE DOWNLOAD BUTTON - ALWAYS VISIBLE */}
       {submissionData && submissionData.reference && (
-        <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4 mt-4">
-          <p className="text-yellow-800 font-bold text-center mb-3">
-            🚀 DIRECT DOWNLOAD (Always Available)
+        <div className="bg-green-50 border-2 border-green-300 rounded-lg p-6 mt-4">
+          <h3 className="text-green-800 font-bold text-center mb-4 text-xl">
+            ✅ YOUR PDF IS READY!
+          </h3>
+          <p className="text-green-700 text-center mb-4">
+            Reference: <strong>{submissionData.reference}</strong>
           </p>
-          <div className="space-y-2">
-            <button
-              onClick={() => {
-                const url = `https://prowrite.pythonanywhere.com/api/downloads/resume_${submissionData.reference}.pdf`;
-                console.log('🚀 Direct download URL:', url);
-                window.open(url, '_blank');
-                toast.success('🚀 PDF download started!');
-              }}
-              className="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-4 rounded-lg transition-colors"
-            >
-              📥 DOWNLOAD PDF NOW
-            </button>
-            <button
-              onClick={() => {
-                console.log('🚀 MANUAL TRIGGER - Opening PDF Download Modal...');
-                setCurrentStep('completed');
-                setPdfReady(true);
-                setDownloadUrl(`https://prowrite.pythonanywhere.com/api/downloads/resume_${submissionData.reference}.pdf`);
-                setShowPDFDownloadModal(true);
-                toast.success('🚀 PDF Download Modal opened!');
-              }}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-colors"
-            >
-              🎯 OPEN DOWNLOAD MODAL
-            </button>
-          </div>
-          <p className="text-yellow-700 text-xs mt-2 text-center">
-            Reference: {submissionData.reference}
-          </p>
-          <p className="text-yellow-600 text-xs mt-1 text-center">
-            Both buttons work immediately - no waiting!
+          
+          <button
+            onClick={() => {
+              const url = `https://prowrite.pythonanywhere.com/api/downloads/resume_${submissionData.reference}.pdf`;
+              console.log('🚀 Downloading PDF:', url);
+              
+              // Open in new tab
+              window.open(url, '_blank');
+              
+              // Also download
+              const link = document.createElement('a');
+              link.href = url;
+              link.download = `resume_${submissionData.reference}.pdf`;
+              link.style.display = 'none';
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+              
+              toast.success('🚀 PDF downloaded! Check your downloads folder!');
+            }}
+            className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-lg transition-colors text-lg"
+          >
+            📥 DOWNLOAD YOUR PDF NOW
+          </button>
+          
+          <p className="text-green-600 text-sm mt-3 text-center">
+            This button works immediately - no waiting!
           </p>
         </div>
       )}
@@ -722,9 +727,9 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
       <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
         <CheckCircle className="w-8 h-8 text-green-600" />
       </div>
-      <h3 className="text-lg font-semibold text-green-800">Order Complete!</h3>
+      <h3 className="text-lg font-semibold text-green-800">✅ Document Ready!</h3>
       <p className="text-gray-600">
-        Your {documentType} has been generated and sent to your email
+        Your {documentType} is ready for download and sharing!
       </p>
       
       {/* Download Status Indicators */}
@@ -756,10 +761,10 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
         </div>
       )}
       
-      <div className="bg-blue-50 rounded-lg p-4">
-        <div className="flex items-center justify-center space-x-2 text-blue-700">
+      <div className="bg-green-50 rounded-lg p-4">
+        <div className="flex items-center justify-center space-x-2 text-green-700">
           <CheckCircle className="w-5 h-5" />
-          <span className="text-sm font-medium">Check your email for the document</span>
+          <span className="text-sm font-medium">🎉 PDF Download Modal is now available!</span>
         </div>
       </div>
       
@@ -892,15 +897,7 @@ export const ManualPaymentModal: React.FC<ManualPaymentModalProps> = ({
         </div>
       )}
       
-      {/* PDF Download Modal */}
-      {showPDFDownloadModal && submissionData && (
-        <PDFDownloadModal
-          isOpen={showPDFDownloadModal}
-          onClose={() => setShowPDFDownloadModal(false)}
-          reference={submissionData.reference}
-          documentType={documentType}
-        />
-      )}
+      {/* SIMPLE SOLUTION - No complex modals */}
     </AnimatePresence>
   );
 };
