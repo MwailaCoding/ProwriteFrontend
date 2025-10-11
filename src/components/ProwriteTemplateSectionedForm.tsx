@@ -1731,6 +1731,48 @@ const ProwriteTemplateSectionedForm: React.FC = () => {
                     )}
                   </div>
 
+                  {/* Programs & Interests Section */}
+                  <div className="space-y-4">
+                    <h4 className="text-lg font-semibold text-gray-900 flex items-center">
+                      <Award className="h-5 w-5 text-indigo-500 mr-2" />
+                      Programs & Interests
+                    </h4>
+                    
+                    {/* Programs */}
+                    <div className="space-y-3">
+                      <label className="block text-sm font-medium text-gray-700">
+                        Programs & Certifications
+                      </label>
+                      <textarea
+                        value={formData.programs || ''}
+                        onChange={(e) => handleInputChange('programs', e.target.value)}
+                        rows={3}
+                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300 resize-none"
+                        placeholder="Enter your programs, certifications, or training (e.g., Certificate of Software Development from Modcom Institute, Certificate of Cyber Security from Modcom Institute)"
+                      />
+                      <p className="text-sm text-gray-500">
+                        List your programs, certifications, or training separated by commas
+                      </p>
+                    </div>
+                    
+                    {/* Interests */}
+                    <div className="space-y-3">
+                      <label className="block text-sm font-medium text-gray-700">
+                        Interests & Hobbies
+                      </label>
+                      <textarea
+                        value={formData.interests || ''}
+                        onChange={(e) => handleInputChange('interests', e.target.value)}
+                        rows={2}
+                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300 resize-none"
+                        placeholder="Enter your interests and hobbies (e.g., Cyber Security, Technology, Reading, Sports)"
+                      />
+                      <p className="text-sm text-gray-500">
+                        List your interests and hobbies separated by commas
+                      </p>
+                    </div>
+                  </div>
+
                   {/* Additional Information */}
                   <div className="space-y-4">
                     <h4 className="text-lg font-semibold text-gray-900 flex items-center">

@@ -396,13 +396,14 @@ const ProwriteTemplateChatbot: React.FC<ProwriteTemplateChatbotProps> = ({
     setIsAutoFilling(true);
     try {
       // Call the backend AI endpoint to generate comprehensive resume data
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://prowrite.pythonanywhere.com/api'}/prowrite-template/ai/autofill`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://prowrite.pythonanywhere.com/api'}/api/ai/enhance-resume`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify({
-          conversation_data: conversationState,
+          resume_data: conversationState,
           profession: conversationState.profession || 'General'
         })
       });

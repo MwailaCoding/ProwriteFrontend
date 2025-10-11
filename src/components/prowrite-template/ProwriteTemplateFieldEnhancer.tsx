@@ -108,7 +108,7 @@ const ProwriteTemplateFieldEnhancer: React.FC<ProwriteTemplateFieldEnhancerProps
     setEnhancementResult(null);
 
     try {
-      const response = await api.post('/prowrite-template/ai/enhance-field', {
+      const response = await api.post('/francisca/ai/enhance-field', {
         content: currentValue,
         field_type: fieldType,
         profession: profession,

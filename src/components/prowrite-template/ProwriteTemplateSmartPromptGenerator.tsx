@@ -85,7 +85,7 @@ const ProwriteTemplateSmartPromptGenerator: React.FC<ProwriteTemplateSmartPrompt
     setGeneratedContent('');
 
     try {
-      const response = await axios.post('/api/prowrite-template/ai/generate-content', {
+      const response = await axios.post('/api/francisca/ai/generate-content', {
           prompt: prompt.trim(),
           field_type: fieldType,
           context: {
