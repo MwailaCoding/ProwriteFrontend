@@ -269,3 +269,4 @@ export const CollaborationPanel: React.FC<CollaborationPanelProps> = ({
 };
 
 export default CollaborationPanel;
+
