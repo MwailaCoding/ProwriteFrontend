@@ -8643,8 +8643,8 @@ def download_resume_pdf(reference):
             
             # Generate PDF in memory
             try:
-                from francisca_pdf_generator import ProfessionalFranciscaPDFGenerator
-                pdf_generator = ProfessionalFranciscaPDFGenerator()
+                # Use the same RobustFranciscaPDFGenerator for consistency
+                pdf_generator = RobustFranciscaPDFGenerator()
                 
                 # Create temporary file path (won't be saved permanently)
                 import tempfile

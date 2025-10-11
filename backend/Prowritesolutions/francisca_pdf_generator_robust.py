@@ -202,6 +202,18 @@ class RobustFranciscaPDFGenerator:
         elif phone:
             story.append(Paragraph(phone, styles['subtitle']))
         
+        # Location information - centered below contact info
+        city = self.safe_string(personal_info.get('city', ''))
+        country = self.safe_string(personal_info.get('country', ''))
+        
+        if city and country:
+            location_text = f"{city}, {country}"
+            story.append(Paragraph(location_text, styles['subtitle']))
+        elif city:
+            story.append(Paragraph(city, styles['subtitle']))
+        elif country:
+            story.append(Paragraph(country, styles['subtitle']))
+        
         story.append(Spacer(1, 12))
         return story
     
@@ -210,7 +222,19 @@ class RobustFranciscaPDFGenerator:
         story = []
         styles = self.create_styles()
         
+        # Check multiple possible locations for summary data
         summary = self.safe_string(data.get('summary', ''))
+        if not summary:
+            # Check in personalInfo section
+            personal_info = data.get('personalInfo', {})
+            summary = self.safe_string(personal_info.get('summary', ''))
+        if not summary:
+            # Check for professionalSummary field
+            summary = self.safe_string(data.get('professionalSummary', ''))
+        if not summary:
+            # Check for resumeObjective field
+            summary = self.safe_string(data.get('resumeObjective', ''))
+        
         if summary:
             story.append(Paragraph("PROFESSIONAL SUMMARY", styles['section_header']))
             story.append(self.create_line(data))
@@ -601,29 +625,87 @@ class RobustFranciscaPDFGenerator:
             story.append(Paragraph(f"<b>Skills:</b> {skills_text}", styles['description']))
         
         # Interests
-        interests = self.safe_list(data.get('interests', []))
+        interests = data.get('interests', [])
         if interests:
-            interests_text = ", ".join(interests)
-            story.append(Paragraph(f"<b>Interests:</b> {interests_text}", styles['description']))
+            interests_list = []
+            
+            if isinstance(interests, str):
+                # Handle text input (comma-separated)
+                interests_list = [interest.strip() for interest in interests.split(',') if interest.strip()]
+            elif isinstance(interests, list):
+                # Handle list format - could be list of strings or list of dicts
+                for interest in interests:
+                    if isinstance(interest, dict):
+                        # Extract meaningful text from dictionary
+                        if 'placeholder' in interest:
+                            interests_list.append(str(interest['placeholder']).strip().title())
+                        elif 'type' in interest:
+                            interests_list.append(str(interest['type']).strip().title())
+                        elif 'name' in interest:
+                            interests_list.append(str(interest['name']).strip())
+                        else:
+                            # Try to get any string value
+                            for key, value in interest.items():
+                                if isinstance(value, str) and value.strip():
+                                    interests_list.append(value.strip())
+                                    break
+                    else:
+                        # Handle string items
+                        interest_str = str(interest).strip()
+                        if interest_str and interest_str != '{}':
+                            interests_list.append(interest_str)
+            
+            if interests_list:
+                interests_text = ", ".join(interests_list)
+                story.append(Paragraph(f"<b>Interests:</b> {interests_text}", styles['description']))
         
         # Programs
         programs = data.get('programs', []) or data.get('certifications', [])
         if programs:
             programs_list = []
-            for program in programs:
-                if isinstance(program, dict):
-                    # Extract meaningful text from dictionary
-                    if 'type' in program and 'placeholder' in program:
-                        programs_list.append(f"{program['type']} from {program['placeholder']}")
-                    elif 'name' in program:
-                        programs_list.append(program['name'])
-                    elif 'title' in program:
-                        programs_list.append(program['title'])
+            
+            # Handle text input (comma-separated)
+            if isinstance(programs, str):
+                programs_list = [program.strip() for program in programs.split(',') if program.strip()]
+            else:
+                # Handle list/dictionary format
+                for program in programs:
+                    if isinstance(program, dict):
+                        # Extract meaningful text from dictionary with proper formatting
+                        if 'type' in program and 'placeholder' in program:
+                            # Format as "Certificate of X from Y" for better readability
+                            program_type = str(program['type']).strip()
+                            program_name = str(program['placeholder']).strip()
+                            
+                            # Capitalize first letter of each word
+                            program_type = ' '.join(word.capitalize() for word in program_type.split())
+                            program_name = ' '.join(word.capitalize() for word in program_name.split())
+                            
+                            # Format based on common patterns
+                            if 'certificate' in program_type.lower():
+                                programs_list.append(f"{program_type} of {program_name}")
+                            elif 'diploma' in program_type.lower():
+                                programs_list.append(f"{program_type} in {program_name}")
+                            else:
+                                programs_list.append(f"{program_type} from {program_name}")
+                        elif 'name' in program:
+                            programs_list.append(str(program['name']).strip())
+                        elif 'title' in program:
+                            programs_list.append(str(program['title']).strip())
+                        else:
+                            # Fallback: try to extract any meaningful text
+                            meaningful_text = None
+                            for key in ['description', 'value', 'text']:
+                                if key in program and program[key]:
+                                    meaningful_text = str(program[key]).strip()
+                                    break
+                            if meaningful_text:
+                                programs_list.append(meaningful_text)
                     else:
-                        # Fallback to string representation
-                        programs_list.append(str(program))
-                else:
-                    programs_list.append(str(program))
+                        # Handle string inputs
+                        program_str = str(program).strip()
+                        if program_str and program_str != '{}':
+                            programs_list.append(program_str)
             
             if programs_list:
                 programs_text = ", ".join(programs_list)

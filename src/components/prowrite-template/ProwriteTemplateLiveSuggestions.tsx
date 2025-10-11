@@ -58,7 +58,7 @@ const ProwriteTemplateLiveSuggestions: React.FC<ProwriteTemplateLiveSuggestionsP
     const fetchSuggestions = async () => {
       setIsLoading(true);
       try {
-        const response = await axios.post('/api/prowrite-template/ai/suggestions', {
+        const response = await axios.post('/api/francisca/ai/suggestions', {
           profession: profession || '',
           field_type: fieldType
         });

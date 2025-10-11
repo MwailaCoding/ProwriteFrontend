@@ -11,6 +11,7 @@ from typing import List, Dict, Optional
 from ai_styling_processor import ai_styling_processor
 
 class EnhancedDynamicContentExpander:
+    
     """Enhanced content expander with AI-powered styling and positioning"""
     
     def __init__(self):
