@@ -34,7 +34,7 @@ def initiate_manual_payment():
         phone_number = data.get('phone_number')
         
         # Validate document type
-        valid_document_types = ['Francisca Resume', 'Cover Letter']
+        valid_document_types = ['Francisca Resume', 'Prowrite Template Resume', 'Cover Letter']
         if document_type not in valid_document_types:
             return jsonify({
                 'success': False,
