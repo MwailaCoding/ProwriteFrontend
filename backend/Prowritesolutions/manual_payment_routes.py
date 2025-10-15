@@ -1,8 +1,12 @@
 from flask import Blueprint, request, jsonify, send_file, abort
 import logging
 import os
+from dotenv import load_dotenv
 from fast_manual_payment_service import manual_payment_service
 from transaction_validator import transaction_validator
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Configure logging
 logger = logging.getLogger(__name__)

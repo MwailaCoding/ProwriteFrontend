@@ -42,6 +42,8 @@ except ImportError:
     print("Warning: SendGrid not available. Email functionality will use SMTP fallback.")
 import base64
 from manual_payment_routes import manual_payment_bp
+from pesapal_callback_routes import pesapal_callback_bp
+from pesapal_payment_routes import pesapal_payment_bp
 # Import AI services
 from francisca_ai_service import FranciscaAIService
 
@@ -922,6 +924,8 @@ def register_error_handlers(app):
 app = Flask(__name__)
 # Add this line after your app creation (after app = Flask(__name__))
 app.register_blueprint(manual_payment_bp)
+app.register_blueprint(pesapal_callback_bp)
+app.register_blueprint(pesapal_payment_bp)
 CORS(app, resources={
     r"/api/*": {
         "origins": [
@@ -934,8 +938,7 @@ CORS(app, resources={
     }
 })
 
-# Add this import with your other imports at the top
-from manual_payment_routes import manual_payment_bp
+# Imports are already at the top of the file
 
 
 # JWT Configuration
