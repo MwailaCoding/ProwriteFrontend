@@ -41,7 +41,9 @@ import {
   Heart,
   MessageCircle,
   Share2,
-  ExternalLink
+  ExternalLink,
+  CreditCard,
+  Receipt
 } from 'lucide-react';
 import { RootState } from '../../store';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/common/Card';
@@ -518,15 +520,15 @@ export const DashboardPage: React.FC = () => {
                       </div>
                     </div>
                   </Link>
-                  <Link to="/resumes">
+                  <Link to="/app/templates">
                     <div className="p-6 bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200 hover:border-green-300 hover:shadow-lg transition-all duration-300 cursor-pointer group">
                       <div className="flex items-center space-x-4">
                         <div className="p-3 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors">
                           <Eye className="h-6 w-6 text-green-600" />
                         </div>
                         <div>
-                          <h3 className="font-semibold text-gray-900 group-hover:text-green-600 transition-colors">View Resumes</h3>
-                          <p className="text-sm text-gray-600">Manage existing resumes</p>
+                          <h3 className="font-semibold text-gray-900 group-hover:text-green-600 transition-colors">View Templates</h3>
+                          <p className="text-sm text-gray-600">Manage existing templates</p>
                         </div>
                       </div>
                     </div>
@@ -568,7 +570,7 @@ export const DashboardPage: React.FC = () => {
               </CardHeader>
               <CardContent className="relative space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Link to="/cover-letters">
+                  <Link to="/app/cover-letters/create">
                     <div className="p-6 bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200 hover:border-green-300 hover:shadow-lg transition-all duration-300 cursor-pointer group">
                       <div className="flex items-center space-x-4">
                         <div className="p-3 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors">
@@ -581,7 +583,7 @@ export const DashboardPage: React.FC = () => {
                       </div>
                     </div>
                   </Link>
-                  <Link to="/cover-letters">
+                  <Link to="/app/cover-letters">
                     <div className="p-6 bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200 hover:border-purple-300 hover:shadow-lg transition-all duration-300 cursor-pointer group">
                       <div className="flex items-center space-x-4">
                         <div className="p-3 bg-purple-100 rounded-lg group-hover:bg-purple-200 transition-colors">
@@ -632,25 +634,25 @@ export const DashboardPage: React.FC = () => {
               description="Professional templates for resumes, cover letters, and more"
               icon={FileText}
               color="blue"
-              href="/templates"
+              href="/app/templates"
               delay={0.1}
               badge="Free"
             />
             <FeatureCard
-              title="File Manager"
-              description="Organize and manage all your career documents"
-              icon={Settings}
+              title="Market Insights"
+              description="Get insights about job market trends and opportunities"
+              icon={BarChart3}
               color="green"
-              href="/files"
+              href="/app/market-insights"
               delay={0.2}
               badge="New"
             />
             <FeatureCard
-              title="Export Options"
-              description="Download your documents in multiple formats"
-              icon={Download}
+              title="Job Search"
+              description="Find real job opportunities and apply with your documents"
+              icon={Briefcase}
               color="purple"
-              href="/export"
+              href="/app/real-jobs"
               delay={0.3}
               badge="Pro"
             />
@@ -659,25 +661,25 @@ export const DashboardPage: React.FC = () => {
               description="Manage your profile and preferences"
               icon={User}
               color="orange"
-              href="/settings"
+              href="/app/profile"
               delay={0.4}
               badge=""
             />
             <FeatureCard
-              title="Help & Support"
-              description="Get help and contact our support team"
-              icon={MessageCircle}
+              title="Billing & Payments"
+              description="Manage your subscription and payment history"
+              icon={CreditCard}
               color="pink"
-              href="/help"
+              href="/app/billing"
               delay={0.5}
               badge="24/7"
             />
             <FeatureCard
-              title="About ProWriteSolutions"
-              description="Learn more about our platform and features"
-              icon={Globe}
+              title="Payment History"
+              description="View your transaction history and receipts"
+              icon={Receipt}
               color="blue"
-              href="/about"
+              href="/app/payments"
               delay={0.6}
               badge="Info"
             />
@@ -692,7 +694,7 @@ export const DashboardPage: React.FC = () => {
           </div>
           
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <Link to="/prowrite-template">
+            <Link to="/app/prowrite-template">
               <div className="p-4 bg-blue-50 hover:bg-blue-100 rounded-xl border border-blue-200 hover:border-blue-300 transition-all duration-300 cursor-pointer group text-center">
                 <div className="p-3 bg-blue-100 rounded-lg mx-auto mb-3 group-hover:bg-blue-200 transition-colors w-fit">
                   <FileText className="h-6 w-6 text-blue-600" />
@@ -701,7 +703,7 @@ export const DashboardPage: React.FC = () => {
               </div>
             </Link>
             
-            <Link to="/cover-letters">
+            <Link to="/app/cover-letters/create">
               <div className="p-4 bg-green-50 hover:bg-green-100 rounded-xl border border-green-200 hover:border-green-300 transition-all duration-300 cursor-pointer group text-center">
                 <div className="p-3 bg-green-100 rounded-lg mx-auto mb-3 group-hover:bg-green-200 transition-colors w-fit">
                   <Edit3 className="h-6 w-6 text-green-600" />
@@ -710,16 +712,16 @@ export const DashboardPage: React.FC = () => {
               </div>
             </Link>
             
-            <Link to="/resumes">
+            <Link to="/app/templates">
               <div className="p-4 bg-purple-50 hover:bg-purple-100 rounded-xl border border-purple-200 hover:border-purple-300 transition-all duration-300 cursor-pointer group text-center">
                 <div className="p-3 bg-purple-100 rounded-lg mx-auto mb-3 group-hover:bg-purple-200 transition-colors w-fit">
                   <Eye className="h-6 w-6 text-purple-600" />
                 </div>
-                <h4 className="font-semibold text-gray-900 group-hover:text-purple-600 transition-colors text-sm">View Files</h4>
+                <h4 className="font-semibold text-gray-900 group-hover:text-purple-600 transition-colors text-sm">View Templates</h4>
               </div>
             </Link>
             
-            <Link to="/settings">
+            <Link to="/app/profile">
               <div className="p-4 bg-orange-50 hover:bg-orange-100 rounded-xl border border-orange-200 hover:border-orange-300 transition-all duration-300 cursor-pointer group text-center">
                 <div className="p-3 bg-orange-100 rounded-lg mx-auto mb-3 group-hover:bg-orange-200 transition-colors w-fit">
                   <Settings className="h-6 w-6 text-orange-600" />
