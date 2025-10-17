@@ -386,7 +386,7 @@ class CoverLetterService {
     return response.data;
   }
 
-  // Streamlined Cover Letter Methods
+  // Streamlined Cover Letter Methods - Updated for deployment
   async sendAIChatMessage(data: {
     paragraphType: string;
     message: string;
