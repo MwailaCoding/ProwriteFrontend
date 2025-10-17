@@ -44,6 +44,7 @@ import base64
 from manual_payment_routes import manual_payment_bp
 from pesapal_callback_routes import pesapal_callback_bp
 from pesapal_payment_routes import pesapal_payment_bp
+from pesapal_embedded_routes import pesapal_embedded_bp
 # Import AI services
 from francisca_ai_service import FranciscaAIService
 
@@ -926,6 +927,7 @@ app = Flask(__name__)
 app.register_blueprint(manual_payment_bp)
 app.register_blueprint(pesapal_callback_bp)
 app.register_blueprint(pesapal_payment_bp)
+app.register_blueprint(pesapal_embedded_bp)
 CORS(app, resources={
     r"/api/*": {
         "origins": [
@@ -3937,6 +3939,231 @@ def download_cover_letter():
         return jsonify({
             'success': False,
             'error': 'Failed to generate cover letter PDF'
+        }), 500
+
+@app.route('/api/cover-letters/ai-chat', methods=['POST'])
+def ai_chat():
+    """AI chat endpoint for cover letter paragraph assistance"""
+    try:
+        data = request.get_json()
+        
+        paragraph_type = data.get('paragraphType', 'introduction')
+        user_message = data.get('message', '')
+        conversation_history = data.get('conversationHistory', [])
+        context = data.get('context', {})
+        
+        if not user_message:
+            return jsonify({
+                'success': False,
+                'error': 'Message is required'
+            }), 400
+        
+        # Get context information
+        job_title = context.get('jobTitle', '')
+        company_name = context.get('companyName', '')
+        current_content = context.get('currentContent', '')
+        paragraph_guidance = context.get('paragraphGuidance', '')
+        
+        # Create system prompt based on paragraph type
+        system_prompts = {
+            'introduction': f"""You are an expert cover letter writing assistant. Help the user write an engaging opening paragraph for a {job_title} position at {company_name}.
+
+Guidelines:
+- Express genuine interest in the position
+- Mention how you found the job posting
+- Briefly highlight your most relevant qualification
+- Keep it concise (2-3 sentences)
+- Be professional but enthusiastic
+
+Current content: {current_content}
+User request: {user_message}""",
+
+            'experience': f"""You are an expert cover letter writing assistant. Help the user write a compelling experience paragraph for a {job_title} position at {company_name}.
+
+Guidelines:
+- Highlight specific, relevant experience
+- Use quantifiable achievements when possible
+- Connect your skills to the job requirements
+- Show impact and results
+- Keep it focused and relevant
+
+Current content: {current_content}
+User request: {user_message}""",
+
+            'companyFit': f"""You are an expert cover letter writing assistant. Help the user write a company fit paragraph for a {job_title} position at {company_name}.
+
+Guidelines:
+- Show knowledge of the company
+- Explain why you're excited to work there
+- Connect your values to company culture
+- Mention specific company aspects that appeal to you
+- Demonstrate genuine interest
+
+Current content: {current_content}
+User request: {user_message}""",
+
+            'closing': f"""You are an expert cover letter writing assistant. Help the user write a strong closing paragraph for a {job_title} position at {company_name}.
+
+Guidelines:
+- Express confidence in your ability to contribute
+- Thank the reader for their time
+- Request an interview opportunity
+- End on a positive, professional note
+- Keep it brief but impactful
+
+Current content: {current_content}
+User request: {user_message}"""
+        }
+        
+        system_prompt = system_prompts.get(paragraph_type, system_prompts['introduction'])
+        
+        # Build conversation context
+        conversation_context = ""
+        for msg in conversation_history[-5:]:  # Last 5 messages for context
+            if msg.get('type') == 'user':
+                conversation_context += f"User: {msg.get('content', '')}\n"
+            elif msg.get('type') == 'ai':
+                conversation_context += f"Assistant: {msg.get('content', '')}\n"
+        
+        # Create the full prompt
+        full_prompt = f"""{system_prompt}
+
+Previous conversation:
+{conversation_context}
+
+Current user message: {user_message}
+
+Please respond as a helpful writing assistant. If the user is asking for a complete paragraph, provide it. If they're asking for improvements, suggest specific changes. Be conversational and helpful."""
+
+        # Use OpenAI API if available
+        try:
+            import openai
+            openai.api_key = os.getenv('OPENAI_API_KEY', '')
+            
+            if openai.api_key:
+                response = openai.ChatCompletion.create(
+                    model="gpt-3.5-turbo",
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_message}
+                    ],
+                    max_tokens=300,
+                    temperature=0.7
+                )
+                
+                ai_response = response.choices[0].message.content.strip()
+                
+                # Check if the response contains a paragraph (look for complete sentences)
+                is_paragraph = len(ai_response.split('.')) >= 2 and len(ai_response) > 50
+                
+                return jsonify({
+                    'success': True,
+                    'message': ai_response,
+                    'isParagraph': is_paragraph,
+                    'paragraphContent': ai_response if is_paragraph else None
+                })
+        except Exception as e:
+            logger.warning(f"OpenAI API error: {str(e)}")
+        
+        # Fallback: Simple rule-based responses
+        fallback_responses = {
+            'introduction': f"I'd be happy to help you write your opening paragraph for the {job_title} position at {company_name}. Here's a suggested opening:\n\nI am writing to express my strong interest in the {job_title} position at {company_name}. With my background in [your field] and passion for [relevant area], I am confident I can make a valuable contribution to your team.",
+            'experience': f"Let me help you craft your experience paragraph. Here's a structure you can use:\n\nIn my previous role as [Your Role] at [Company], I [specific achievement with numbers]. This experience has strengthened my [relevant skill] and taught me the importance of [relevant value].",
+            'companyFit': f"For your company fit paragraph, consider this approach:\n\nWhat excites me most about {company_name} is [specific company aspect]. I believe my skills in [relevant skills] align perfectly with your needs, and I am eager to contribute to [specific company goal].",
+            'closing': f"Here's a strong closing paragraph:\n\nI would welcome the opportunity to discuss how my background, skills, and enthusiasm can add value to your team. Thank you for considering my application. I look forward to the possibility of contributing to {company_name}'s continued success."
+        }
+        
+        fallback_response = fallback_responses.get(paragraph_type, fallback_responses['introduction'])
+        
+        return jsonify({
+            'success': True,
+            'message': fallback_response,
+            'isParagraph': True,
+            'paragraphContent': fallback_response
+        })
+        
+    except Exception as e:
+        logger.error(f"Error in AI chat: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to process AI chat request'
+        }), 500
+
+@app.route('/api/cover-letters/download-paid', methods=['POST'])
+def download_paid_cover_letter():
+    """Download cover letter as PDF after payment verification"""
+    try:
+        data = request.get_json()
+        
+        # Check if user has paid
+        has_paid = data.get('hasPaid', False)
+        payment_id = data.get('paymentId')
+        
+        if not has_paid or not payment_id:
+            return jsonify({
+                'success': False,
+                'error': 'Payment required to download PDF'
+            }), 402  # Payment Required
+        
+        # Verify payment (in a real implementation, you'd check against your payment system)
+        # For now, we'll just check if payment_id exists
+        
+        # Generate PDF using the same logic as the regular download
+        cover_letter_data = {
+            'personal_name': data.get('personalName', ''),
+            'personal_email': data.get('personalEmail', ''),
+            'personal_phone': data.get('personalPhone', ''),
+            'personal_address': data.get('personalAddress', ''),
+            'linkedin_profile': data.get('linkedinProfile', ''),
+            'employer_name': data.get('employerName', ''),
+            'employer_address': data.get('employerAddress', ''),
+            'company_name': data.get('companyName', ''),
+            'job_title': data.get('jobTitle', ''),
+            'job_board': data.get('jobBoard', ''),
+            'content': data.get('content', ''),
+            'date': datetime.now().strftime("%B %d, %Y")
+        }
+        
+        # Generate PDF using the professional cover letter generator
+        from professional_cover_letter_generator import ProfessionalCoverLetterGenerator
+        pdf_generator = ProfessionalCoverLetterGenerator()
+        
+        # Create temporary file
+        import tempfile
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_file:
+            temp_path = temp_file.name
+        
+        # Generate PDF
+        success = pdf_generator.generate_cover_letter_pdf(cover_letter_data, temp_path)
+        
+        if success:
+            # Read the generated PDF
+            with open(temp_path, 'rb') as pdf_file:
+                pdf_data = pdf_file.read()
+            
+            # Clean up temporary file
+            os.unlink(temp_path)
+            
+            # Return PDF as response
+            from flask import Response
+            return Response(
+                pdf_data,
+                mimetype='application/pdf',
+                headers={
+                    'Content-Disposition': f'attachment; filename=cover_letter_{data.get("companyName", "company")}_{data.get("jobTitle", "position")}.pdf'
+                }
+            )
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Failed to generate PDF'
+            }), 500
+            
+    except Exception as e:
+        logger.error(f"Error generating paid PDF: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to generate PDF'
         }), 500
 
 # AI Enhancement System
