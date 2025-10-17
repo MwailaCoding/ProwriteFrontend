@@ -35,6 +35,50 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
     }
   };
 
+  const handleSuspendUser = async () => {
+    try {
+      setLoading(true);
+      await onUpdate(user.id, { isActive: false });
+    } catch (error) {
+      console.error('Failed to suspend user:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleActivateUser = async () => {
+    try {
+      setLoading(true);
+      await onUpdate(user.id, { isActive: true });
+    } catch (error) {
+      console.error('Failed to activate user:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePromoteToPremium = async () => {
+    try {
+      setLoading(true);
+      await onUpdate(user.id, { isPremium: true });
+    } catch (error) {
+      console.error('Failed to promote user:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDemoteFromPremium = async () => {
+    try {
+      setLoading(true);
+      await onUpdate(user.id, { isPremium: false });
+    } catch (error) {
+      console.error('Failed to demote user:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleCancel = () => {
     setFormData({
       firstName: user.firstName,
@@ -224,31 +268,78 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
           </div>
 
           {/* Footer */}
-          <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+          <div className="bg-gray-50 px-4 py-3 sm:px-6">
             {isEditing ? (
-              <>
+              <div className="flex flex-col sm:flex-row sm:justify-end space-y-2 sm:space-y-0 sm:space-x-3">
                 <button
                   onClick={handleSave}
                   disabled={loading}
-                  className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"
+                  className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:w-auto sm:text-sm disabled:opacity-50"
                 >
                   {loading ? 'Saving...' : 'Save Changes'}
                 </button>
                 <button
                   onClick={handleCancel}
-                  className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                  className="w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:w-auto sm:text-sm"
                 >
                   Cancel
                 </button>
-              </>
+              </div>
             ) : (
-              <button
-                onClick={() => setIsEditing(true)}
-                className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:w-auto sm:text-sm"
-              >
-                <PencilIcon className="h-4 w-4 mr-2" />
-                Edit User
-              </button>
+              <div className="flex flex-col space-y-3">
+                {/* Primary Actions */}
+                <div className="flex flex-col sm:flex-row sm:justify-end space-y-2 sm:space-y-0 sm:space-x-3">
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:w-auto sm:text-sm"
+                  >
+                    <PencilIcon className="h-4 w-4 mr-2" />
+                    Edit User
+                  </button>
+                </div>
+
+                {/* User Management Actions */}
+                <div className="border-t border-gray-200 pt-3">
+                  <h4 className="text-sm font-medium text-gray-700 mb-2">User Actions</h4>
+                  <div className="grid grid-cols-2 gap-2">
+                    {user.isActive ? (
+                      <button
+                        onClick={handleSuspendUser}
+                        disabled={loading}
+                        className="inline-flex justify-center rounded-md border border-transparent shadow-sm px-3 py-2 bg-red-600 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
+                      >
+                        {loading ? 'Suspending...' : 'Suspend User'}
+                      </button>
+                    ) : (
+                      <button
+                        onClick={handleActivateUser}
+                        disabled={loading}
+                        className="inline-flex justify-center rounded-md border border-transparent shadow-sm px-3 py-2 bg-green-600 text-sm font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
+                      >
+                        {loading ? 'Activating...' : 'Activate User'}
+                      </button>
+                    )}
+                    
+                    {user.isPremium ? (
+                      <button
+                        onClick={handleDemoteFromPremium}
+                        disabled={loading}
+                        className="inline-flex justify-center rounded-md border border-transparent shadow-sm px-3 py-2 bg-yellow-600 text-sm font-medium text-white hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 disabled:opacity-50"
+                      >
+                        {loading ? 'Demoting...' : 'Remove Premium'}
+                      </button>
+                    ) : (
+                      <button
+                        onClick={handlePromoteToPremium}
+                        disabled={loading}
+                        className="inline-flex justify-center rounded-md border border-transparent shadow-sm px-3 py-2 bg-purple-600 text-sm font-medium text-white hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50"
+                      >
+                        {loading ? 'Promoting...' : 'Make Premium'}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
             )}
           </div>
         </div>

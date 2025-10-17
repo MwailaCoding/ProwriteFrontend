@@ -42,6 +42,11 @@ const UsersPage: React.FC = () => {
   const [showUserModal, setShowUserModal] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [userToDelete, setUserToDelete] = useState<AdminUser | null>(null);
+  
+  // Bulk actions state
+  const [selectedUsers, setSelectedUsers] = useState<Set<number>>(new Set());
+  const [showBulkActions, setShowBulkActions] = useState(false);
+  const [bulkActionLoading, setBulkActionLoading] = useState(false);
 
   useEffect(() => {
     loadUsers();
@@ -112,7 +117,86 @@ const UsersPage: React.FC = () => {
     }
   };
 
+  // Bulk action handlers
+  const handleSelectUser = (userId: number, selected: boolean) => {
+    const newSelected = new Set(selectedUsers);
+    if (selected) {
+      newSelected.add(userId);
+    } else {
+      newSelected.delete(userId);
+    }
+    setSelectedUsers(newSelected);
+    setShowBulkActions(newSelected.size > 0);
+  };
+
+  const handleSelectAll = (selected: boolean) => {
+    if (selected) {
+      const allUserIds = new Set(users.map(u => u.id));
+      setSelectedUsers(allUserIds);
+    } else {
+      setSelectedUsers(new Set());
+    }
+    setShowBulkActions(selected);
+  };
+
+  const handleBulkAction = async (action: 'suspend' | 'activate' | 'promote' | 'demote' | 'delete') => {
+    if (selectedUsers.size === 0) return;
+
+    setBulkActionLoading(true);
+    try {
+      const userIds = Array.from(selectedUsers);
+      
+      for (const userId of userIds) {
+        switch (action) {
+          case 'suspend':
+            await adminService.updateUser(userId, { isActive: false });
+            break;
+          case 'activate':
+            await adminService.updateUser(userId, { isActive: true });
+            break;
+          case 'promote':
+            await adminService.updateUser(userId, { isPremium: true });
+            break;
+          case 'demote':
+            await adminService.updateUser(userId, { isPremium: false });
+            break;
+          case 'delete':
+            await adminService.deleteUser(userId);
+            break;
+        }
+      }
+      
+      // Refresh users list
+      await loadUsers();
+      setSelectedUsers(new Set());
+      setShowBulkActions(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : `Failed to perform bulk ${action}`);
+    } finally {
+      setBulkActionLoading(false);
+    }
+  };
+
   const columns = [
+    {
+      key: 'select',
+      label: (
+        <input
+          type="checkbox"
+          checked={selectedUsers.size === users.length && users.length > 0}
+          onChange={(e) => handleSelectAll(e.target.checked)}
+          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+        />
+      ),
+      render: (value: any, row: AdminUser) => (
+        <input
+          type="checkbox"
+          checked={selectedUsers.has(row.id)}
+          onChange={(e) => handleSelectUser(row.id, e.target.checked)}
+          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+        />
+      )
+    },
     {
       key: 'email',
       label: 'Email',
@@ -279,6 +363,65 @@ const UsersPage: React.FC = () => {
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-md p-4">
           <div className="text-sm text-red-700">{error}</div>
+        </div>
+      )}
+
+      {/* Bulk Actions */}
+      {showBulkActions && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <span className="text-sm font-medium text-blue-900">
+                {selectedUsers.size} user{selectedUsers.size !== 1 ? 's' : ''} selected
+              </span>
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => handleBulkAction('activate')}
+                  disabled={bulkActionLoading}
+                  className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-green-700 bg-green-100 hover:bg-green-200 disabled:opacity-50"
+                >
+                  {bulkActionLoading ? 'Activating...' : 'Activate'}
+                </button>
+                <button
+                  onClick={() => handleBulkAction('suspend')}
+                  disabled={bulkActionLoading}
+                  className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-red-700 bg-red-100 hover:bg-red-200 disabled:opacity-50"
+                >
+                  {bulkActionLoading ? 'Suspending...' : 'Suspend'}
+                </button>
+                <button
+                  onClick={() => handleBulkAction('promote')}
+                  disabled={bulkActionLoading}
+                  className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-purple-700 bg-purple-100 hover:bg-purple-200 disabled:opacity-50"
+                >
+                  {bulkActionLoading ? 'Promoting...' : 'Make Premium'}
+                </button>
+                <button
+                  onClick={() => handleBulkAction('demote')}
+                  disabled={bulkActionLoading}
+                  className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-yellow-700 bg-yellow-100 hover:bg-yellow-200 disabled:opacity-50"
+                >
+                  {bulkActionLoading ? 'Demoting...' : 'Remove Premium'}
+                </button>
+                <button
+                  onClick={() => handleBulkAction('delete')}
+                  disabled={bulkActionLoading}
+                  className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-red-700 bg-red-100 hover:bg-red-200 disabled:opacity-50"
+                >
+                  {bulkActionLoading ? 'Deleting...' : 'Delete'}
+                </button>
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                setSelectedUsers(new Set());
+                setShowBulkActions(false);
+              }}
+              className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+            >
+              Clear Selection
+            </button>
+          </div>
         </div>
       )}
 
