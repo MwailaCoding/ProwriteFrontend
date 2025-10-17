@@ -65,9 +65,11 @@ const AdminLogin: React.FC = () => {
         
         console.log('🔧 State updated, redirecting...');
         
-        // Direct redirect using window.location
-        console.log('🔧 Redirecting to /admin/dashboard using window.location');
-        window.location.href = '/admin/dashboard';
+        // Wait a moment for state to fully update, then navigate
+        setTimeout(() => {
+          console.log('🔧 Redirecting to /admin/dashboard using navigate');
+          navigate('/admin/dashboard', { replace: true });
+        }, 100);
       } else {
         console.log('🔧 Login failed:', data);
         setError(data.error || 'Login failed');
