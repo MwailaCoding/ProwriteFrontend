@@ -179,9 +179,9 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
                       <UserCircleIcon className="h-8 w-8 text-gray-400" />
                       <div className="hidden md:block text-left">
                         <p className="text-sm font-medium text-gray-700">
-                          {user.firstName} {user.lastName}
+                          {user?.firstName} {user?.lastName}
                         </p>
-                        <p className="text-xs text-gray-500">{user.email}</p>
+                        <p className="text-xs text-gray-500">{user?.email}</p>
                       </div>
                       <ChevronDownIcon className="h-4 w-4 text-gray-400" />
                     </div>
@@ -191,8 +191,8 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
                 {userMenuOpen && (
                   <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
                     <div className="px-4 py-2 text-sm text-gray-700 border-b border-gray-200">
-                      <p className="font-medium">{user.firstName} {user.lastName}</p>
-                      <p className="text-gray-500">{user.email}</p>
+                      <p className="font-medium">{user?.firstName} {user?.lastName}</p>
+                      <p className="text-gray-500">{user?.email}</p>
                     </div>
                     <button
                       onClick={onLogout}

@@ -370,7 +370,7 @@ export interface AdminLayoutProps {
     firstName: string;
     lastName: string;
     is_admin: boolean;
-  };
+  } | null;
   onLogout: () => void;
 }
 
