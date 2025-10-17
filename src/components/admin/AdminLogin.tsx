@@ -15,17 +15,8 @@ const AdminLogin: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  const { login, isAuthenticated, adminUser } = useAdminAuth();
+  const { login } = useAdminAuth();
   const navigate = useNavigate();
-
-  // Redirect to dashboard when authenticated
-  useEffect(() => {
-    console.log('Auth state changed:', { isAuthenticated, adminUser });
-    if (isAuthenticated && adminUser?.is_admin) {
-      console.log('Redirecting to dashboard...');
-      navigate('/admin/dashboard');
-    }
-  }, [isAuthenticated, adminUser, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,8 +42,13 @@ const AdminLogin: React.FC = () => {
           localStorage.setItem('adminUser', JSON.stringify(data.user));
         }
         
-        // Update auth state - useEffect will handle redirect
+        // Update auth state
         login(data.user, data.access_token);
+        
+        // Redirect to dashboard after successful login
+        setTimeout(() => {
+          navigate('/admin/dashboard');
+        }, 100);
       } else {
         setError(data.error || 'Login failed');
       }
