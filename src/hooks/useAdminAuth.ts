@@ -1,9 +1,13 @@
 import { useState, useEffect } from 'react';
 import type { AdminUser } from '../types/admin';
 
+// Global state to prevent reset between components
+let globalAdminUser: AdminUser | null = null;
+let globalIsAuthenticated = false;
+
 export const useAdminAuth = () => {
-  const [adminUser, setAdminUser] = useState<AdminUser | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [adminUser, setAdminUser] = useState<AdminUser | null>(globalAdminUser);
+  const [isAuthenticated, setIsAuthenticated] = useState(globalIsAuthenticated);
   const [loading, setLoading] = useState(true);
 
   const checkAuth = () => {
@@ -21,6 +25,12 @@ export const useAdminAuth = () => {
       try {
         const user = JSON.parse(userStr);
         console.log('useAdminAuth - parsed user:', user);
+        
+        // Update global state
+        globalAdminUser = user;
+        globalIsAuthenticated = true;
+        
+        // Update local state
         setAdminUser(user);
         setIsAuthenticated(true);
         console.log('useAdminAuth - set authenticated');
@@ -28,11 +38,23 @@ export const useAdminAuth = () => {
         console.error('Error parsing admin user:', error);
         localStorage.removeItem('adminToken');
         localStorage.removeItem('adminUser');
+        
+        // Update global state
+        globalAdminUser = null;
+        globalIsAuthenticated = false;
+        
+        // Update local state
         setAdminUser(null);
         setIsAuthenticated(false);
       }
     } else {
       console.log('useAdminAuth - no token or user found');
+      
+      // Update global state
+      globalAdminUser = null;
+      globalIsAuthenticated = false;
+      
+      // Update local state
       setAdminUser(null);
       setIsAuthenticated(false);
     }
@@ -44,15 +66,16 @@ export const useAdminAuth = () => {
     checkAuth();
   }, []);
 
-  // Check auth status on every render to ensure it's up to date
-  useEffect(() => {
-    checkAuth();
-  });
-
   const login = (user: AdminUser, token: string) => {
     console.log('useAdminAuth - login called with:', { user, token: !!token });
     localStorage.setItem('adminToken', token);
     localStorage.setItem('adminUser', JSON.stringify(user));
+    
+    // Update global state
+    globalAdminUser = user;
+    globalIsAuthenticated = true;
+    
+    // Update local state
     setAdminUser(user);
     setIsAuthenticated(true);
     console.log('useAdminAuth - state updated');
@@ -61,6 +84,12 @@ export const useAdminAuth = () => {
   const logout = () => {
     localStorage.removeItem('adminToken');
     localStorage.removeItem('adminUser');
+    
+    // Update global state
+    globalAdminUser = null;
+    globalIsAuthenticated = false;
+    
+    // Update local state
     setAdminUser(null);
     setIsAuthenticated(false);
     window.location.href = '/admin/login';
