@@ -1,12 +1,5 @@
 import { useState, useEffect } from 'react';
-
-interface AdminUser {
-  id: number;
-  email: string;
-  firstName: string;
-  lastName: string;
-  is_admin: boolean;
-}
+import type { AdminUser } from '../types/admin';
 
 export const useAdminAuth = () => {
   const [adminUser, setAdminUser] = useState<AdminUser | null>(null);
