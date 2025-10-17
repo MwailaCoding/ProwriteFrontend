@@ -3,7 +3,7 @@
  * Comprehensive API service for admin functionality
  */
 
-import api from './api';
+import adminApi from './adminApi';
 import type {
   AdminUser,
   Document,
@@ -44,7 +44,7 @@ class AdminService {
       if (filters.page) params.append('page', filters.page.toString());
       if (filters.per_page) params.append('per_page', filters.per_page.toString());
 
-      const response = await api.get(`${this.baseUrl}/users?${params.toString()}`);
+      const response = await adminApi.get(`${this.baseUrl}/users?${params.toString()}`);
       return response.data;
     } catch (error) {
       throw this.handleError(error);
@@ -53,7 +53,7 @@ class AdminService {
 
   async getUserDetails(userId: number): Promise<AdminUser> {
     try {
-      const response = await api.get(`${this.baseUrl}/users/${userId}`);
+      const response = await adminApi.get(`${this.baseUrl}/users/${userId}`);
       return response.data.user;
     } catch (error) {
       throw this.handleError(error);
@@ -62,7 +62,7 @@ class AdminService {
 
   async updateUser(userId: number, updates: UserUpdateForm): Promise<void> {
     try {
-      await api.put(`${this.baseUrl}/users/${userId}`, updates);
+      await adminApi.put(`${this.baseUrl}/users/${userId}`, updates);
     } catch (error) {
       throw this.handleError(error);
     }
@@ -70,7 +70,7 @@ class AdminService {
 
   async deleteUser(userId: number): Promise<void> {
     try {
-      await api.delete(`${this.baseUrl}/users/${userId}`);
+      await adminApi.delete(`${this.baseUrl}/users/${userId}`);
     } catch (error) {
       throw this.handleError(error);
     }
@@ -83,7 +83,7 @@ class AdminService {
         per_page: perPage.toString()
       });
 
-      const response = await api.get(`${this.baseUrl}/users/${userId}/documents?${params.toString()}`);
+      const response = await adminApi.get(`${this.baseUrl}/users/${userId}/documents?${params.toString()}`);
       return response.data;
     } catch (error) {
       throw this.handleError(error);
@@ -102,7 +102,7 @@ class AdminService {
       if (filters.page) params.append('page', filters.page.toString());
       if (filters.per_page) params.append('per_page', filters.per_page.toString());
 
-      const response = await api.get(`${this.baseUrl}/documents?${params.toString()}`);
+      const response = await adminApi.get(`${this.baseUrl}/documents?${params.toString()}`);
       return response.data;
     } catch (error) {
       throw this.handleError(error);
@@ -111,7 +111,7 @@ class AdminService {
 
   async downloadDocument(reference: string): Promise<Blob> {
     try {
-      const response = await api.get(`${this.baseUrl}/documents/${reference}/download`, {
+      const response = await adminApi.get(`${this.baseUrl}/documents/${reference}/download`, {
         responseType: 'blob'
       });
       return response.data;
@@ -132,7 +132,7 @@ class AdminService {
       if (filters.page) params.append('page', filters.page.toString());
       if (filters.per_page) params.append('per_page', filters.per_page.toString());
 
-      const response = await api.get(`${this.baseUrl}/payments?${params.toString()}`);
+      const response = await adminApi.get(`${this.baseUrl}/payments?${params.toString()}`);
       return response.data;
     } catch (error) {
       throw this.handleError(error);
@@ -141,7 +141,7 @@ class AdminService {
 
   async approvePayment(paymentId: number, approval: PaymentApprovalForm): Promise<void> {
     try {
-      await api.put(`${this.baseUrl}/payments/${paymentId}/approve`, approval);
+      await adminApi.put(`${this.baseUrl}/payments/${paymentId}/approve`, approval);
     } catch (error) {
       throw this.handleError(error);
     }
@@ -149,7 +149,7 @@ class AdminService {
 
   async getPaymentDocument(paymentId: number): Promise<Document> {
     try {
-      const response = await api.get(`${this.baseUrl}/payments/${paymentId}/document`);
+      const response = await adminApi.get(`${this.baseUrl}/payments/${paymentId}/document`);
       return response.data.document;
     } catch (error) {
       throw this.handleError(error);
@@ -168,7 +168,7 @@ class AdminService {
       if (filters.page) params.append('page', filters.page.toString());
       if (filters.per_page) params.append('per_page', filters.per_page.toString());
 
-      const response = await api.get(`${this.baseUrl}/system/logs?${params.toString()}`);
+      const response = await adminApi.get(`${this.baseUrl}/system/logs?${params.toString()}`);
       return response.data;
     } catch (error) {
       throw this.handleError(error);
@@ -186,7 +186,7 @@ class AdminService {
       if (filters.page) params.append('page', filters.page.toString());
       if (filters.per_page) params.append('per_page', filters.per_page.toString());
 
-      const response = await api.get(`${this.baseUrl}/system/audit?${params.toString()}`);
+      const response = await adminApi.get(`${this.baseUrl}/system/audit?${params.toString()}`);
       return response.data;
     } catch (error) {
       throw this.handleError(error);
@@ -196,7 +196,7 @@ class AdminService {
   // Notifications
   async sendNotification(notification: NotificationForm): Promise<void> {
     try {
-      await api.post(`${this.baseUrl}/notifications/send`, notification);
+      await adminApi.post(`${this.baseUrl}/notifications/send`, notification);
     } catch (error) {
       throw this.handleError(error);
     }
@@ -211,7 +211,7 @@ class AdminService {
       
       if (status) params.append('status', status);
 
-      const response = await api.get(`${this.baseUrl}/notifications?${params.toString()}`);
+      const response = await adminApi.get(`${this.baseUrl}/notifications?${params.toString()}`);
     return response.data;
     } catch (error) {
       throw this.handleError(error);
@@ -222,7 +222,7 @@ class AdminService {
   async getAnalyticsStats(period: string = '30d'): Promise<AnalyticsStats> {
     try {
       const params = new URLSearchParams({ period });
-      const response = await api.get(`${this.baseUrl}/analytics/stats?${params.toString()}`);
+      const response = await adminApi.get(`${this.baseUrl}/analytics/stats?${params.toString()}`);
     return response.data;
     } catch (error) {
       throw this.handleError(error);
@@ -239,7 +239,7 @@ class AdminService {
       if (options.date_from) params.append('date_from', options.date_from);
       if (options.date_to) params.append('date_to', options.date_to);
 
-      const response = await api.get(`${this.baseUrl}/analytics/export?${params.toString()}`);
+      const response = await adminApi.get(`${this.baseUrl}/analytics/export?${params.toString()}`);
       return response.data;
     } catch (error) {
       throw this.handleError(error);
