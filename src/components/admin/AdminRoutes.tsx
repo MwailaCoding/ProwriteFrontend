@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
+import { useAdminAuth } from '../../hooks/useAdminAuth';
 
 // Import admin pages
 import DashboardPage from '../../pages/admin/DashboardPage';
@@ -20,22 +20,31 @@ import AnalyticsPage from '../../pages/admin/AnalyticsPage';
 import AdminLayout from './AdminLayout';
 
 const AdminRoutes: React.FC = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { adminUser, isAuthenticated, loading } = useAdminAuth();
+
+  // Show loading while checking authentication
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   // Redirect to login if not authenticated
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/admin/login" replace />;
   }
 
   // Redirect to home if not admin
-  if (!user?.isAdmin) {
+  if (!adminUser?.is_admin) {
     return <Navigate to="/" replace />;
   }
 
   return (
     <AdminLayout
       currentPath={window.location.pathname}
-      user={user}
+      user={adminUser}
       onLogout={() => {
         // Handle logout logic here
         console.log('Logout clicked');

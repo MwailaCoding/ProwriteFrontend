@@ -364,7 +364,13 @@ export interface NavItem {
 export interface AdminLayoutProps {
   children: React.ReactNode;
   currentPath: string;
-  user: AdminUser;
+  user: {
+    id: number;
+    email: string;
+    firstName: string;
+    lastName: string;
+    is_admin: boolean;
+  };
   onLogout: () => void;
 }
 
