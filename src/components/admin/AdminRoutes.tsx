@@ -26,13 +26,13 @@ const AdminRoutes: React.FC = () => {
 
   // Show loading while checking authentication
   if (loading) {
-    return (
+      return (
       <div className="flex items-center justify-center h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
-
+        </div>
+      );
+    }
+    
   // If on login page and already authenticated, redirect to dashboard
   if (location.pathname === '/admin/login' && isAuthenticated) {
     return <Navigate to="/admin/dashboard" replace />;
@@ -48,12 +48,17 @@ const AdminRoutes: React.FC = () => {
     return <AdminLogin />;
   }
 
+  // If authenticated but no admin user data, redirect to login
+  if (isAuthenticated && !adminUser) {
+    return <Navigate to="/admin/login" replace />;
+  }
+
   // Redirect to home if not admin
   if (!adminUser?.is_admin) {
     return <Navigate to="/" replace />;
   }
 
-  return (
+      return (
     <AdminLayout
       currentPath={location.pathname}
       user={adminUser}

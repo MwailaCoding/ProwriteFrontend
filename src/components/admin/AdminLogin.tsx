@@ -3,7 +3,7 @@
  * Dedicated login page for admin users
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
@@ -15,8 +15,15 @@ const AdminLogin: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  const { login } = useAdminAuth();
+  const { login, isAuthenticated, adminUser } = useAdminAuth();
   const navigate = useNavigate();
+
+  // Redirect to dashboard when authenticated
+  useEffect(() => {
+    if (isAuthenticated && adminUser?.is_admin) {
+      navigate('/admin/dashboard');
+    }
+  }, [isAuthenticated, adminUser, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,11 +48,8 @@ const AdminLogin: React.FC = () => {
           localStorage.setItem('adminUser', JSON.stringify(data.user));
         }
         
-        // Update auth state
+        // Update auth state - useEffect will handle redirect
         login(data.user, data.token);
-        
-        // Redirect to admin dashboard
-        navigate('/admin');
       } else {
         setError(data.error || 'Login failed');
       }
