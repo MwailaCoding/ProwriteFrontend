@@ -16,11 +16,12 @@ import SystemLogsPage from '../../pages/admin/SystemLogsPage';
 import NotificationsPage from '../../pages/admin/NotificationsPage';
 import AnalyticsPage from '../../pages/admin/AnalyticsPage';
 
-// Import admin layout
+// Import admin components
 import AdminLayout from './AdminLayout';
+import AdminLogin from './AdminLogin';
 
 const AdminRoutes: React.FC = () => {
-  const { adminUser, isAuthenticated, loading } = useAdminAuth();
+  const { adminUser, isAuthenticated, loading, logout } = useAdminAuth();
   const location = useLocation();
 
   // Show loading while checking authentication
@@ -32,9 +33,19 @@ const AdminRoutes: React.FC = () => {
     );
   }
 
-  // Redirect to login if not authenticated
-  if (!isAuthenticated) {
+  // If on login page and already authenticated, redirect to dashboard
+  if (location.pathname === '/admin/login' && isAuthenticated) {
+    return <Navigate to="/admin/dashboard" replace />;
+  }
+
+  // If not authenticated and not on login page, redirect to login
+  if (!isAuthenticated && location.pathname !== '/admin/login') {
     return <Navigate to="/admin/login" replace />;
+  }
+
+  // If on login page and not authenticated, show login
+  if (location.pathname === '/admin/login' && !isAuthenticated) {
+    return <AdminLogin />;
   }
 
   // Redirect to home if not admin
@@ -46,10 +57,7 @@ const AdminRoutes: React.FC = () => {
     <AdminLayout
       currentPath={location.pathname}
       user={adminUser}
-      onLogout={() => {
-        // Handle logout logic here
-        console.log('Logout clicked');
-      }}
+      onLogout={logout}
     >
       <Routes>
         <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
