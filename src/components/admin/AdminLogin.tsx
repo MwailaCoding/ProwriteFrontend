@@ -65,22 +65,9 @@ const AdminLogin: React.FC = () => {
         
         console.log('🔧 State updated, redirecting...');
         
-        // Test navigation
-        console.log('🔧 About to navigate to /admin/dashboard');
-        console.log('🔧 Navigate function:', typeof navigate);
-        
-        try {
-          navigate('/admin/dashboard');
-          console.log('🔧 Navigate called successfully');
-        } catch (error) {
-          console.log('🔧 Navigate error:', error);
-        }
-        
-        // Also try window.location as fallback
-        setTimeout(() => {
-          console.log('🔧 Fallback redirect after 1 second');
-          window.location.href = '/admin/dashboard';
-        }, 1000);
+        // Direct redirect using window.location
+        console.log('🔧 Redirecting to /admin/dashboard using window.location');
+        window.location.href = '/admin/dashboard';
       } else {
         console.log('🔧 Login failed:', data);
         setError(data.error || 'Login failed');
