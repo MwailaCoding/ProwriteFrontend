@@ -18,6 +18,9 @@ const AdminLogin: React.FC = () => {
     setLoading(true);
     setError(null);
 
+    console.log('🔧 Starting login process...');
+    console.log('🔧 Email:', email);
+
     try {
       const response = await fetch('https://prowrite.pythonanywhere.com/api/admin/login', {
         method: 'POST',
@@ -27,29 +30,49 @@ const AdminLogin: React.FC = () => {
         body: JSON.stringify({ email, password }),
       });
 
+      console.log('🔧 Response status:', response.status);
+      console.log('🔧 Response ok:', response.ok);
+
       const data = await response.json();
-      console.log('Login response:', data);
+      console.log('🔧 Login response:', data);
 
       if (response.ok) {
-        console.log('Login successful, storing data...');
+        console.log('🔧 Login successful, storing data...');
+        
+        // Test localStorage before storing
+        console.log('🔧 Testing localStorage...');
+        localStorage.setItem('test', 'test-value');
+        const testValue = localStorage.getItem('test');
+        console.log('🔧 localStorage test result:', testValue);
+        localStorage.removeItem('test');
         
         // Store admin data
         localStorage.setItem('adminToken', data.access_token);
         localStorage.setItem('adminUser', JSON.stringify(data.user));
         
-        console.log('Data stored, updating state...');
+        // Verify storage
+        const storedToken = localStorage.getItem('adminToken');
+        const storedUser = localStorage.getItem('adminUser');
+        console.log('🔧 Stored token exists:', !!storedToken);
+        console.log('🔧 Stored user exists:', !!storedUser);
+        console.log('🔧 Stored token length:', storedToken?.length);
+        console.log('🔧 Stored user length:', storedUser?.length);
+        
+        console.log('🔧 Data stored, updating state...');
         
         // Update state
         login(data.user, data.access_token);
         
-        console.log('State updated, redirecting...');
+        console.log('🔧 State updated, redirecting...');
         
         // Redirect
         navigate('/admin/dashboard');
       } else {
+        console.log('🔧 Login failed:', data);
         setError(data.error || 'Login failed');
       }
     } catch (err) {
+      console.log('🔧 Login error:', err);
       setError('Network error. Please try again.');
     } finally {
       setLoading(false);
