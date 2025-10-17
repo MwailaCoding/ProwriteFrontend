@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { ArrowUpIcon, ArrowDownIcon } from '@heroicons/react/24/outline';
-import { StatCardProps } from '../../types/admin';
+import type { StatCardProps } from '../../types/admin';
 
 const StatCard: React.FC<StatCardProps> = ({ 
   title, 

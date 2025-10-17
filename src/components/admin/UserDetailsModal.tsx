@@ -5,7 +5,7 @@
 
 import React, { useState } from 'react';
 import { XMarkIcon, PencilIcon, CheckIcon } from '@heroicons/react/24/outline';
-import { UserDetailsModalProps, UserUpdateForm } from '../../types/admin';
+import type { UserDetailsModalProps, UserUpdateForm } from '../../types/admin';
 
 const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ 
   user, 

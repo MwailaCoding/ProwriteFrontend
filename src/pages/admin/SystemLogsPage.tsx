@@ -15,7 +15,7 @@ import {
   UserIcon
 } from '@heroicons/react/24/outline';
 import { adminService } from '../../services/adminService';
-import { SystemLog, LogFilters, SystemLogsResponse } from '../../types/admin';
+import type { SystemLog, LogFilters, SystemLogsResponse } from '../../types/admin';
 import DataTable from '../../components/admin/DataTable';
 
 const SystemLogsPage: React.FC = () => {

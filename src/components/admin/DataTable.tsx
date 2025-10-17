@@ -5,7 +5,7 @@
 
 import React, { useState } from 'react';
 import { ChevronUpIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
-import { DataTableProps, Pagination } from '../../types/admin';
+import type { DataTableProps, Pagination } from '../../types/admin';
 
 function DataTable<T>({ 
   data, 

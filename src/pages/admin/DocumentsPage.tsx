@@ -14,7 +14,7 @@ import {
   UserIcon
 } from '@heroicons/react/24/outline';
 import { adminService } from '../../services/adminService';
-import { Document, DocumentFilters, DocumentsResponse } from '../../types/admin';
+import type { Document, DocumentFilters, DocumentsResponse } from '../../types/admin';
 import DataTable from '../../components/admin/DataTable';
 import DocumentViewerModal from '../../components/admin/DocumentViewerModal';
 

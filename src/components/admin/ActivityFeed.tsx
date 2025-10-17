@@ -10,7 +10,7 @@ import {
   CreditCardIcon, 
   CogIcon 
 } from '@heroicons/react/24/outline';
-import { RecentActivity } from '../../types/admin';
+import type { RecentActivity } from '../../types/admin';
 
 interface ActivityFeedProps {
   activities: RecentActivity[];

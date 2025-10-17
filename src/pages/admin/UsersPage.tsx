@@ -15,7 +15,7 @@ import {
   UserMinusIcon
 } from '@heroicons/react/24/outline';
 import { adminService } from '../../services/adminService';
-import { AdminUser, UserFilters, UsersResponse } from '../../types/admin';
+import type { AdminUser, UserFilters, UsersResponse } from '../../types/admin';
 import DataTable from '../../components/admin/DataTable';
 import UserDetailsModal from '../../components/admin/UserDetailsModal';
 import ConfirmDialog from '../../components/admin/ConfirmDialog';

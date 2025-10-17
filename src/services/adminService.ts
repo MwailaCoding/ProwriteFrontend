@@ -4,7 +4,7 @@
  */
 
 import { api } from './api';
-import {
+import type {
   AdminUser,
   Document,
   Payment,

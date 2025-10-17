@@ -5,7 +5,7 @@
 
 import React, { useState } from 'react';
 import { XMarkIcon, ArrowDownTrayIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
-import { DocumentViewerModalProps } from '../../types/admin';
+import type { DocumentViewerModalProps } from '../../types/admin';
 
 const DocumentViewerModal: React.FC<DocumentViewerModalProps> = ({ 
   document, 

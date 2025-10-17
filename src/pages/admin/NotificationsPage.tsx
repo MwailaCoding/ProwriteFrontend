@@ -15,7 +15,7 @@ import {
   CalendarIcon
 } from '@heroicons/react/24/outline';
 import { adminService } from '../../services/adminService';
-import { Notification, NotificationsResponse, NotificationForm } from '../../types/admin';
+import type { Notification, NotificationsResponse, NotificationForm } from '../../types/admin';
 import DataTable from '../../components/admin/DataTable';
 import EmailComposerModal from '../../components/admin/EmailComposerModal';
 

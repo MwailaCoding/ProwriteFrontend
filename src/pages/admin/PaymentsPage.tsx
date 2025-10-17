@@ -15,7 +15,7 @@ import {
   UserIcon
 } from '@heroicons/react/24/outline';
 import { adminService } from '../../services/adminService';
-import { Payment, PaymentFilters, PaymentsResponse, PaymentApprovalForm } from '../../types/admin';
+import type { Payment, PaymentFilters, PaymentsResponse, PaymentApprovalForm } from '../../types/admin';
 import DataTable from '../../components/admin/DataTable';
 import PaymentApprovalModal from '../../components/admin/PaymentApprovalModal';
 

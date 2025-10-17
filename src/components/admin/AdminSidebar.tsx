@@ -15,7 +15,7 @@ import {
   ChartBarIcon,
   Cog6ToothIcon
 } from '@heroicons/react/24/outline';
-import { NavItem } from '../../types/admin';
+import type { NavItem } from '../../types/admin';
 
 interface AdminSidebarProps {
   isOpen: boolean;

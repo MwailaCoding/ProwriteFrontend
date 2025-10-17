@@ -5,7 +5,7 @@
 
 import React, { useState } from 'react';
 import { XMarkIcon, CheckIcon, XMarkIcon as RejectIcon } from '@heroicons/react/24/outline';
-import { PaymentApprovalModalProps, PaymentApprovalForm } from '../../types/admin';
+import type { PaymentApprovalModalProps, PaymentApprovalForm } from '../../types/admin';
 
 const PaymentApprovalModal: React.FC<PaymentApprovalModalProps> = ({ 
   payment, 

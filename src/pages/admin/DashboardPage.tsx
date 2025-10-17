@@ -15,7 +15,7 @@ import {
   CheckCircleIcon
 } from '@heroicons/react/24/outline';
 import { adminService } from '../../services/adminService';
-import { AnalyticsStats, DashboardStats, RecentActivity } from '../../types/admin';
+import type { AnalyticsStats, DashboardStats, RecentActivity } from '../../types/admin';
 import StatCard from '../../components/admin/StatCard';
 import ActivityFeed from '../../components/admin/ActivityFeed';
 import QuickActions from '../../components/admin/QuickActions';

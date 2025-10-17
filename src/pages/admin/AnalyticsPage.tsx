@@ -15,7 +15,7 @@ import {
   ArrowTrendingDownIcon
 } from '@heroicons/react/24/outline';
 import { adminService } from '../../services/adminService';
-import { AnalyticsStats, ExportOptions } from '../../types/admin';
+import type { AnalyticsStats, ExportOptions } from '../../types/admin';
 
 const AnalyticsPage: React.FC = () => {
   const [analytics, setAnalytics] = useState<AnalyticsStats | null>(null);

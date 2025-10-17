@@ -20,7 +20,7 @@ import {
   UserCircleIcon,
   ChevronDownIcon
 } from '@heroicons/react/24/outline';
-import { AdminLayoutProps, NavItem } from '../../types/admin';
+import type { AdminLayoutProps, NavItem } from '../../types/admin';
 
 const AdminLayout: React.FC<AdminLayoutProps> = ({ 
   children, 
