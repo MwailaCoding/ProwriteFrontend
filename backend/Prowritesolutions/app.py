@@ -8986,6 +8986,197 @@ def download_payment_document(reference):
             'error': 'Internal server error'
         }), 500
 
+@app.route('/api/payments/history', methods=['GET'])
+@jwt_required_custom
+def get_payment_history():
+    """Get payment history for the current user"""
+    try:
+        user_id = request.current_user['user_id']
+        
+        # Get payments from both tables
+        cursor = mysql.connection.cursor()
+        
+        # Query regular payments table
+        cursor.execute("""
+            SELECT 
+                id as payment_id,
+                amount,
+                currency,
+                payment_method,
+                status,
+                mpesa_checkout_request_id as checkout_request_id,
+                mpesa_receipt_number as mpesa_code,
+                transaction_reference,
+                created_at,
+                updated_at as completed_at,
+                'regular' as payment_type,
+                user_id as item_id
+            FROM payments 
+            WHERE user_id = %s
+            ORDER BY created_at DESC
+        """, (user_id,))
+        
+        regular_payments = cursor.fetchall()
+        
+        # Query manual payments table
+        cursor.execute("""
+            SELECT 
+                id as payment_id,
+                amount,
+                'KES' as currency,
+                payment_method,
+                status,
+                reference as checkout_request_id,
+                transaction_code as mpesa_code,
+                reference as transaction_reference,
+                created_at,
+                updated_at as completed_at,
+                document_type as payment_type,
+                reference as item_id
+            FROM manual_payments 
+            WHERE JSON_EXTRACT(form_data, '$.user_id') = %s OR JSON_EXTRACT(form_data, '$.personalEmail') IS NOT NULL
+            ORDER BY created_at DESC
+        """, (user_id,))
+        
+        manual_payments = cursor.fetchall()
+        
+        # Combine and format the results
+        all_payments = []
+        
+        # Process regular payments
+        for payment in regular_payments:
+            all_payments.append({
+                'payment_id': payment[0],
+                'amount': float(payment[1]),
+                'currency': payment[2],
+                'payment_method': payment[3],
+                'status': payment[4],
+                'checkout_request_id': payment[5],
+                'mpesa_code': payment[6],
+                'transaction_reference': payment[7],
+                'created_at': payment[8].isoformat() if payment[8] else None,
+                'completed_at': payment[9].isoformat() if payment[9] else None,
+                'payment_type': payment[10],
+                'item_id': payment[11],
+                'phone_number': None  # Not available in regular payments
+            })
+        
+        # Process manual payments
+        for payment in manual_payments:
+            # Extract phone number from form_data if available
+            phone_number = None
+            try:
+                cursor.execute("SELECT JSON_EXTRACT(form_data, '$.personalPhone') FROM manual_payments WHERE id = %s", (payment[0],))
+                phone_result = cursor.fetchone()
+                if phone_result and phone_result[0]:
+                    phone_number = phone_result[0].strip('"')
+            except:
+                pass
+            
+            all_payments.append({
+                'payment_id': payment[0],
+                'amount': float(payment[1]),
+                'currency': payment[2],
+                'payment_method': payment[3],
+                'status': payment[4],
+                'checkout_request_id': payment[5],
+                'mpesa_code': payment[6],
+                'transaction_reference': payment[7],
+                'created_at': payment[8].isoformat() if payment[8] else None,
+                'completed_at': payment[9].isoformat() if payment[9] else None,
+                'payment_type': payment[10],
+                'item_id': payment[11],
+                'phone_number': phone_number
+            })
+        
+        # Sort by creation date (newest first)
+        all_payments.sort(key=lambda x: x['created_at'], reverse=True)
+        
+        cursor.close()
+        
+        return jsonify({
+            'success': True,
+            'data': all_payments,
+            'total': len(all_payments)
+        })
+        
+    except Exception as e:
+        logger.error(f"Error fetching payment history: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to fetch payment history'
+        }), 500
+
+@app.route('/api/payments/stats', methods=['GET'])
+@jwt_required_custom
+def get_payment_stats():
+    """Get payment statistics for the current user"""
+    try:
+        user_id = request.current_user['user_id']
+        
+        cursor = mysql.connection.cursor()
+        
+        # Get stats from regular payments
+        cursor.execute("""
+            SELECT 
+                COUNT(*) as total_payments,
+                SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END) as total_revenue,
+                SUM(CASE WHEN status = 'completed' AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) THEN amount ELSE 0 END) as revenue_30d,
+                SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed_payments,
+                SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending_payments,
+                SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) as failed_payments
+            FROM payments 
+            WHERE user_id = %s
+        """, (user_id,))
+        
+        regular_stats = cursor.fetchone()
+        
+        # Get stats from manual payments
+        cursor.execute("""
+            SELECT 
+                COUNT(*) as total_payments,
+                SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END) as total_revenue,
+                SUM(CASE WHEN status = 'completed' AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) THEN amount ELSE 0 END) as revenue_30d,
+                SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed_payments,
+                SUM(CASE WHEN status = 'pending_payment' THEN 1 ELSE 0 END) as pending_payments,
+                SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) as failed_payments
+            FROM manual_payments 
+            WHERE JSON_EXTRACT(form_data, '$.user_id') = %s OR JSON_EXTRACT(form_data, '$.personalEmail') IS NOT NULL
+        """, (user_id,))
+        
+        manual_stats = cursor.fetchone()
+        
+        # Combine stats
+        total_payments = (regular_stats[0] or 0) + (manual_stats[0] or 0)
+        total_revenue = (regular_stats[1] or 0) + (manual_stats[1] or 0)
+        revenue_30d = (regular_stats[2] or 0) + (manual_stats[2] or 0)
+        completed_payments = (regular_stats[3] or 0) + (manual_stats[3] or 0)
+        pending_payments = (regular_stats[4] or 0) + (manual_stats[4] or 0)
+        failed_payments = (regular_stats[5] or 0) + (manual_stats[5] or 0)
+        
+        cursor.close()
+        
+        return jsonify({
+            'success': True,
+            'data': {
+                'totalPayments': total_payments,
+                'totalRevenue': total_revenue,
+                'payments30d': revenue_30d,
+                'paymentStatusStats': {
+                    'completed': completed_payments,
+                    'pending': pending_payments,
+                    'failed': failed_payments
+                }
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Error fetching payment stats: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to fetch payment statistics'
+        }), 500
+
 @app.route('/api/documents/shared/<reference>', methods=['GET'])
 def get_shared_document(reference):
     """Get shared document information for public access"""
