@@ -36,7 +36,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
     { path: '/app/templates', icon: Layout, label: 'Templates' },
     { path: '/app/market-insights', icon: TrendingUp, label: 'Market Insights' },
     { path: '/app/real-jobs', icon: Search, label: 'Real Job Search' },
-    { path: '/app/billing', icon: CreditCard, label: 'Billing' },
     { path: '/app/payments', icon: CreditCard, label: 'Payment History' },
   ];
 

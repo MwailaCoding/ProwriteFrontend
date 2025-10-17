@@ -83,7 +83,6 @@ export const Navbar: React.FC<NavbarProps> = () => {
   const profileMenuItems = [
     { label: 'Profile Settings', icon: Settings, path: '/app/profile' },
     { label: 'Payment History', icon: CreditCard, onClick: () => setShowPaymentDashboard(true) },
-    { label: 'Billing', icon: CreditCard, path: '/app/billing' },
   ];
 
   if (user?.isAdmin) {
@@ -121,12 +120,6 @@ export const Navbar: React.FC<NavbarProps> = () => {
       icon: Target,
       path: '/app/real-jobs',
       description: 'Find real job opportunities'
-    },
-    {
-      label: 'Billing',
-      icon: CreditCard,
-      path: '/app/billing',
-      description: 'Manage your subscription'
     },
     {
       label: 'Payments',

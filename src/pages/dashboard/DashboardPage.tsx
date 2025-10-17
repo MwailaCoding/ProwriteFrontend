@@ -478,15 +478,6 @@ export const DashboardPage: React.FC = () => {
               badge=""
             />
             <FeatureCard
-              title="Billing & Payments"
-              description="Manage your subscription and payment history"
-              icon={CreditCard}
-              color="pink"
-              href="/app/billing"
-              delay={0.5}
-              badge="24/7"
-            />
-            <FeatureCard
               title="Payment History"
               description="View your transaction history and receipts"
               icon={Receipt}
