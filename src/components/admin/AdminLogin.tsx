@@ -1,9 +1,4 @@
-/**
- * Admin Login Component
- * Dedicated login page for admin users
- */
-
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
@@ -33,25 +28,17 @@ const AdminLogin: React.FC = () => {
       });
 
       const data = await response.json();
-      console.log('Login response:', data);
 
       if (response.ok) {
-        console.log('Login successful, storing data:', { token: data.access_token, user: data.user });
+        // Store admin data
+        localStorage.setItem('adminToken', data.access_token);
+        localStorage.setItem('adminUser', JSON.stringify(data.user));
         
-        // Store admin token and user data
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('adminToken', data.access_token);
-          localStorage.setItem('adminUser', JSON.stringify(data.user));
-          console.log('Data stored in localStorage');
-        }
-        
-        // Update auth state
+        // Update state
         login(data.user, data.access_token);
         
-        // Redirect to dashboard after successful login
-        setTimeout(() => {
-          navigate('/admin/dashboard');
-        }, 100);
+        // Redirect
+        navigate('/admin/dashboard');
       } else {
         setError(data.error || 'Login failed');
       }

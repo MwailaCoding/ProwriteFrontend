@@ -1,8 +1,3 @@
-/**
- * Admin Routes Component
- * Routing configuration for admin interface
- */
-
 import React from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
@@ -24,45 +19,27 @@ const AdminRoutes: React.FC = () => {
   const { adminUser, isAuthenticated, loading, logout } = useAdminAuth();
   const location = useLocation();
 
-  console.log('AdminRoutes - Current path:', location.pathname);
-  console.log('AdminRoutes - Auth state:', { isAuthenticated, adminUser, loading });
-
   // Show loading while checking authentication
   if (loading) {
-      return (
+    return (
       <div className="flex items-center justify-center h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        </div>
-      );
-    }
-    
-  // If on login page and already authenticated, redirect to dashboard
-  if (location.pathname === '/admin/login' && isAuthenticated) {
-    return <Navigate to="/admin/dashboard" replace />;
+      </div>
+    );
   }
 
-  // If not authenticated and not on login page, redirect to login
-  if (!isAuthenticated && location.pathname !== '/admin/login') {
-    console.log('AdminRoutes - Not authenticated, redirecting to admin login');
-    return <Navigate to="/admin/login" replace />;
-  }
-
-  // If on login page and not authenticated, show login
-  if (location.pathname === '/admin/login' && !isAuthenticated) {
+  // Show login page if not authenticated
+  if (!isAuthenticated || !adminUser) {
     return <AdminLogin />;
   }
 
-  // If authenticated but no admin user data, redirect to login
-  if (isAuthenticated && !adminUser) {
-    return <Navigate to="/admin/login" replace />;
-  }
-
   // Redirect to home if not admin
-  if (!adminUser?.is_admin) {
+  if (!adminUser.is_admin) {
     return <Navigate to="/" replace />;
   }
 
-      return (
+  // Show admin dashboard
+  return (
     <AdminLayout
       currentPath={location.pathname}
       user={adminUser}
