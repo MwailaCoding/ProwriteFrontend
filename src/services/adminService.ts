@@ -3,7 +3,7 @@
  * Comprehensive API service for admin functionality
  */
 
-import { api } from './api';
+import api from './api';
 import type {
   AdminUser,
   Document,
