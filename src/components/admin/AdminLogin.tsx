@@ -20,7 +20,9 @@ const AdminLogin: React.FC = () => {
 
   // Redirect to dashboard when authenticated
   useEffect(() => {
+    console.log('Auth state changed:', { isAuthenticated, adminUser });
     if (isAuthenticated && adminUser?.is_admin) {
+      console.log('Redirecting to dashboard...');
       navigate('/admin/dashboard');
     }
   }, [isAuthenticated, adminUser, navigate]);
@@ -40,16 +42,17 @@ const AdminLogin: React.FC = () => {
       });
 
       const data = await response.json();
+      console.log('Login response:', data);
 
       if (response.ok) {
         // Store admin token and user data
         if (typeof window !== 'undefined') {
-          localStorage.setItem('adminToken', data.token);
+          localStorage.setItem('adminToken', data.access_token);
           localStorage.setItem('adminUser', JSON.stringify(data.user));
         }
         
         // Update auth state - useEffect will handle redirect
-        login(data.user, data.token);
+        login(data.user, data.access_token);
       } else {
         setError(data.error || 'Login failed');
       }
