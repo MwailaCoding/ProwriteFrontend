@@ -403,7 +403,7 @@ class CoverLetterService {
     isParagraph: boolean;
     paragraphContent?: string;
   }> {
-    const response = await api.post('/api/cover-letters/ai-chat', data);
+    const response = await api.post('/cover-letters/ai-chat', data);
     return response.data;
   }
 
@@ -426,7 +426,7 @@ class CoverLetterService {
     hasPaid: boolean;
     paymentId: string | null;
   }): Promise<Blob> {
-    const response = await api.post('/api/cover-letters/download-paid', data, {
+    const response = await api.post('/cover-letters/download-paid', data, {
       responseType: 'blob'
     });
     return response.data;
@@ -451,7 +451,7 @@ class CoverLetterService {
     success: boolean;
     previewData: any;
   }> {
-    const response = await api.post('/api/cover-letters/preview', data);
+    const response = await api.post('/cover-letters/preview', data);
     return response.data;
   }
 }

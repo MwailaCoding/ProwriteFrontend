@@ -3,7 +3,7 @@ ProWrite Backend - Complete Consolidated Flask Application
 All backend functionality integrated into a single file for easy hosting
 """
 
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify, send_file, make_response
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from datetime import datetime, timedelta
@@ -3941,9 +3941,17 @@ def download_cover_letter():
             'error': 'Failed to generate cover letter PDF'
         }), 500
 
-@app.route('/api/cover-letters/ai-chat', methods=['POST'])
+@app.route('/api/cover-letters/ai-chat', methods=['POST', 'OPTIONS'])
 def ai_chat():
     """AI chat endpoint for cover letter paragraph assistance"""
+    # Handle CORS preflight
+    if request.method == 'OPTIONS':
+        response = make_response()
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+        response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+        return response
+    
     try:
         data = request.get_json()
         
@@ -4089,9 +4097,17 @@ Please respond as a helpful writing assistant. If the user is asking for a compl
             'error': 'Failed to process AI chat request'
         }), 500
 
-@app.route('/api/cover-letters/download-paid', methods=['POST'])
+@app.route('/api/cover-letters/download-paid', methods=['POST', 'OPTIONS'])
 def download_paid_cover_letter():
     """Download cover letter as PDF after payment verification"""
+    # Handle CORS preflight
+    if request.method == 'OPTIONS':
+        response = make_response()
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+        response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+        return response
+    
     try:
         data = request.get_json()
         
