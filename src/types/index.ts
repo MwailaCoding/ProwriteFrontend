@@ -12,7 +12,7 @@ export interface User {
   firstName: string;
   lastName: string;
   isPremium?: boolean;
-  isAdmin?: boolean;
+  is_admin?: boolean;
   createdAt?: string;
   lastLogin?: string;
 }

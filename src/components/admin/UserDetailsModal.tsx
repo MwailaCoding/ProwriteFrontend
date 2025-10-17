@@ -18,7 +18,7 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
     firstName: user.firstName,
     lastName: user.lastName,
     isPremium: user.isPremium,
-    isAdmin: user.isAdmin,
+    is_admin: user.is_admin,
     isActive: user.isActive
   });
   const [loading, setLoading] = useState(false);
@@ -40,7 +40,7 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
       firstName: user.firstName,
       lastName: user.lastName,
       isPremium: user.isPremium,
-      isAdmin: user.isAdmin,
+      is_admin: user.is_admin,
       isActive: user.isActive
     });
     setIsEditing(false);
@@ -130,8 +130,8 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
                 <div className="flex items-center">
                   <input
                     type="checkbox"
-                    checked={formData.isAdmin || false}
-                    onChange={(e) => setFormData(prev => ({ ...prev, isAdmin: e.target.checked }))}
+                    checked={formData.is_admin || false}
+                    onChange={(e) => setFormData(prev => ({ ...prev, is_admin: e.target.checked }))}
                     disabled={!isEditing}
                     className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded disabled:opacity-50"
                   />

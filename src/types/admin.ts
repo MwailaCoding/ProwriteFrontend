@@ -12,7 +12,7 @@ export interface AdminUser {
   phone?: string;
   country?: string;
   isPremium: boolean;
-  isAdmin: boolean;
+  is_admin: boolean;
   createdAt: string;
   lastLogin?: string;
   isActive: boolean;
@@ -215,7 +215,7 @@ export interface AuditFilters {
 // Form interfaces
 export interface UserUpdateForm {
   isPremium?: boolean;
-  isAdmin?: boolean;
+  is_admin?: boolean;
   isActive?: boolean;
   firstName?: string;
   lastName?: string;
