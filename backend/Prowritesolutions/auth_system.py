@@ -226,6 +226,93 @@ class AuthSystem:
         finally:
             if connection:
                 connection.close()
+    
+    def create_admin_user(self, email: str, password: str, first_name: str, last_name: str):
+        """Create a new admin user in the database"""
+        connection = self.get_db_connection()
+        if not connection:
+            return {"error": "Database connection failed"}, 500
+            
+        try:
+            cursor = connection.cursor()
+            
+            # Check if user already exists
+            cursor.execute("SELECT id, is_admin FROM users WHERE email = %s", (email,))
+            existing_user = cursor.fetchone()
+            
+            if existing_user:
+                user_id, is_admin = existing_user
+                if is_admin:
+                    return {"error": "Admin user already exists"}, 400
+                else:
+                    # Update existing user to admin
+                    hashed_password = self.hash_password(password)
+                    cursor.execute("""
+                        UPDATE users 
+                        SET password = %s, first_name = %s, last_name = %s, is_admin = TRUE, updated_at = NOW()
+                        WHERE id = %s
+                    """, (hashed_password, first_name, last_name, user_id))
+                    connection.commit()
+                    
+                    # Get updated user data
+                    cursor.execute("""
+                        SELECT id, email, first_name, last_name, is_premium, is_admin, created_at
+                        FROM users WHERE id = %s
+                    """, (user_id,))
+                    
+                    user_data = cursor.fetchone()
+                    user = {
+                        "id": user_data[0],
+                        "email": user_data[1],
+                        "firstName": user_data[2],
+                        "lastName": user_data[3],
+                        "isPremium": user_data[4],
+                        "is_admin": user_data[5],
+                        "createdAt": user_data[6].isoformat() if user_data[6] else None
+                    }
+                    
+                    return {"user": user, "message": "User updated to admin successfully"}, 201
+            else:
+                # Create new admin user
+                hashed_password = self.hash_password(password)
+                cursor.execute("""
+                    INSERT INTO users (email, password, first_name, last_name, is_admin, created_at, updated_at)
+                    VALUES (%s, %s, %s, %s, TRUE, NOW(), NOW())
+                """, (email, hashed_password, first_name, last_name))
+                
+                user_id = cursor.lastrowid
+                connection.commit()
+                
+                # Get user data
+                cursor.execute("""
+                    SELECT id, email, first_name, last_name, is_premium, is_admin, created_at
+                    FROM users WHERE id = %s
+                """, (user_id,))
+                
+                user_data = cursor.fetchone()
+                user = {
+                    "id": user_data[0],
+                    "email": user_data[1],
+                    "firstName": user_data[2],
+                    "lastName": user_data[3],
+                    "isPremium": user_data[4],
+                    "is_admin": user_data[5],
+                    "createdAt": user_data[6].isoformat() if user_data[6] else None
+                }
+                
+                return {"user": user, "message": "Admin user created successfully"}, 201
+                
+        except mysql.connector.Error as e:
+            import logging
+            logging.error(f"Database error: {e}")
+            return {"error": "Database error occurred"}, 500
+        except Exception as e:
+            import logging
+            logging.error(f"Unexpected error: {e}")
+            return {"error": "An unexpected error occurred"}, 500
+        finally:
+            if connection:
+                connection.close()
 
 # Initialize auth system
 auth_system = AuthSystem()
@@ -384,6 +471,43 @@ def register_auth_routes(app):
             print(f"Logout error: {e}")
             traceback.print_exc()
             return jsonify({"error": "Logout failed"}), 500
+    
+    @app.route('/api/auth/create-admin', methods=['POST'])
+    @jwt_required_custom
+    def create_admin():
+        try:
+            # Check if current user is admin
+            if not request.current_user.get('is_admin'):
+                return jsonify({"error": "Admin privileges required"}), 403
+            
+            data = request.get_json()
+            
+            # Validate required fields
+            required_fields = ['email', 'password', 'firstName', 'lastName']
+            for field in required_fields:
+                if not data.get(field):
+                    return jsonify({"error": f"{field} is required"}), 400
+            
+            # Create admin user
+            result, status_code = auth_system.create_admin_user(
+                email=data['email'],
+                password=data['password'],
+                first_name=data['firstName'],
+                last_name=data['lastName']
+            )
+            
+            if status_code != 201:
+                return jsonify(result), status_code
+            
+            return jsonify({
+                "message": "Admin user created successfully",
+                "user": result['user']
+            }), 201
+            
+        except Exception as e:
+            print(f"Create admin error: {e}")
+            traceback.print_exc()
+            return jsonify({"error": "Failed to create admin user"}), 500
 
 # Error handlers
 def register_auth_error_handlers(app):

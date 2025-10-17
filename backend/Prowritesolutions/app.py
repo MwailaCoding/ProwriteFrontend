@@ -616,7 +616,7 @@ class AuthSystem:
             # Hash password
             hashed_password = self.hash_password(password)
 
-            # Insert new user (using correct column names)
+            # Insert new user (using correct column names from your database)
             cursor.execute("""
                 INSERT INTO users (email, password_hash, first_name, last_name, created_at)
                 VALUES (%s, %s, %s, %s, NOW())
@@ -663,7 +663,7 @@ class AuthSystem:
         try:
             cursor = connection.cursor()
 
-            # Get user data (using correct column names)
+            # Get user data (using correct column names from your database)
             cursor.execute("""
                 SELECT user_id, email, password_hash, first_name, last_name, is_premium, is_admin, created_at
                 FROM users WHERE email = %s
@@ -845,6 +845,140 @@ def jwt_required_custom(f):
 
     return decorated_function
 
+# Admin-only decorator
+def admin_required_custom(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        # First check if user is authenticated
+        token = None
+        auth_header = request.headers.get('Authorization')
+        if auth_header:
+            try:
+                token = auth_header.split(' ')[1]
+            except IndexError:
+                return jsonify({"error": "Invalid token format"}), 401
+        else:
+            return jsonify({"error": "No token provided"}), 401
+
+        if not token:
+            return jsonify({"error": "No token provided"}), 401
+
+        payload = auth_system.verify_token(token)
+        if 'error' in payload:
+            return jsonify({"error": payload['error']}), 401
+
+        # Check if user is admin
+        if not payload.get('is_admin'):
+            return jsonify({"error": "Admin privileges required"}), 403
+
+        request.current_user = payload
+        
+        # Log admin action
+        log_admin_action(payload['user_id'], f"accessed_{f.__name__}", request.path, request.remote_addr)
+        
+        return f(*args, **kwargs)
+
+    return decorated_function
+
+# Admin action logging function
+def log_admin_action(admin_id, action, target_path, ip_address):
+    """Log admin action to database"""
+    connection = auth_system.get_db_connection()
+    if not connection:
+        return
+    
+    try:
+        cursor = connection.cursor()
+        cursor.execute("""
+            INSERT INTO admin_activity_logs (admin_id, action, target_type, details, ip_address)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (admin_id, action, 'api_endpoint', f'{{"path": "{target_path}"}}', ip_address))
+        connection.commit()
+    except Exception as e:
+        logger.error(f"Failed to log admin action: {e}")
+    finally:
+        if connection:
+            connection.close()
+
+# System logging function
+def log_system_event(level, message, module=None, user_id=None, metadata=None):
+    """Log system event to database"""
+    connection = auth_system.get_db_connection()
+    if not connection:
+        return
+    
+    try:
+        cursor = connection.cursor()
+        cursor.execute("""
+            INSERT INTO system_logs (level, message, module, user_id, ip_address, metadata)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """, (level, message, module, user_id, request.remote_addr if request else None, 
+              json.dumps(metadata) if metadata else None))
+        connection.commit()
+    except Exception as e:
+        logger.error(f"Failed to log system event: {e}")
+    finally:
+        if connection:
+            connection.close()
+
+# Document tracking function
+def track_document_generation(reference, document_data, file_path):
+    """Track document generation in user_documents table"""
+    connection = auth_system.get_db_connection()
+    if not connection:
+        return
+    
+    try:
+        cursor = connection.cursor()
+        
+        # Get user email from document data
+        user_email = document_data.get('personalEmail', '')
+        if not user_email:
+            logger.warning(f"No user email found for document reference: {reference}")
+            return
+        
+        # Get user ID from email
+        cursor.execute("SELECT user_id FROM users WHERE email = %s", (user_email,))
+        user_result = cursor.fetchone()
+        if not user_result:
+            logger.warning(f"User not found for email: {user_email}")
+            return
+        
+        user_id = user_result[0]
+        
+        # Determine document type
+        document_type = 'resume'
+        if 'cover_letter' in reference.lower() or 'coverletter' in reference.lower():
+            document_type = 'cover_letter'
+        
+        # Check if document already exists
+        cursor.execute("SELECT id FROM user_documents WHERE reference = %s", (reference,))
+        existing_doc = cursor.fetchone()
+        
+        if existing_doc:
+            # Update existing document
+            cursor.execute("""
+                UPDATE user_documents 
+                SET file_path = %s, status = 'generated', updated_at = NOW()
+                WHERE reference = %s
+            """, (file_path, reference))
+            logger.info(f"Updated existing document tracking for reference: {reference}")
+        else:
+            # Insert new document
+            cursor.execute("""
+                INSERT INTO user_documents (user_id, document_type, reference, file_path, status, created_at)
+                VALUES (%s, %s, %s, %s, 'generated', NOW())
+            """, (user_id, document_type, reference, file_path))
+            logger.info(f"Tracked new document generation for reference: {reference}")
+        
+        connection.commit()
+        
+    except Exception as e:
+        logger.error(f"Failed to track document generation: {e}")
+    finally:
+        if connection:
+            connection.close()
+
 # Error Handlers
 def register_error_handlers(app):
     """Register production error handlers"""
@@ -928,6 +1062,10 @@ app.register_blueprint(manual_payment_bp)
 app.register_blueprint(pesapal_callback_bp)
 app.register_blueprint(pesapal_payment_bp)
 app.register_blueprint(pesapal_embedded_bp)
+
+# Import and register admin routes
+from admin_routes import admin_bp
+app.register_blueprint(admin_bp)
 CORS(app, resources={
     r"/api/*": {
         "origins": [
@@ -936,7 +1074,8 @@ CORS(app, resources={
             "http://localhost:5173"   # For Vite dev server
         ],
         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        "allow_headers": ["Content-Type", "Authorization", "Cache-Control", "Pragma"]
+        "allow_headers": ["Content-Type", "Authorization", "Cache-Control", "Pragma"],
+        "supports_credentials": True
     }
 })
 
@@ -956,6 +1095,16 @@ jwt = JWTManager(app)
 
 # Register error handlers
 register_error_handlers(app)
+
+# CORS preflight handler
+@app.before_request
+def handle_preflight():
+    if request.method == "OPTIONS":
+        response = make_response()
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        response.headers.add('Access-Control-Allow-Headers', "*")
+        response.headers.add('Access-Control-Allow-Methods', "*")
+        return response
 
 # Authentication Routes
 @app.route("/")
@@ -1027,6 +1176,43 @@ def login():
     except Exception as e:
         logger.error(f"Login error: {e}")
         return jsonify({"error": "Login failed"}), 500
+
+@app.route('/api/admin/login', methods=['POST'])
+def admin_login():
+    """Admin login endpoint - same as regular login but with admin validation"""
+    try:
+        data = request.get_json()
+
+        # Validate required fields
+        if not data.get('email') or not data.get('password'):
+            return jsonify({"error": "Email and password are required"}), 400
+
+        # Authenticate user
+        result, status_code = auth_system.authenticate_user(
+            email=data['email'],
+            password=data['password']
+        )
+
+        if status_code != 200:
+            return jsonify(result), status_code
+
+        # Check if user is admin
+        user = result['user']
+        if not user.get('is_admin'):
+            return jsonify({"error": "Admin privileges required"}), 403
+
+        # Create access token
+        access_token = auth_system.create_access_token(user)
+
+        return jsonify({
+            "message": "Admin login successful",
+            "access_token": access_token,
+            "user": user
+        }), 200
+
+    except Exception as e:
+        logger.error(f"Admin login error: {e}")
+        return jsonify({"error": "Admin login failed"}), 500
 
 @app.route('/api/auth/me', methods=['GET'])
 @jwt_required_custom
@@ -8903,6 +9089,13 @@ def download_resume_pdf(reference):
                 
                 if success:
                     logger.info(f"PDF generated successfully for reference: {reference}")
+                    
+                    # Track document in user_documents table
+                    try:
+                        track_document_generation(reference, resume_data, temp_path)
+                    except Exception as e:
+                        logger.error(f"Failed to track document: {e}")
+                    
                     # Serve the file and then delete it
                     response = send_file(temp_path, as_attachment=True, download_name=f"resume_{reference}.pdf")
                     
