@@ -24,6 +24,9 @@ const AdminRoutes: React.FC = () => {
   const { adminUser, isAuthenticated, loading, logout } = useAdminAuth();
   const location = useLocation();
 
+  console.log('AdminRoutes - Current path:', location.pathname);
+  console.log('AdminRoutes - Auth state:', { isAuthenticated, adminUser, loading });
+
   // Show loading while checking authentication
   if (loading) {
       return (
@@ -40,6 +43,7 @@ const AdminRoutes: React.FC = () => {
 
   // If not authenticated and not on login page, redirect to login
   if (!isAuthenticated && location.pathname !== '/admin/login') {
+    console.log('AdminRoutes - Not authenticated, redirecting to admin login');
     return <Navigate to="/admin/login" replace />;
   }
 
