@@ -11,6 +11,11 @@ export const useAdminAuth = () => {
   }, []);
 
   const checkAuthStatus = () => {
+    if (typeof window === 'undefined') {
+      setLoading(false);
+      return;
+    }
+    
     const token = localStorage.getItem('adminToken');
     const user = localStorage.getItem('adminUser');
     
@@ -31,20 +36,23 @@ export const useAdminAuth = () => {
   };
 
   const login = (user: AdminUser, token: string) => {
-    localStorage.setItem('adminToken', token);
-    localStorage.setItem('adminUser', JSON.stringify(user));
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('adminToken', token);
+      localStorage.setItem('adminUser', JSON.stringify(user));
+    }
     setAdminUser(user);
     setIsAuthenticated(true);
   };
 
   const logout = () => {
-    localStorage.removeItem('adminToken');
-    localStorage.removeItem('adminUser');
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('adminToken');
+      localStorage.removeItem('adminUser');
+      // Redirect to admin login
+      window.location.href = '/admin/login';
+    }
     setAdminUser(null);
     setIsAuthenticated(false);
-    
-    // Redirect to admin login
-    window.location.href = '/admin/login';
   };
 
   const hasPermission = (requiredRole: 'super_admin' | 'admin' | 'moderator') => {

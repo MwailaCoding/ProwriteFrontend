@@ -212,7 +212,7 @@ class AdminService {
       if (status) params.append('status', status);
 
       const response = await api.get(`${this.baseUrl}/notifications?${params.toString()}`);
-      return response.data;
+    return response.data;
     } catch (error) {
       throw this.handleError(error);
     }
@@ -223,7 +223,7 @@ class AdminService {
     try {
       const params = new URLSearchParams({ period });
       const response = await api.get(`${this.baseUrl}/analytics/stats?${params.toString()}`);
-      return response.data;
+    return response.data;
     } catch (error) {
       throw this.handleError(error);
     }
@@ -263,6 +263,10 @@ class AdminService {
 
   // Helper method to download files
   async downloadFile(blob: Blob, filename: string): Promise<void> {
+    if (typeof window === 'undefined') {
+      throw new Error('Download not available in server environment');
+    }
+    
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
@@ -291,17 +295,6 @@ class AdminService {
     return searchParams.toString();
   }
 
-  // Utility method for file downloads
-  downloadFile(blob: Blob, filename: string): void {
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
-  }
 }
 
 // Create and export singleton instance
