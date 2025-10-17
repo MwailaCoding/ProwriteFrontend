@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
 
 // Import admin pages
@@ -21,6 +21,7 @@ import AdminLayout from './AdminLayout';
 
 const AdminRoutes: React.FC = () => {
   const { adminUser, isAuthenticated, loading } = useAdminAuth();
+  const location = useLocation();
 
   // Show loading while checking authentication
   if (loading) {
@@ -43,7 +44,7 @@ const AdminRoutes: React.FC = () => {
 
   return (
     <AdminLayout
-      currentPath={window.location.pathname}
+      currentPath={location.pathname}
       user={adminUser}
       onLogout={() => {
         // Handle logout logic here
