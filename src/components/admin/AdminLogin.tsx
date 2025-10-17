@@ -36,10 +36,13 @@ const AdminLogin: React.FC = () => {
       console.log('Login response:', data);
 
       if (response.ok) {
+        console.log('Login successful, storing data:', { token: data.access_token, user: data.user });
+        
         // Store admin token and user data
         if (typeof window !== 'undefined') {
           localStorage.setItem('adminToken', data.access_token);
           localStorage.setItem('adminUser', JSON.stringify(data.user));
+          console.log('Data stored in localStorage');
         }
         
         // Update auth state
