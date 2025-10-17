@@ -5,7 +5,7 @@
 
 import React, { useState } from 'react';
 import { XMarkIcon, EnvelopeIcon, UserGroupIcon } from '@heroicons/react/24/outline';
-import { EmailComposerModalProps, NotificationForm } from '../../types/admin';
+import type { EmailComposerModalProps, NotificationForm } from '../../types/admin';
 
 const EmailComposerModal: React.FC<EmailComposerModalProps> = ({ 
   isOpen, 
