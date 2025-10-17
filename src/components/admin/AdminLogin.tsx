@@ -28,14 +28,21 @@ const AdminLogin: React.FC = () => {
       });
 
       const data = await response.json();
+      console.log('Login response:', data);
 
       if (response.ok) {
+        console.log('Login successful, storing data...');
+        
         // Store admin data
         localStorage.setItem('adminToken', data.access_token);
         localStorage.setItem('adminUser', JSON.stringify(data.user));
         
+        console.log('Data stored, updating state...');
+        
         // Update state
         login(data.user, data.access_token);
+        
+        console.log('State updated, redirecting...');
         
         // Redirect
         navigate('/admin/dashboard');

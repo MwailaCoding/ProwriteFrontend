@@ -16,17 +16,23 @@ export const useAdminAuth = () => {
 
       const token = localStorage.getItem('adminToken');
       const userStr = localStorage.getItem('adminUser');
+      
+      console.log('useAdminAuth - checkAuth:', { token: !!token, userStr: !!userStr });
 
       if (token && userStr) {
         try {
           const user = JSON.parse(userStr);
+          console.log('useAdminAuth - parsed user:', user);
           setAdminUser(user);
           setIsAuthenticated(true);
+          console.log('useAdminAuth - set authenticated');
         } catch (error) {
           console.error('Error parsing admin user:', error);
           localStorage.removeItem('adminToken');
           localStorage.removeItem('adminUser');
         }
+      } else {
+        console.log('useAdminAuth - no token or user found');
       }
       setLoading(false);
     };
@@ -35,10 +41,12 @@ export const useAdminAuth = () => {
   }, []);
 
   const login = (user: AdminUser, token: string) => {
+    console.log('useAdminAuth - login called with:', { user, token: !!token });
     localStorage.setItem('adminToken', token);
     localStorage.setItem('adminUser', JSON.stringify(user));
     setAdminUser(user);
     setIsAuthenticated(true);
+    console.log('useAdminAuth - state updated');
   };
 
   const logout = () => {
