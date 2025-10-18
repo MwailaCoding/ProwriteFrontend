@@ -10,7 +10,7 @@ import {
   CheckCircleIcon,
   XCircleIcon,
   UserIcon,
-  CrownIcon,
+  StarIcon,
   ShieldCheckIcon,
   ClockIcon
 } from '@heroicons/react/24/outline';
@@ -447,7 +447,7 @@ const UsersPage: React.FC = () => {
                       )}
                       {user.is_premium && (
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400">
-                          <CrownIcon className="h-3 w-3 mr-1" />
+                          <StarIcon className="h-3 w-3 mr-1" />
                           Premium
                         </span>
                       )}
@@ -480,7 +480,7 @@ const UsersPage: React.FC = () => {
                         }`}
                         title={user.is_premium ? 'Remove Premium' : 'Make Premium'}
                       >
-                        <CrownIcon className="h-4 w-4" />
+                        <StarIcon className="h-4 w-4" />
                       </button>
                       <button
                         onClick={() => handleToggleAdmin(user.user_id)}
