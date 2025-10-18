@@ -66,17 +66,23 @@ export const AdminAuthProvider: React.FC<AdminAuthProviderProps> = ({ children }
   }, []);
 
   const login = (user: AdminUser, token: string) => {
-    console.log('AdminAuthProvider - login called');
+    console.log('AdminAuthProvider - login called with:', { user: user.email, token: !!token });
     
     // Store in localStorage
     localStorage.setItem('adminToken', token);
     localStorage.setItem('adminUser', JSON.stringify(user));
     
+    console.log('AdminAuthProvider - data stored in localStorage');
+    
     // Update state
     setAdminUser(user);
     setIsAuthenticated(true);
     
-    console.log('AdminAuthProvider - login complete, state:', { user: !!user, authenticated: true });
+    console.log('AdminAuthProvider - state updated:', { 
+      adminUser: !!user, 
+      isAuthenticated: true,
+      userEmail: user.email 
+    });
   };
 
   const logout = () => {
@@ -107,6 +113,13 @@ export const AdminAuthProvider: React.FC<AdminAuthProviderProps> = ({ children }
     logout,
     hasPermission
   };
+
+  console.log('AdminAuthProvider - rendering with state:', {
+    adminUser: !!adminUser,
+    isAuthenticated,
+    loading,
+    userEmail: adminUser?.email
+  });
 
   return (
     <AdminAuthContext.Provider value={value}>

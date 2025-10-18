@@ -31,12 +31,15 @@ const AdminLogin: React.FC = () => {
 
       if (response.ok) {
         // Login successful - store data and redirect
+        console.log('Login successful, calling login function...');
         login(data.user, data.access_token);
         
-        // Use a small delay to ensure state is updated
+        console.log('Login function called, waiting before redirect...');
+        // Use a longer delay to ensure state is fully updated
         setTimeout(() => {
+          console.log('Redirecting to dashboard...');
           navigate('/admin/dashboard', { replace: true });
-        }, 100);
+        }, 500);
       } else {
         setError(data.error || 'Login failed');
       }
