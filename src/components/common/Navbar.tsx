@@ -83,10 +83,9 @@ export const Navbar: React.FC<NavbarProps> = () => {
   const profileMenuItems = [
     { label: 'Profile Settings', icon: Settings, path: '/app/profile' },
     { label: 'Payment History', icon: CreditCard, onClick: () => setShowPaymentDashboard(true) },
-    { label: 'Billing', icon: CreditCard, path: '/app/billing' },
   ];
 
-  if (user?.isAdmin) {
+  if (user?.is_admin) {
     profileMenuItems.push({ label: 'Admin Dashboard', icon: User, path: '/admin' });
   }
 
@@ -121,12 +120,6 @@ export const Navbar: React.FC<NavbarProps> = () => {
       icon: Target,
       path: '/app/real-jobs',
       description: 'Find real job opportunities'
-    },
-    {
-      label: 'Billing',
-      icon: CreditCard,
-      path: '/app/billing',
-      description: 'Manage your subscription'
     },
     {
       label: 'Payments',
@@ -276,7 +269,7 @@ export const Navbar: React.FC<NavbarProps> = () => {
               ))}
 
               {/* Admin Section */}
-              {user?.isAdmin && (
+              {user?.is_admin && (
                 <div className="relative ml-4 pl-4 border-l border-gray-200">
                   <button
                     onClick={() => handleDropdownToggle('admin')}
@@ -399,7 +392,7 @@ export const Navbar: React.FC<NavbarProps> = () => {
                         <div className="px-4 py-3 border-b border-gray-100">
                           <div className="font-medium text-gray-900">{user?.firstName} {user?.lastName}</div>
                           <div className="text-sm text-gray-500">{user?.email}</div>
-                          {user?.isAdmin && (
+                          {user?.is_admin && (
                             <div className="inline-flex items-center mt-2 px-2 py-1 bg-amber-100 text-amber-800 text-xs font-medium rounded-full">
                               <Crown className="h-3 w-3 mr-1" />
                               Admin
@@ -528,7 +521,7 @@ export const Navbar: React.FC<NavbarProps> = () => {
                 </div>
 
                 {/* Mobile Admin Section */}
-                {user?.isAdmin && (
+                {user?.is_admin && (
                   <div className="px-4 py-2 border-t border-gray-100">
                     <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-4">
                       Admin

@@ -23,14 +23,14 @@ class ProfessionalCoverLetterGenerator:
         self.secondary_color = HexColor('#666666')
         
     def create_styles(self):
-        """Create professional styles for cover letters"""
+        """Create professional styles for cover letters matching the template"""
         styles = {}
         
-        # Header styles
+        # Header styles - matching template image
         styles['applicant_name'] = ParagraphStyle(
             'ApplicantName',
             parent=self.styles['Normal'],
-            fontSize=14,
+            fontSize=12,
             textColor=self.primary_color,
             spaceAfter=6,
             fontName='Helvetica-Bold',
@@ -44,7 +44,8 @@ class ProfessionalCoverLetterGenerator:
             textColor=self.primary_color,
             spaceAfter=2,
             fontName='Helvetica',
-            alignment=TA_LEFT
+            alignment=TA_LEFT,
+            leading=12
         )
         
         styles['date'] = ParagraphStyle(
@@ -54,7 +55,7 @@ class ProfessionalCoverLetterGenerator:
             textColor=self.primary_color,
             spaceAfter=12,
             fontName='Helvetica',
-            alignment=TA_RIGHT
+            alignment=TA_LEFT
         )
         
         # Recipient styles
@@ -78,7 +79,7 @@ class ProfessionalCoverLetterGenerator:
             alignment=TA_LEFT
         )
         
-        # Body styles
+        # Body styles - matching template
         styles['salutation'] = ParagraphStyle(
             'Salutation',
             parent=self.styles['Normal'],
@@ -141,23 +142,27 @@ class ProfessionalCoverLetterGenerator:
             # Build the story (content)
             story = []
             
-            # Applicant's contact information (top left)
+            # Applicant's contact information (top left) - matching template
             applicant_name = cover_letter_data.get('personal_name', '[Your Name]')
             story.append(Paragraph(applicant_name, styles['applicant_name']))
             
-            # Contact details
+            # Contact details - format like template
             contact_details = []
             if cover_letter_data.get('personal_address'):
-                contact_details.append(cover_letter_data['personal_address'])
+                # Split address into lines if it contains newlines
+                address_lines = cover_letter_data['personal_address'].split('\n')
+                contact_details.extend(address_lines)
             if cover_letter_data.get('personal_phone'):
                 contact_details.append(cover_letter_data['personal_phone'])
             if cover_letter_data.get('personal_email'):
                 contact_details.append(cover_letter_data['personal_email'])
+            if cover_letter_data.get('linkedin_profile'):
+                contact_details.append(cover_letter_data['linkedin_profile'])
             
             if contact_details:
                 story.append(Paragraph('<br/>'.join(contact_details), styles['contact_info']))
             
-            # Date (top right)
+            # Date (below contact info, left aligned like template)
             current_date = cover_letter_data.get('date', datetime.now().strftime("%B %d, %Y"))
             story.append(Spacer(1, 12))
             story.append(Paragraph(current_date, styles['date']))
@@ -165,16 +170,18 @@ class ProfessionalCoverLetterGenerator:
             # Add some space before recipient info
             story.append(Spacer(1, 12))
             
-            # Recipient's contact information
+            # Recipient's contact information - matching template
             recipient_name = cover_letter_data.get('employer_name', '[Hiring Manager\'s Name]')
             story.append(Paragraph(recipient_name, styles['recipient_name']))
             
-            # Company information
+            # Company information - format like template
             company_info = []
             if cover_letter_data.get('company_name'):
                 company_info.append(cover_letter_data['company_name'])
             if cover_letter_data.get('employer_address'):
-                company_info.append(cover_letter_data['employer_address'])
+                # Split address into lines if it contains newlines
+                address_lines = cover_letter_data['employer_address'].split('\n')
+                company_info.extend(address_lines)
             
             if company_info:
                 story.append(Paragraph('<br/>'.join(company_info), styles['company_info']))
@@ -197,23 +204,24 @@ class ProfessionalCoverLetterGenerator:
                         clean_paragraph = paragraph.strip().replace('\n', ' ')
                         story.append(Paragraph(clean_paragraph, styles['body']))
             else:
-                # Generate default content if none provided
+                # Generate default content if none provided - matching template structure
                 job_title = cover_letter_data.get('job_title', '[Job Title]')
                 company_name = cover_letter_data.get('company_name', '[Company Name]')
+                job_board = cover_letter_data.get('job_board', '[Job Board/Company Website]')
                 
-                # Paragraph 1: Introduction and interest
-                para1 = f"I am writing to express my interest in the {job_title} position at {company_name}, as advertised on [Job Board/Company Website]. With my background in [your field/skills] and a passion for [relevant interest connected to the role], I am confident that I can make a strong contribution to your team."
+                # Paragraph 1: Introduction and interest - matching template
+                para1 = f"I am writing to express my interest in the {job_title} position at {company_name}, as advertised on {job_board}. With my background in [your field/skills] and a passion for [relevant interest connected to the role], I am confident that I can make a strong contribution to your team."
                 story.append(Paragraph(para1, styles['body']))
                 
-                # Paragraph 2: Experience and skills
-                para2 = f"In my previous role as [Your Most Recent Role/Experience] at [Company/Organization Name], I [describe a key achievement, responsibility, or project that shows your skills and impact - use numbers if possible]. This experience strengthened my ability to [specific skill required in the new role] and taught me the importance of [value or principle relevant to the company's mission]."
+                # Paragraph 2: Experience and skills - matching template
+                para2 = f"In my previous role as [Your Most Recent Role/Experience] at [Company/Organization Name], I [describe a key achievement, responsibility, or project that shows your skills and impact—use numbers if possible]. This experience strengthened my ability to [specific skill required in the new role] and taught me the importance of [value or principle relevant to the company's mission]."
                 story.append(Paragraph(para2, styles['body']))
                 
-                # Paragraph 3: Company fit and future contribution
-                para3 = f"What excites me most about {company_name} is [something specific about the company — culture, innovation, mission, impact, etc.]. I believe my skills in [list 2-3 key skills] align closely with your needs, and I am eager to contribute to [specific project/goal of the company]."
+                # Paragraph 3: Company fit and future contribution - matching template
+                para3 = f"What excites me most about {company_name} is [something specific about the company—culture, innovation, mission, impact, etc.]. I believe my skills in [list 2-3 key skills] align closely with your needs, and I am eager to contribute to [specific project/goal of the company]."
                 story.append(Paragraph(para3, styles['body']))
                 
-                # Paragraph 4: Call to action and closing remarks
+                # Paragraph 4: Call to action and closing remarks - matching template
                 para4 = f"I would welcome the opportunity to discuss how my background, skills, and enthusiasm can add value to your team. Thank you for considering my application. I look forward to the possibility of contributing to {company_name}'s continued success."
                 story.append(Paragraph(para4, styles['body']))
             

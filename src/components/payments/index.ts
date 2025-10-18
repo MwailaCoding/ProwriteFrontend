@@ -21,7 +21,7 @@ export {
 // Payment Pages
 export { PaymentHistoryPage } from '../../pages/payments/PaymentHistoryPage';
 export { PaymentSettingsPage } from '../../pages/payments/PaymentSettingsPage';
-export { AdminPaymentsPage } from '../../pages/admin/AdminPaymentsPage';
+export { PaymentsPage as AdminPaymentsPage } from '../../pages/admin/PaymentsPage';
 
 
 

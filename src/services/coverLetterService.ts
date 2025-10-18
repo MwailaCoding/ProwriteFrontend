@@ -385,6 +385,75 @@ class CoverLetterService {
     const response = await api.post('/cover-letters/create-blank', data);
     return response.data;
   }
+
+  // Streamlined Cover Letter Methods - Updated for deployment
+  async sendAIChatMessage(data: {
+    paragraphType: string;
+    message: string;
+    conversationHistory: any[];
+    context: {
+      jobTitle: string;
+      companyName: string;
+      currentContent: string;
+      paragraphGuidance: string;
+    };
+  }): Promise<{
+    success: boolean;
+    message: string;
+    isParagraph: boolean;
+    paragraphContent?: string;
+  }> {
+    const response = await api.post('/cover-letters/ai-chat', data);
+    return response.data;
+  }
+
+  async downloadPaidPDF(data: {
+    personalName: string;
+    personalAddress: string;
+    personalEmail: string;
+    personalPhone: string;
+    linkedinProfile: string;
+    employerName: string;
+    companyName: string;
+    employerAddress: string;
+    jobTitle: string;
+    jobBoard: string;
+    introduction: string;
+    experience: string;
+    companyFit: string;
+    closing: string;
+    content: string;
+    hasPaid: boolean;
+    paymentId: string | null;
+  }): Promise<Blob> {
+    const response = await api.post('/cover-letters/download-paid', data, {
+      responseType: 'blob'
+    });
+    return response.data;
+  }
+
+  async generatePDFPreview(data: {
+    personalName: string;
+    personalAddress: string;
+    personalEmail: string;
+    personalPhone: string;
+    linkedinProfile: string;
+    employerName: string;
+    companyName: string;
+    employerAddress: string;
+    jobTitle: string;
+    jobBoard: string;
+    introduction: string;
+    experience: string;
+    companyFit: string;
+    closing: string;
+  }): Promise<{
+    success: boolean;
+    previewData: any;
+  }> {
+    const response = await api.post('/cover-letters/preview', data);
+    return response.data;
+  }
 }
 
 export const coverLetterService = new CoverLetterService();

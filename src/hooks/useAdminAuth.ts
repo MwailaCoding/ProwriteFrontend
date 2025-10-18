@@ -1,64 +1,98 @@
 import { useState, useEffect } from 'react';
+import type { AdminUser } from '../types/admin';
 
-interface AdminUser {
-  id: number;
-  email: string;
-  firstName: string;
-  lastName: string;
-  is_admin: boolean;
-}
+// Global state to prevent reset between components
+let globalAdminUser: AdminUser | null = null;
+let globalIsAuthenticated = false;
 
 export const useAdminAuth = () => {
-  const [adminUser, setAdminUser] = useState<AdminUser | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [adminUser, setAdminUser] = useState<AdminUser | null>(globalAdminUser);
+  const [isAuthenticated, setIsAuthenticated] = useState(globalIsAuthenticated);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    checkAuthStatus();
-  }, []);
+  const checkAuth = () => {
+    if (typeof window === 'undefined') {
+      setLoading(false);
+      return;
+    }
 
-  const checkAuthStatus = () => {
     const token = localStorage.getItem('adminToken');
-    const user = localStorage.getItem('adminUser');
+    const userStr = localStorage.getItem('adminUser');
     
-    if (token && user) {
+    console.log('useAdminAuth - checkAuth:', { token: !!token, userStr: !!userStr });
+
+    if (token && userStr) {
       try {
-        const parsedUser = JSON.parse(user);
-        setAdminUser(parsedUser);
+        const user = JSON.parse(userStr);
+        console.log('useAdminAuth - parsed user:', user);
+        
+        // Update global state
+        globalAdminUser = user;
+        globalIsAuthenticated = true;
+        
+        // Update local state
+        setAdminUser(user);
         setIsAuthenticated(true);
+        console.log('useAdminAuth - set authenticated');
       } catch (error) {
-        console.error('Failed to parse admin user:', error);
-        logout();
+        console.error('Error parsing admin user:', error);
+        localStorage.removeItem('adminToken');
+        localStorage.removeItem('adminUser');
+        
+        // Update global state
+        globalAdminUser = null;
+        globalIsAuthenticated = false;
+        
+        // Update local state
+        setAdminUser(null);
+        setIsAuthenticated(false);
       }
     } else {
+      console.log('useAdminAuth - no token or user found');
+      
+      // Update global state
+      globalAdminUser = null;
+      globalIsAuthenticated = false;
+      
+      // Update local state
+      setAdminUser(null);
       setIsAuthenticated(false);
     }
-    
     setLoading(false);
   };
 
+  // Check authentication on mount
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
   const login = (user: AdminUser, token: string) => {
+    console.log('useAdminAuth - login called with:', { user, token: !!token });
     localStorage.setItem('adminToken', token);
     localStorage.setItem('adminUser', JSON.stringify(user));
+    
+    // Update global state
+    globalAdminUser = user;
+    globalIsAuthenticated = true;
+    
+    // Update local state
     setAdminUser(user);
     setIsAuthenticated(true);
+    console.log('useAdminAuth - state updated');
   };
 
   const logout = () => {
     localStorage.removeItem('adminToken');
     localStorage.removeItem('adminUser');
+    
+    // Update global state
+    globalAdminUser = null;
+    globalIsAuthenticated = false;
+    
+    // Update local state
     setAdminUser(null);
     setIsAuthenticated(false);
-    
-    // Redirect to admin login
     window.location.href = '/admin/login';
-  };
-
-  const hasPermission = (requiredRole: 'super_admin' | 'admin' | 'moderator') => {
-    if (!adminUser) return false;
-    
-    // For now, if user is admin, they have all permissions
-    return adminUser.is_admin;
   };
 
   return {
@@ -66,8 +100,6 @@ export const useAdminAuth = () => {
     isAuthenticated,
     loading,
     login,
-    logout,
-    hasPermission,
-    checkAuthStatus
+    logout
   };
 };

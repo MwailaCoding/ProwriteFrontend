@@ -5,7 +5,11 @@ import mysql.connector
 from datetime import datetime, timedelta
 from typing import Dict, Any, Optional, List
 from dataclasses import dataclass, asdict
+from dotenv import load_dotenv
 from africas_talking_validator import transaction_validator, ValidationResult
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Configure logging
 logger = logging.getLogger(__name__)

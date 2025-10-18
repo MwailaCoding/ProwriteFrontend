@@ -3,7 +3,7 @@ ProWrite Backend - Complete Consolidated Flask Application
 All backend functionality integrated into a single file for easy hosting
 """
 
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify, send_file, make_response
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from datetime import datetime, timedelta
@@ -42,6 +42,9 @@ except ImportError:
     print("Warning: SendGrid not available. Email functionality will use SMTP fallback.")
 import base64
 from manual_payment_routes import manual_payment_bp
+from pesapal_callback_routes import pesapal_callback_bp
+from pesapal_payment_routes import pesapal_payment_bp
+from pesapal_embedded_routes import pesapal_embedded_bp
 # Import AI services
 from francisca_ai_service import FranciscaAIService
 
@@ -613,7 +616,7 @@ class AuthSystem:
             # Hash password
             hashed_password = self.hash_password(password)
 
-            # Insert new user (using correct column names)
+            # Insert new user (using correct column names from your database)
             cursor.execute("""
                 INSERT INTO users (email, password_hash, first_name, last_name, created_at)
                 VALUES (%s, %s, %s, %s, NOW())
@@ -660,7 +663,7 @@ class AuthSystem:
         try:
             cursor = connection.cursor()
 
-            # Get user data (using correct column names)
+            # Get user data (using correct column names from your database)
             cursor.execute("""
                 SELECT user_id, email, password_hash, first_name, last_name, is_premium, is_admin, created_at
                 FROM users WHERE email = %s
@@ -842,6 +845,140 @@ def jwt_required_custom(f):
 
     return decorated_function
 
+# Admin-only decorator
+def admin_required_custom(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        # First check if user is authenticated
+        token = None
+        auth_header = request.headers.get('Authorization')
+        if auth_header:
+            try:
+                token = auth_header.split(' ')[1]
+            except IndexError:
+                return jsonify({"error": "Invalid token format"}), 401
+        else:
+            return jsonify({"error": "No token provided"}), 401
+
+        if not token:
+            return jsonify({"error": "No token provided"}), 401
+
+        payload = auth_system.verify_token(token)
+        if 'error' in payload:
+            return jsonify({"error": payload['error']}), 401
+
+        # Check if user is admin
+        if not payload.get('is_admin'):
+            return jsonify({"error": "Admin privileges required"}), 403
+
+        request.current_user = payload
+        
+        # Log admin action
+        log_admin_action(payload['user_id'], f"accessed_{f.__name__}", request.path, request.remote_addr)
+        
+        return f(*args, **kwargs)
+
+    return decorated_function
+
+# Admin action logging function
+def log_admin_action(admin_id, action, target_path, ip_address):
+    """Log admin action to database"""
+    connection = auth_system.get_db_connection()
+    if not connection:
+        return
+    
+    try:
+        cursor = connection.cursor()
+        cursor.execute("""
+            INSERT INTO admin_activity_logs (admin_id, action, target_type, details, ip_address)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (admin_id, action, 'api_endpoint', f'{{"path": "{target_path}"}}', ip_address))
+        connection.commit()
+    except Exception as e:
+        logger.error(f"Failed to log admin action: {e}")
+    finally:
+        if connection:
+            connection.close()
+
+# System logging function
+def log_system_event(level, message, module=None, user_id=None, metadata=None):
+    """Log system event to database"""
+    connection = auth_system.get_db_connection()
+    if not connection:
+        return
+    
+    try:
+        cursor = connection.cursor()
+        cursor.execute("""
+            INSERT INTO system_logs (level, message, module, user_id, ip_address, metadata)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """, (level, message, module, user_id, request.remote_addr if request else None, 
+              json.dumps(metadata) if metadata else None))
+        connection.commit()
+    except Exception as e:
+        logger.error(f"Failed to log system event: {e}")
+    finally:
+        if connection:
+            connection.close()
+
+# Document tracking function
+def track_document_generation(reference, document_data, file_path):
+    """Track document generation in user_documents table"""
+    connection = auth_system.get_db_connection()
+    if not connection:
+        return
+    
+    try:
+        cursor = connection.cursor()
+        
+        # Get user email from document data
+        user_email = document_data.get('personalEmail', '')
+        if not user_email:
+            logger.warning(f"No user email found for document reference: {reference}")
+            return
+        
+        # Get user ID from email
+        cursor.execute("SELECT user_id FROM users WHERE email = %s", (user_email,))
+        user_result = cursor.fetchone()
+        if not user_result:
+            logger.warning(f"User not found for email: {user_email}")
+            return
+        
+        user_id = user_result[0]
+        
+        # Determine document type
+        document_type = 'resume'
+        if 'cover_letter' in reference.lower() or 'coverletter' in reference.lower():
+            document_type = 'cover_letter'
+        
+        # Check if document already exists
+        cursor.execute("SELECT id FROM user_documents WHERE reference = %s", (reference,))
+        existing_doc = cursor.fetchone()
+        
+        if existing_doc:
+            # Update existing document
+            cursor.execute("""
+                UPDATE user_documents 
+                SET file_path = %s, status = 'generated', updated_at = NOW()
+                WHERE reference = %s
+            """, (file_path, reference))
+            logger.info(f"Updated existing document tracking for reference: {reference}")
+        else:
+            # Insert new document
+            cursor.execute("""
+                INSERT INTO user_documents (user_id, document_type, reference, file_path, status, created_at)
+                VALUES (%s, %s, %s, %s, 'generated', NOW())
+            """, (user_id, document_type, reference, file_path))
+            logger.info(f"Tracked new document generation for reference: {reference}")
+        
+        connection.commit()
+        
+    except Exception as e:
+        logger.error(f"Failed to track document generation: {e}")
+    finally:
+        if connection:
+            connection.close()
+
 # Error Handlers
 def register_error_handlers(app):
     """Register production error handlers"""
@@ -922,6 +1059,13 @@ def register_error_handlers(app):
 app = Flask(__name__)
 # Add this line after your app creation (after app = Flask(__name__))
 app.register_blueprint(manual_payment_bp)
+app.register_blueprint(pesapal_callback_bp)
+app.register_blueprint(pesapal_payment_bp)
+app.register_blueprint(pesapal_embedded_bp)
+
+# Import and register admin routes
+from admin_routes import admin_bp
+app.register_blueprint(admin_bp)
 CORS(app, resources={
     r"/api/*": {
         "origins": [
@@ -930,12 +1074,12 @@ CORS(app, resources={
             "http://localhost:5173"   # For Vite dev server
         ],
         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        "allow_headers": ["Content-Type", "Authorization", "Cache-Control", "Pragma"]
+        "allow_headers": ["Content-Type", "Authorization", "Cache-Control", "Pragma"],
+        "supports_credentials": True
     }
 })
 
-# Add this import with your other imports at the top
-from manual_payment_routes import manual_payment_bp
+# Imports are already at the top of the file
 
 
 # JWT Configuration
@@ -951,6 +1095,16 @@ jwt = JWTManager(app)
 
 # Register error handlers
 register_error_handlers(app)
+
+# CORS preflight handler
+@app.before_request
+def handle_preflight():
+    if request.method == "OPTIONS":
+        response = make_response()
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        response.headers.add('Access-Control-Allow-Headers', "*")
+        response.headers.add('Access-Control-Allow-Methods', "*")
+        return response
 
 # Authentication Routes
 @app.route("/")
@@ -1022,6 +1176,43 @@ def login():
     except Exception as e:
         logger.error(f"Login error: {e}")
         return jsonify({"error": "Login failed"}), 500
+
+@app.route('/api/admin/login', methods=['POST'])
+def admin_login():
+    """Admin login endpoint - same as regular login but with admin validation"""
+    try:
+        data = request.get_json()
+
+        # Validate required fields
+        if not data.get('email') or not data.get('password'):
+            return jsonify({"error": "Email and password are required"}), 400
+
+        # Authenticate user
+        result, status_code = auth_system.authenticate_user(
+            email=data['email'],
+            password=data['password']
+        )
+
+        if status_code != 200:
+            return jsonify(result), status_code
+
+        # Check if user is admin
+        user = result['user']
+        if not user.get('is_admin'):
+            return jsonify({"error": "Admin privileges required"}), 403
+
+        # Create access token
+        access_token = auth_system.create_access_token(user)
+
+        return jsonify({
+            "message": "Admin login successful",
+            "access_token": access_token,
+            "user": user
+        }), 200
+
+    except Exception as e:
+        logger.error(f"Admin login error: {e}")
+        return jsonify({"error": "Admin login failed"}), 500
 
 @app.route('/api/auth/me', methods=['GET'])
 @jwt_required_custom
@@ -3934,6 +4125,247 @@ def download_cover_letter():
         return jsonify({
             'success': False,
             'error': 'Failed to generate cover letter PDF'
+        }), 500
+
+@app.route('/api/cover-letters/ai-chat', methods=['POST', 'OPTIONS'])
+def ai_chat():
+    """AI chat endpoint for cover letter paragraph assistance"""
+    # Handle CORS preflight
+    if request.method == 'OPTIONS':
+        response = make_response()
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+        response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+        return response
+    
+    try:
+        data = request.get_json()
+        
+        paragraph_type = data.get('paragraphType', 'introduction')
+        user_message = data.get('message', '')
+        conversation_history = data.get('conversationHistory', [])
+        context = data.get('context', {})
+        
+        if not user_message:
+            return jsonify({
+                'success': False,
+                'error': 'Message is required'
+            }), 400
+        
+        # Get context information
+        job_title = context.get('jobTitle', '')
+        company_name = context.get('companyName', '')
+        current_content = context.get('currentContent', '')
+        paragraph_guidance = context.get('paragraphGuidance', '')
+        
+        # Create system prompt based on paragraph type
+        system_prompts = {
+            'introduction': f"""You are an expert cover letter writing assistant. Help the user write an engaging opening paragraph for a {job_title} position at {company_name}.
+
+Guidelines:
+- Express genuine interest in the position
+- Mention how you found the job posting
+- Briefly highlight your most relevant qualification
+- Keep it concise (2-3 sentences)
+- Be professional but enthusiastic
+
+Current content: {current_content}
+User request: {user_message}""",
+
+            'experience': f"""You are an expert cover letter writing assistant. Help the user write a compelling experience paragraph for a {job_title} position at {company_name}.
+
+Guidelines:
+- Highlight specific, relevant experience
+- Use quantifiable achievements when possible
+- Connect your skills to the job requirements
+- Show impact and results
+- Keep it focused and relevant
+
+Current content: {current_content}
+User request: {user_message}""",
+
+            'companyFit': f"""You are an expert cover letter writing assistant. Help the user write a company fit paragraph for a {job_title} position at {company_name}.
+
+Guidelines:
+- Show knowledge of the company
+- Explain why you're excited to work there
+- Connect your values to company culture
+- Mention specific company aspects that appeal to you
+- Demonstrate genuine interest
+
+Current content: {current_content}
+User request: {user_message}""",
+
+            'closing': f"""You are an expert cover letter writing assistant. Help the user write a strong closing paragraph for a {job_title} position at {company_name}.
+
+Guidelines:
+- Express confidence in your ability to contribute
+- Thank the reader for their time
+- Request an interview opportunity
+- End on a positive, professional note
+- Keep it brief but impactful
+
+Current content: {current_content}
+User request: {user_message}"""
+        }
+        
+        system_prompt = system_prompts.get(paragraph_type, system_prompts['introduction'])
+        
+        # Build conversation context
+        conversation_context = ""
+        for msg in conversation_history[-5:]:  # Last 5 messages for context
+            if msg.get('type') == 'user':
+                conversation_context += f"User: {msg.get('content', '')}\n"
+            elif msg.get('type') == 'ai':
+                conversation_context += f"Assistant: {msg.get('content', '')}\n"
+        
+        # Create the full prompt
+        full_prompt = f"""{system_prompt}
+
+Previous conversation:
+{conversation_context}
+
+Current user message: {user_message}
+
+Please respond as a helpful writing assistant. If the user is asking for a complete paragraph, provide it. If they're asking for improvements, suggest specific changes. Be conversational and helpful."""
+
+        # Use OpenAI API if available
+        try:
+            import openai
+            openai.api_key = os.getenv('OPENAI_API_KEY', '')
+            
+            if openai.api_key:
+                response = openai.ChatCompletion.create(
+                    model="gpt-3.5-turbo",
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_message}
+                    ],
+                    max_tokens=300,
+                    temperature=0.7
+                )
+                
+                ai_response = response.choices[0].message.content.strip()
+                
+                # Check if the response contains a paragraph (look for complete sentences)
+                is_paragraph = len(ai_response.split('.')) >= 2 and len(ai_response) > 50
+                
+                return jsonify({
+                    'success': True,
+                    'message': ai_response,
+                    'isParagraph': is_paragraph,
+                    'paragraphContent': ai_response if is_paragraph else None
+                })
+        except Exception as e:
+            logger.warning(f"OpenAI API error: {str(e)}")
+        
+        # Fallback: Simple rule-based responses
+        fallback_responses = {
+            'introduction': f"I'd be happy to help you write your opening paragraph for the {job_title} position at {company_name}. Here's a suggested opening:\n\nI am writing to express my strong interest in the {job_title} position at {company_name}. With my background in [your field] and passion for [relevant area], I am confident I can make a valuable contribution to your team.",
+            'experience': f"Let me help you craft your experience paragraph. Here's a structure you can use:\n\nIn my previous role as [Your Role] at [Company], I [specific achievement with numbers]. This experience has strengthened my [relevant skill] and taught me the importance of [relevant value].",
+            'companyFit': f"For your company fit paragraph, consider this approach:\n\nWhat excites me most about {company_name} is [specific company aspect]. I believe my skills in [relevant skills] align perfectly with your needs, and I am eager to contribute to [specific company goal].",
+            'closing': f"Here's a strong closing paragraph:\n\nI would welcome the opportunity to discuss how my background, skills, and enthusiasm can add value to your team. Thank you for considering my application. I look forward to the possibility of contributing to {company_name}'s continued success."
+        }
+        
+        fallback_response = fallback_responses.get(paragraph_type, fallback_responses['introduction'])
+        
+        return jsonify({
+            'success': True,
+            'message': fallback_response,
+            'isParagraph': True,
+            'paragraphContent': fallback_response
+        })
+        
+    except Exception as e:
+        logger.error(f"Error in AI chat: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to process AI chat request'
+        }), 500
+
+@app.route('/api/cover-letters/download-paid', methods=['POST', 'OPTIONS'])
+def download_paid_cover_letter():
+    """Download cover letter as PDF after payment verification"""
+    # Handle CORS preflight
+    if request.method == 'OPTIONS':
+        response = make_response()
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+        response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+        return response
+    
+    try:
+        data = request.get_json()
+        
+        # Check if user has paid
+        has_paid = data.get('hasPaid', False)
+        payment_id = data.get('paymentId')
+        
+        if not has_paid or not payment_id:
+            return jsonify({
+                'success': False,
+                'error': 'Payment required to download PDF'
+            }), 402  # Payment Required
+        
+        # Verify payment (in a real implementation, you'd check against your payment system)
+        # For now, we'll just check if payment_id exists
+        
+        # Generate PDF using the same logic as the regular download
+        cover_letter_data = {
+            'personal_name': data.get('personalName', ''),
+            'personal_email': data.get('personalEmail', ''),
+            'personal_phone': data.get('personalPhone', ''),
+            'personal_address': data.get('personalAddress', ''),
+            'linkedin_profile': data.get('linkedinProfile', ''),
+            'employer_name': data.get('employerName', ''),
+            'employer_address': data.get('employerAddress', ''),
+            'company_name': data.get('companyName', ''),
+            'job_title': data.get('jobTitle', ''),
+            'job_board': data.get('jobBoard', ''),
+            'content': data.get('content', ''),
+            'date': datetime.now().strftime("%B %d, %Y")
+        }
+        
+        # Generate PDF using the professional cover letter generator
+        from professional_cover_letter_generator import ProfessionalCoverLetterGenerator
+        pdf_generator = ProfessionalCoverLetterGenerator()
+        
+        # Create temporary file
+        import tempfile
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_file:
+            temp_path = temp_file.name
+        
+        # Generate PDF
+        success = pdf_generator.generate_cover_letter_pdf(cover_letter_data, temp_path)
+        
+        if success:
+            # Read the generated PDF
+            with open(temp_path, 'rb') as pdf_file:
+                pdf_data = pdf_file.read()
+            
+            # Clean up temporary file
+            os.unlink(temp_path)
+            
+            # Return PDF as response
+            from flask import Response
+            return Response(
+                pdf_data,
+                mimetype='application/pdf',
+                headers={
+                    'Content-Disposition': f'attachment; filename=cover_letter_{data.get("companyName", "company")}_{data.get("jobTitle", "position")}.pdf'
+                }
+            )
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Failed to generate PDF'
+            }), 500
+            
+    except Exception as e:
+        logger.error(f"Error generating paid PDF: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to generate PDF'
         }), 500
 
 # AI Enhancement System
@@ -8657,6 +9089,13 @@ def download_resume_pdf(reference):
                 
                 if success:
                     logger.info(f"PDF generated successfully for reference: {reference}")
+                    
+                    # Track document in user_documents table
+                    try:
+                        track_document_generation(reference, resume_data, temp_path)
+                    except Exception as e:
+                        logger.error(f"Failed to track document: {e}")
+                    
                     # Serve the file and then delete it
                     response = send_file(temp_path, as_attachment=True, download_name=f"resume_{reference}.pdf")
                     
@@ -8738,6 +9177,197 @@ def download_payment_document(reference):
         return jsonify({
             'success': False,
             'error': 'Internal server error'
+        }), 500
+
+@app.route('/api/payments/history', methods=['GET'])
+@jwt_required_custom
+def get_payment_history():
+    """Get payment history for the current user"""
+    try:
+        user_id = request.current_user['user_id']
+        
+        # Get payments from both tables
+        cursor = mysql.connection.cursor()
+        
+        # Query regular payments table
+        cursor.execute("""
+            SELECT 
+                id as payment_id,
+                amount,
+                currency,
+                payment_method,
+                status,
+                mpesa_checkout_request_id as checkout_request_id,
+                mpesa_receipt_number as mpesa_code,
+                transaction_reference,
+                created_at,
+                updated_at as completed_at,
+                'regular' as payment_type,
+                user_id as item_id
+            FROM payments 
+            WHERE user_id = %s
+            ORDER BY created_at DESC
+        """, (user_id,))
+        
+        regular_payments = cursor.fetchall()
+        
+        # Query manual payments table
+        cursor.execute("""
+            SELECT 
+                id as payment_id,
+                amount,
+                'KES' as currency,
+                payment_method,
+                status,
+                reference as checkout_request_id,
+                transaction_code as mpesa_code,
+                reference as transaction_reference,
+                created_at,
+                updated_at as completed_at,
+                document_type as payment_type,
+                reference as item_id
+            FROM manual_payments 
+            WHERE JSON_EXTRACT(form_data, '$.user_id') = %s OR JSON_EXTRACT(form_data, '$.personalEmail') IS NOT NULL
+            ORDER BY created_at DESC
+        """, (user_id,))
+        
+        manual_payments = cursor.fetchall()
+        
+        # Combine and format the results
+        all_payments = []
+        
+        # Process regular payments
+        for payment in regular_payments:
+            all_payments.append({
+                'payment_id': payment[0],
+                'amount': float(payment[1]),
+                'currency': payment[2],
+                'payment_method': payment[3],
+                'status': payment[4],
+                'checkout_request_id': payment[5],
+                'mpesa_code': payment[6],
+                'transaction_reference': payment[7],
+                'created_at': payment[8].isoformat() if payment[8] else None,
+                'completed_at': payment[9].isoformat() if payment[9] else None,
+                'payment_type': payment[10],
+                'item_id': payment[11],
+                'phone_number': None  # Not available in regular payments
+            })
+        
+        # Process manual payments
+        for payment in manual_payments:
+            # Extract phone number from form_data if available
+            phone_number = None
+            try:
+                cursor.execute("SELECT JSON_EXTRACT(form_data, '$.personalPhone') FROM manual_payments WHERE id = %s", (payment[0],))
+                phone_result = cursor.fetchone()
+                if phone_result and phone_result[0]:
+                    phone_number = phone_result[0].strip('"')
+            except:
+                pass
+            
+            all_payments.append({
+                'payment_id': payment[0],
+                'amount': float(payment[1]),
+                'currency': payment[2],
+                'payment_method': payment[3],
+                'status': payment[4],
+                'checkout_request_id': payment[5],
+                'mpesa_code': payment[6],
+                'transaction_reference': payment[7],
+                'created_at': payment[8].isoformat() if payment[8] else None,
+                'completed_at': payment[9].isoformat() if payment[9] else None,
+                'payment_type': payment[10],
+                'item_id': payment[11],
+                'phone_number': phone_number
+            })
+        
+        # Sort by creation date (newest first)
+        all_payments.sort(key=lambda x: x['created_at'], reverse=True)
+        
+        cursor.close()
+        
+        return jsonify({
+            'success': True,
+            'data': all_payments,
+            'total': len(all_payments)
+        })
+        
+    except Exception as e:
+        logger.error(f"Error fetching payment history: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to fetch payment history'
+        }), 500
+
+@app.route('/api/payments/stats', methods=['GET'])
+@jwt_required_custom
+def get_payment_stats():
+    """Get payment statistics for the current user"""
+    try:
+        user_id = request.current_user['user_id']
+        
+        cursor = mysql.connection.cursor()
+        
+        # Get stats from regular payments
+        cursor.execute("""
+            SELECT 
+                COUNT(*) as total_payments,
+                SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END) as total_revenue,
+                SUM(CASE WHEN status = 'completed' AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) THEN amount ELSE 0 END) as revenue_30d,
+                SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed_payments,
+                SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending_payments,
+                SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) as failed_payments
+            FROM payments 
+            WHERE user_id = %s
+        """, (user_id,))
+        
+        regular_stats = cursor.fetchone()
+        
+        # Get stats from manual payments
+        cursor.execute("""
+            SELECT 
+                COUNT(*) as total_payments,
+                SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END) as total_revenue,
+                SUM(CASE WHEN status = 'completed' AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) THEN amount ELSE 0 END) as revenue_30d,
+                SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed_payments,
+                SUM(CASE WHEN status = 'pending_payment' THEN 1 ELSE 0 END) as pending_payments,
+                SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) as failed_payments
+            FROM manual_payments 
+            WHERE JSON_EXTRACT(form_data, '$.user_id') = %s OR JSON_EXTRACT(form_data, '$.personalEmail') IS NOT NULL
+        """, (user_id,))
+        
+        manual_stats = cursor.fetchone()
+        
+        # Combine stats
+        total_payments = (regular_stats[0] or 0) + (manual_stats[0] or 0)
+        total_revenue = (regular_stats[1] or 0) + (manual_stats[1] or 0)
+        revenue_30d = (regular_stats[2] or 0) + (manual_stats[2] or 0)
+        completed_payments = (regular_stats[3] or 0) + (manual_stats[3] or 0)
+        pending_payments = (regular_stats[4] or 0) + (manual_stats[4] or 0)
+        failed_payments = (regular_stats[5] or 0) + (manual_stats[5] or 0)
+        
+        cursor.close()
+        
+        return jsonify({
+            'success': True,
+            'data': {
+                'totalPayments': total_payments,
+                'totalRevenue': total_revenue,
+                'payments30d': revenue_30d,
+                'paymentStatusStats': {
+                    'completed': completed_payments,
+                    'pending': pending_payments,
+                    'failed': failed_payments
+                }
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Error fetching payment stats: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to fetch payment statistics'
         }), 500
 
 @app.route('/api/documents/shared/<reference>', methods=['GET'])

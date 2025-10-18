@@ -36,7 +36,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
     { path: '/app/templates', icon: Layout, label: 'Templates' },
     { path: '/app/market-insights', icon: TrendingUp, label: 'Market Insights' },
     { path: '/app/real-jobs', icon: Search, label: 'Real Job Search' },
-    { path: '/app/billing', icon: CreditCard, label: 'Billing' },
     { path: '/app/payments', icon: CreditCard, label: 'Payment History' },
   ];
 
@@ -47,7 +46,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
     { path: '/admin/market-data', icon: TrendingUp, label: 'Market Data' },
   ];
 
-  const navItems = user?.isAdmin ? [...userNavItems, ...adminNavItems] : userNavItems;
+  const navItems = user?.is_admin ? [...userNavItems, ...adminNavItems] : userNavItems;
 
   return (
     <motion.aside
@@ -69,7 +68,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
       )}
       
       <nav className="p-4 space-y-1">
-        {user?.isAdmin && (
+        {user?.is_admin && (
           <div className="mb-6">
             <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-3">
               User Section
@@ -80,7 +79,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
           </div>
         )}
 
-        {user?.isAdmin && (
+        {user?.is_admin && (
           <div>
             <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-3">
               Admin Section
@@ -91,7 +90,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
           </div>
         )}
 
-        {!user?.isAdmin && navItems.map((item) => (
+        {!user?.is_admin && navItems.map((item) => (
           <NavItem key={item.path} {...item} onClose={onClose} />
         ))}
       </nav>

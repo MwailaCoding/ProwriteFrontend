@@ -1,176 +1,138 @@
-import React, { useState } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
-import { 
-  HomeIcon, 
-  UsersIcon, 
-  DocumentTextIcon, 
-  ChartBarIcon, 
-  CogIcon, 
-  ShieldCheckIcon,
-  DocumentDuplicateIcon,
-  CurrencyDollarIcon,
-  EyeIcon,
-  ArchiveBoxIcon,
-  ArrowUpTrayIcon
-} from '@heroicons/react/24/outline';
+/**
+ * Admin Sidebar Component
+ * Navigation sidebar for admin interface
+ */
 
-const AdminSidebar: React.FC = () => {
-  const [collapsed, setCollapsed] = useState(false);
+import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import {
+  HomeIcon,
+  UsersIcon,
+  DocumentTextIcon,
+  CreditCardIcon,
+  ClipboardDocumentListIcon,
+  BellIcon,
+  ChartBarIcon,
+  Cog6ToothIcon
+} from '@heroicons/react/24/outline';
+import type { NavItem } from '../../types/admin';
+
+interface AdminSidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose }) => {
   const location = useLocation();
 
-  const menuItems = [
+  const navigation: NavItem[] = [
     {
-      name: 'Dashboard',
-      icon: HomeIcon,
-      path: '/admin',
-      description: 'Overview and analytics'
+      id: 'dashboard',
+      label: 'Dashboard',
+      icon: <HomeIcon className="h-5 w-5" />,
+      path: '/admin/dashboard'
     },
     {
-      name: 'User Management',
-      icon: UsersIcon,
-      path: '/admin/users',
-      description: 'Manage user accounts'
+      id: 'users',
+      label: 'Users',
+      icon: <UsersIcon className="h-5 w-5" />,
+      path: '/admin/users'
     },
     {
-      name: 'Templates',
-      icon: DocumentTextIcon,
-      path: '/admin/templates',
-      description: 'Template management'
+      id: 'documents',
+      label: 'Documents',
+      icon: <DocumentTextIcon className="h-5 w-5" />,
+      path: '/admin/documents'
     },
     {
-      name: 'PDF Templates',
-      icon: DocumentDuplicateIcon,
-      path: '/admin/pdf-templates',
-      description: 'PDF template management'
+      id: 'payments',
+      label: 'Payments',
+      icon: <CreditCardIcon className="h-5 w-5" />,
+      path: '/admin/payments'
     },
     {
-      name: 'AI Processor',
-      icon: CogIcon,
-      path: '/admin/ai-processor',
-      description: 'AI-powered content area processing'
+      id: 'logs',
+      label: 'System Logs',
+      icon: <ClipboardDocumentListIcon className="h-5 w-5" />,
+      path: '/admin/logs'
     },
     {
-      name: 'Upload Template',
-      icon: ArrowUpTrayIcon,
-      path: '/admin/upload-template',
-      description: 'Upload new PDF templates'
+      id: 'notifications',
+      label: 'Notifications',
+      icon: <BellIcon className="h-5 w-5" />,
+      path: '/admin/notifications'
     },
     {
-      name: 'Template Test',
-      icon: DocumentTextIcon,
-      path: '/admin/template-test',
-      description: 'Test template data loading'
-    },
-    {
-      name: 'Content Moderation',
-      icon: ShieldCheckIcon,
-      path: '/admin/moderation',
-      description: 'AI content review'
-    },
-    {
-      name: 'Market Data',
-      icon: ChartBarIcon,
-      path: '/admin/market-data',
-      description: 'Skill demand analytics'
-    },
-    {
-      name: 'Payments',
-      icon: CurrencyDollarIcon,
-      path: '/admin/payments',
-      description: 'Payment tracking'
-    },
-    {
-      name: 'AI Metrics',
-      icon: EyeIcon,
-      path: '/admin/ai-metrics',
-      description: 'AI performance data'
-    },
-    {
-      name: 'System Config',
-      icon: CogIcon,
-      path: '/admin/config',
-      description: 'System settings'
-    },
-    {
-      name: 'Audit Logs',
-      icon: ArchiveBoxIcon,
-      path: '/admin/audit',
-      description: 'Activity tracking'
+      id: 'analytics',
+      label: 'Analytics',
+      icon: <ChartBarIcon className="h-5 w-5" />,
+      path: '/admin/analytics'
     }
   ];
 
+  const isActive = (path: string) => {
+    return location.pathname === path;
+  };
+
   return (
-    <div className={`bg-white shadow-lg transition-all duration-300 ${collapsed ? 'w-16' : 'w-64'}`}>
-      {/* Logo */}
-      <div className="h-16 flex items-center justify-center border-b border-gray-200">
-        {collapsed ? (
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">P</span>
+    <>
+      {/* Mobile overlay */}
+      {isOpen && (
+        <div className="fixed inset-0 z-40 md:hidden">
+          <div className="fixed inset-0 bg-gray-600 bg-opacity-75" onClick={onClose} />
+        </div>
+      )}
+
+      {/* Sidebar */}
+      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out md:translate-x-0 ${
+        isOpen ? 'translate-x-0' : '-translate-x-full'
+      }`}>
+        <div className="flex flex-col h-full">
+          {/* Header */}
+          <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200">
+            <h1 className="text-xl font-bold text-gray-900">ProWrite Admin</h1>
+            <button
+              onClick={onClose}
+              className="md:hidden p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100"
+            >
+              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
-        ) : (
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">P</span>
+
+          {/* Navigation */}
+          <nav className="flex-1 px-4 py-4 space-y-2 overflow-y-auto">
+            {navigation.map((item) => (
+              <Link
+                key={item.id}
+                to={item.path}
+                className={`group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                  isActive(item.path)
+                    ? 'bg-blue-100 text-blue-900'
+                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                }`}
+                onClick={onClose}
+              >
+                <span className={`mr-3 ${
+                  isActive(item.path) ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-500'
+                }`}>
+                  {item.icon}
+                </span>
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+
+          {/* Footer */}
+          <div className="p-4 border-t border-gray-200">
+            <div className="text-xs text-gray-500 text-center">
+              ProWrite Admin Panel v2.0
             </div>
-            <span className="text-xl font-bold text-gray-800">ProWrite</span>
           </div>
-        )}
+        </div>
       </div>
-
-      {/* Navigation */}
-      <nav className="mt-6 px-3">
-        <ul className="space-y-2">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = location.pathname === item.path;
-            
-            return (
-              <li key={item.name}>
-                <NavLink
-                  to={item.path}
-                  className={`group flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-colors duration-200 ${
-                    isActive
-                      ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
-                      : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
-                  }`}
-                  title={collapsed ? item.description : undefined}
-                >
-                  <Icon className={`h-5 w-5 ${collapsed ? 'mx-auto' : 'mr-3'}`} />
-                  {!collapsed && (
-                    <span className="truncate">{item.name}</span>
-                  )}
-                </NavLink>
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
-
-      {/* Toggle Button */}
-      <div className="absolute bottom-4 left-4">
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors duration-200"
-          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        >
-          <svg
-            className={`h-4 w-4 text-gray-600 transition-transform duration-200 ${
-              collapsed ? 'rotate-180' : ''
-            }`}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M15 19l-7-7 7-7"
-            />
-          </svg>
-        </button>
-      </div>
-    </div>
+    </>
   );
 };
 

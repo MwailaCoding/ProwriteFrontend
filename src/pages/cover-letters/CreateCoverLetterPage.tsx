@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CoverLetterBuilder } from '../../components/cover-letters/CoverLetterBuilder';
+import { StreamlinedCoverLetterBuilder } from '../../components/cover-letters/StreamlinedCoverLetterBuilder';
 
 export const CreateCoverLetterPage: React.FC = () => {
   const navigate = useNavigate();
@@ -20,7 +20,7 @@ export const CreateCoverLetterPage: React.FC = () => {
     };
 
   return (
-    <CoverLetterBuilder 
+    <StreamlinedCoverLetterBuilder 
       onSuccess={handleSuccess}
       onClose={handleClose}
     />

@@ -34,7 +34,7 @@ class PaymentService {
 
   async getPaymentHistory(): Promise<PaymentHistoryItem[]> {
     const response = await api.get('/payments/history');
-    return response.data;
+    return response.data.data || [];
   }
 
   async verifyPayment(paymentId: number): Promise<{ status: string; verified: boolean }> {
@@ -54,10 +54,10 @@ class PaymentService {
     return response.data;
   }
 
-  // Admin methods
+  // Payment stats methods
   async getPaymentStats(): Promise<PaymentStats> {
-    const response = await api.get('/admin/stats');
-    return response.data;
+    const response = await api.get('/payments/stats');
+    return response.data.data;
   }
 
   async getAdminPayments(page: number = 1, perPage: number = 20, filters?: {

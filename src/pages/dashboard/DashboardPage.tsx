@@ -1,58 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   FileText,
   Plus,
   TrendingUp,
-  Award,
-  Calendar,
-  Target,
   BarChart3,
   User,
-  Brain,
-  Lightbulb,
-  Zap,
-  TrendingDown,
-  ArrowUpRight,
-  Clock,
-  Star,
-  CheckCircle,
-  AlertCircle,
-  Rocket,
-  Sparkles,
-  Activity,
-  Users,
-  BookOpen,
-  Briefcase,
-  Settings,
-  Bell,
-  ChevronRight,
-  Play,
-  Pause,
-  RefreshCw,
+  Edit3,
   Download,
   Eye,
-  Edit3,
-  Globe,
-  Shield,
-  Crown,
-  Heart,
-  MessageCircle,
-  Share2,
-  ExternalLink
+  Settings,
+  CreditCard,
+  Receipt,
+  Briefcase,
+  Target,
+  Sparkles,
+  ChevronRight
 } from 'lucide-react';
 import { RootState } from '../../store';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/common/Card';
-import { Button } from '../../components/common/Button';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { useApi } from '../../hooks/useApi';
 import { resumeService } from '../../services/resumeService';
-import { marketService } from '../../services/marketService';
-import { aiService } from '../../services/aiService';
-import { advancedAIMarketService } from '../../services/advancedAIMarketService';
-import { Resume, MarketData } from '../../types';
+import { Resume } from '../../types';
 
 // Animation variants
 const containerVariants = {
@@ -95,17 +67,6 @@ const cardHoverVariants = {
   }
 };
 
-const pulseVariants = {
-  pulse: {
-    scale: [1, 1.05, 1],
-    transition: {
-      duration: 2,
-      repeat: Infinity,
-      ease: "easeInOut"
-    }
-  }
-};
-
 // Floating particles component
 const FloatingParticles = () => (
   <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -131,118 +92,6 @@ const FloatingParticles = () => (
     ))}
   </div>
 );
-
-// Animated counter component
-const AnimatedCounter = ({ value, duration = 2 }: { value: number; duration?: number }) => {
-  const [count, setCount] = useState(0);
-
-  useEffect(() => {
-    let startTime: number;
-    const animate = (currentTime: number) => {
-      if (!startTime) startTime = currentTime;
-      const progress = Math.min((currentTime - startTime) / (duration * 1000), 1);
-      setCount(Math.floor(progress * value));
-      if (progress < 1) {
-        requestAnimationFrame(animate);
-      }
-    };
-    requestAnimationFrame(animate);
-  }, [value, duration]);
-
-  return <span>{count}</span>;
-};
-
-// Progress bar component
-const ProgressBar = ({ value, max = 100, color = "blue", animated = true }: { 
-  value: number; 
-  max?: number; 
-  color?: string; 
-  animated?: boolean;
-}) => {
-  const percentage = (value / max) * 100;
-  
-  return (
-    <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-      <motion.div
-        className={`h-full rounded-full bg-gradient-to-r ${
-          color === 'blue' ? 'from-blue-500 to-blue-600' :
-          color === 'green' ? 'from-green-500 to-green-600' :
-          color === 'purple' ? 'from-purple-500 to-purple-600' :
-          'from-gray-500 to-gray-600'
-        }`}
-        initial={{ width: 0 }}
-        animate={{ width: `${percentage}%` }}
-        transition={{ duration: animated ? 1.5 : 0, ease: "easeOut" }}
-      />
-    </div>
-  );
-};
-
-// Stats card component
-const StatsCard = ({ 
-  title, 
-  value, 
-  change, 
-  icon: Icon, 
-  color = "blue",
-  delay = 0 
-}: {
-  title: string;
-  value: number | string;
-  change?: string;
-  icon: React.ComponentType<any>;
-  color?: string;
-  delay?: number;
-}) => {
-  const colorClasses = {
-    blue: "from-blue-500 to-blue-600",
-    green: "from-green-500 to-green-600",
-    purple: "from-purple-500 to-purple-600",
-    orange: "from-orange-500 to-orange-600",
-    pink: "from-pink-500 to-pink-600"
-  };
-
-  return (
-    <motion.div
-      variants={{ ...itemVariants, hover: cardHoverVariants.hover }}
-      initial="hidden"
-      animate="visible"
-      transition={{ delay }}
-      whileHover="hover"
-      className="relative group"
-    >
-      <Card className="relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300">
-        <div className={`absolute inset-0 bg-gradient-to-br ${colorClasses[color]} opacity-5 group-hover:opacity-10 transition-opacity duration-300`} />
-        <CardContent className="relative p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className={`p-3 rounded-xl bg-gradient-to-br ${colorClasses[color]} text-white shadow-lg`}>
-              <Icon className="h-6 w-6" />
-            </div>
-            {change && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: delay + 0.5 }}
-                className={`flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium ${
-                  change.startsWith('+') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                }`}
-              >
-                <TrendingUp className="h-3 w-3" />
-                <span>{change}</span>
-              </motion.div>
-            )}
-          </div>
-          <div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-1">
-              {typeof value === 'number' ? <AnimatedCounter value={value} /> : value}
-            </h3>
-            <p className="text-gray-600 text-sm font-medium">{title}</p>
-          </div>
-        </CardContent>
-      </Card>
-    </motion.div>
-  );
-};
 
 // Feature card component
 const FeatureCard = ({ 
@@ -310,48 +159,6 @@ const FeatureCard = ({
         </Card>
       </Link>
     </motion.div>
-  );
-};
-
-// Quick action button component
-const QuickActionButton = ({ 
-  title, 
-  icon: Icon, 
-  color = "blue",
-  onClick,
-  delay = 0
-}: {
-  title: string;
-  icon: React.ComponentType<any>;
-  color?: string;
-  onClick?: () => void;
-  delay?: number;
-}) => {
-  const colorClasses = {
-    blue: "from-blue-500 to-blue-600",
-    green: "from-green-500 to-green-600",
-    purple: "from-purple-500 to-purple-600",
-    orange: "from-orange-500 to-orange-600",
-    pink: "from-pink-500 to-pink-600"
-  };
-
-  return (
-    <motion.button
-      variants={{ ...itemVariants, hover: cardHoverVariants.hover, tap: cardHoverVariants.tap }}
-      initial="hidden"
-      animate="visible"
-      transition={{ delay }}
-      whileHover="hover"
-      whileTap="tap"
-      onClick={onClick}
-      className={`group relative p-4 rounded-2xl bg-gradient-to-br ${colorClasses[color]} text-white shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden`}
-    >
-      <div className="relative z-10">
-        <Icon className="h-8 w-8 mb-2 group-hover:scale-110 transition-transform duration-300" />
-        <p className="font-semibold text-sm">{title}</p>
-      </div>
-      <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-300" />
-    </motion.button>
   );
 };
 
@@ -425,7 +232,14 @@ export const DashboardPage: React.FC = () => {
               className="inline-flex items-center space-x-2 px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full shadow-lg mb-6"
             >
               <motion.div
-                animate={pulseVariants.pulse}
+                animate={{
+                  scale: [1, 1.05, 1],
+                  transition: {
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }
+                }}
                 className="w-2 h-2 bg-green-500 rounded-full"
               />
               <span className="text-sm font-medium text-gray-700">ProWriteSolutions Workspace</span>
@@ -505,7 +319,7 @@ export const DashboardPage: React.FC = () => {
               </CardHeader>
               <CardContent className="relative space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Link to="/prowrite-template">
+                  <Link to="/app/prowrite-template">
                     <div className="p-6 bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-lg transition-all duration-300 cursor-pointer group">
                       <div className="flex items-center space-x-4">
                         <div className="p-3 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
@@ -518,15 +332,15 @@ export const DashboardPage: React.FC = () => {
                       </div>
                     </div>
                   </Link>
-                  <Link to="/resumes">
+                  <Link to="/app/templates">
                     <div className="p-6 bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200 hover:border-green-300 hover:shadow-lg transition-all duration-300 cursor-pointer group">
                       <div className="flex items-center space-x-4">
                         <div className="p-3 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors">
                           <Eye className="h-6 w-6 text-green-600" />
                         </div>
                         <div>
-                          <h3 className="font-semibold text-gray-900 group-hover:text-green-600 transition-colors">View Resumes</h3>
-                          <p className="text-sm text-gray-600">Manage existing resumes</p>
+                          <h3 className="font-semibold text-gray-900 group-hover:text-green-600 transition-colors">View Templates</h3>
+                          <p className="text-sm text-gray-600">Manage existing templates</p>
                         </div>
                       </div>
                     </div>
@@ -568,7 +382,7 @@ export const DashboardPage: React.FC = () => {
               </CardHeader>
               <CardContent className="relative space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Link to="/cover-letters">
+                  <Link to="/app/cover-letters/create">
                     <div className="p-6 bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200 hover:border-green-300 hover:shadow-lg transition-all duration-300 cursor-pointer group">
                       <div className="flex items-center space-x-4">
                         <div className="p-3 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors">
@@ -581,7 +395,7 @@ export const DashboardPage: React.FC = () => {
                       </div>
                     </div>
                   </Link>
-                  <Link to="/cover-letters">
+                  <Link to="/app/cover-letters">
                     <div className="p-6 bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200 hover:border-purple-300 hover:shadow-lg transition-all duration-300 cursor-pointer group">
                       <div className="flex items-center space-x-4">
                         <div className="p-3 bg-purple-100 rounded-lg group-hover:bg-purple-200 transition-colors">
@@ -632,25 +446,25 @@ export const DashboardPage: React.FC = () => {
               description="Professional templates for resumes, cover letters, and more"
               icon={FileText}
               color="blue"
-              href="/templates"
+              href="/app/templates"
               delay={0.1}
               badge="Free"
             />
             <FeatureCard
-              title="File Manager"
-              description="Organize and manage all your career documents"
-              icon={Settings}
+              title="Market Insights"
+              description="Get insights about job market trends and opportunities"
+              icon={BarChart3}
               color="green"
-              href="/files"
+              href="/app/market-insights"
               delay={0.2}
               badge="New"
             />
             <FeatureCard
-              title="Export Options"
-              description="Download your documents in multiple formats"
-              icon={Download}
+              title="Job Search"
+              description="Find real job opportunities and apply with your documents"
+              icon={Briefcase}
               color="purple"
-              href="/export"
+              href="/app/real-jobs"
               delay={0.3}
               badge="Pro"
             />
@@ -659,25 +473,16 @@ export const DashboardPage: React.FC = () => {
               description="Manage your profile and preferences"
               icon={User}
               color="orange"
-              href="/settings"
+              href="/app/profile"
               delay={0.4}
               badge=""
             />
             <FeatureCard
-              title="Help & Support"
-              description="Get help and contact our support team"
-              icon={MessageCircle}
-              color="pink"
-              href="/help"
-              delay={0.5}
-              badge="24/7"
-            />
-            <FeatureCard
-              title="About ProWriteSolutions"
-              description="Learn more about our platform and features"
-              icon={Globe}
+              title="Payment History"
+              description="View your transaction history and receipts"
+              icon={Receipt}
               color="blue"
-              href="/about"
+              href="/app/payments"
               delay={0.6}
               badge="Info"
             />
@@ -692,7 +497,7 @@ export const DashboardPage: React.FC = () => {
           </div>
           
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <Link to="/prowrite-template">
+            <Link to="/app/prowrite-template">
               <div className="p-4 bg-blue-50 hover:bg-blue-100 rounded-xl border border-blue-200 hover:border-blue-300 transition-all duration-300 cursor-pointer group text-center">
                 <div className="p-3 bg-blue-100 rounded-lg mx-auto mb-3 group-hover:bg-blue-200 transition-colors w-fit">
                   <FileText className="h-6 w-6 text-blue-600" />
@@ -701,7 +506,7 @@ export const DashboardPage: React.FC = () => {
               </div>
             </Link>
             
-            <Link to="/cover-letters">
+            <Link to="/app/cover-letters/create">
               <div className="p-4 bg-green-50 hover:bg-green-100 rounded-xl border border-green-200 hover:border-green-300 transition-all duration-300 cursor-pointer group text-center">
                 <div className="p-3 bg-green-100 rounded-lg mx-auto mb-3 group-hover:bg-green-200 transition-colors w-fit">
                   <Edit3 className="h-6 w-6 text-green-600" />
@@ -710,16 +515,16 @@ export const DashboardPage: React.FC = () => {
               </div>
             </Link>
             
-            <Link to="/resumes">
+            <Link to="/app/templates">
               <div className="p-4 bg-purple-50 hover:bg-purple-100 rounded-xl border border-purple-200 hover:border-purple-300 transition-all duration-300 cursor-pointer group text-center">
                 <div className="p-3 bg-purple-100 rounded-lg mx-auto mb-3 group-hover:bg-purple-200 transition-colors w-fit">
                   <Eye className="h-6 w-6 text-purple-600" />
                 </div>
-                <h4 className="font-semibold text-gray-900 group-hover:text-purple-600 transition-colors text-sm">View Files</h4>
+                <h4 className="font-semibold text-gray-900 group-hover:text-purple-600 transition-colors text-sm">View Templates</h4>
               </div>
             </Link>
             
-            <Link to="/settings">
+            <Link to="/app/profile">
               <div className="p-4 bg-orange-50 hover:bg-orange-100 rounded-xl border border-orange-200 hover:border-orange-300 transition-all duration-300 cursor-pointer group text-center">
                 <div className="p-3 bg-orange-100 rounded-lg mx-auto mb-3 group-hover:bg-orange-200 transition-colors w-fit">
                   <Settings className="h-6 w-6 text-orange-600" />
