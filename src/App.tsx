@@ -26,6 +26,7 @@ import RealJobSearchPage from './pages/jobs/RealJobSearchPage';
 
 // Admin Routes
 import AdminRoutes from './components/admin/AdminRoutes';
+import { AdminAuthProvider } from './contexts/AdminAuthContext';
 
 // Additional Pages
 import { CoverLettersPage } from './pages/cover-letters/CoverLettersPage';
@@ -58,7 +59,11 @@ function App() {
       <Router>
         <Routes>
           {/* Admin Routes - Must come FIRST to avoid conflicts */}
-          <Route path="/admin/*" element={<AdminRoutes />} />
+          <Route path="/admin/*" element={
+            <AdminAuthProvider>
+              <AdminRoutes />
+            </AdminAuthProvider>
+          } />
           
           {/* Public Routes */}
           <Route path="/" element={<LandingPage />} />

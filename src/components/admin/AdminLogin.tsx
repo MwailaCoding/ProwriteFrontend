@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAdminAuth } from '../../hooks/useAdminAuth';
+import { useAdminAuth } from '../../contexts/AdminAuthContext';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 
 const AdminLogin: React.FC = () => {
