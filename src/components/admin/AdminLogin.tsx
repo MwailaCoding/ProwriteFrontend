@@ -18,6 +18,8 @@ const AdminLogin: React.FC = () => {
     setLoading(true);
     setError(null);
 
+    console.log('AdminLogin - handleSubmit called with:', { email, password: '***' });
+
     try {
       const response = await fetch('https://prowrite.pythonanywhere.com/api/admin/login', {
         method: 'POST',
@@ -27,20 +29,24 @@ const AdminLogin: React.FC = () => {
         body: JSON.stringify({ email, password }),
       });
 
+      console.log('AdminLogin - response status:', response.status);
       const data = await response.json();
+      console.log('AdminLogin - response data:', data);
 
       if (response.ok) {
         // Login successful - store data and redirect
-        console.log('Login successful, calling login function...');
+        console.log('AdminLogin - Login successful, calling login function...');
         login(data.user, data.access_token);
         
-        console.log('Login function called, redirecting immediately...');
+        console.log('AdminLogin - Login function called, redirecting immediately...');
         // Redirect immediately after calling login
         navigate('/admin/dashboard', { replace: true });
       } else {
+        console.log('AdminLogin - Login failed:', data);
         setError(data.error || 'Login failed');
       }
     } catch (err) {
+      console.log('AdminLogin - Error:', err);
       setError('Network error. Please try again.');
     } finally {
       setLoading(false);
