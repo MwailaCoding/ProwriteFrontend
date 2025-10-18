@@ -45,6 +45,8 @@ from manual_payment_routes import manual_payment_bp
 from pesapal_callback_routes import pesapal_callback_bp
 from pesapal_payment_routes import pesapal_payment_bp
 from pesapal_embedded_routes import pesapal_embedded_bp
+from admin_routes import admin_bp
+from simple_admin_test import simple_admin_bp
 # Import AI services
 from francisca_ai_service import FranciscaAIService
 
@@ -1066,6 +1068,7 @@ app.register_blueprint(pesapal_embedded_bp)
 # Import and register admin routes
 from admin_routes import admin_bp
 app.register_blueprint(admin_bp)
+app.register_blueprint(simple_admin_bp)
 CORS(app, resources={
     r"/api/*": {
         "origins": [
