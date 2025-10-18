@@ -1,282 +1,243 @@
-/**
- * Documents Management Page
- * Central document repository with preview and download capabilities
- */
-
 import React, { useState, useEffect } from 'react';
 import { 
-  MagnifyingGlassIcon, 
-  FunnelIcon, 
+  MagnifyingGlassIcon,
+  FunnelIcon,
   EyeIcon,
   ArrowDownTrayIcon,
-  DocumentTextIcon,
-  CalendarIcon,
-  UserIcon
+  TrashIcon,
+  DocumentTextIcon
 } from '@heroicons/react/24/outline';
-import { adminService } from '../../services/adminService';
-import type { Document, DocumentFilters, DocumentsResponse } from '../../types/admin';
-import DataTable from '../../components/admin/DataTable';
-import DocumentViewerModal from '../../components/admin/DocumentViewerModal';
+
+interface Document {
+  id: number;
+  fileName: string;
+  userEmail: string;
+  fileSize: string;
+  createdAt: string;
+  type: string;
+  status: 'active' | 'deleted';
+}
 
 const DocumentsPage: React.FC = () => {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [pagination, setPagination] = useState({
-    page: 1,
-    per_page: 50,
-    total: 0,
-    pages: 0
-  });
-  
-  const [filters, setFilters] = useState<DocumentFilters>({
-    search: '',
-    type: '',
-    date_from: '',
-    date_to: '',
-    page: 1,
-    per_page: 50
-  });
-
-  const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
-  const [showViewer, setShowViewer] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filter, setFilter] = useState('all');
 
   useEffect(() => {
-    loadDocuments();
-  }, [filters]);
-
-  const loadDocuments = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response: DocumentsResponse = await adminService.getDocuments(filters);
-      setDocuments(response.documents);
-      setPagination(response.pagination);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load documents');
-    } finally {
+    // Simulate loading documents
+    setTimeout(() => {
+      setDocuments([
+        {
+          id: 1,
+          fileName: 'Resume_John_Doe_2025.pdf',
+          userEmail: 'john@example.com',
+          fileSize: '2.3 MB',
+          createdAt: '2025-01-18',
+          type: 'Resume',
+          status: 'active'
+        },
+        {
+          id: 2,
+          fileName: 'Cover_Letter_Jane_Smith.pdf',
+          userEmail: 'jane@example.com',
+          fileSize: '1.8 MB',
+          createdAt: '2025-01-17',
+          type: 'Cover Letter',
+          status: 'active'
+        },
+        {
+          id: 3,
+          fileName: 'CV_Admin_User.pdf',
+          userEmail: 'admin@example.com',
+          fileSize: '3.1 MB',
+          createdAt: '2025-01-16',
+          type: 'CV',
+          status: 'active'
+        }
+      ]);
       setLoading(false);
+    }, 1000);
+  }, []);
+
+  const filteredDocuments = documents.filter(doc => {
+    const matchesSearch = doc.fileName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         doc.userEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         doc.type.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    if (filter === 'resume') return matchesSearch && doc.type === 'Resume';
+    if (filter === 'cover-letter') return matchesSearch && doc.type === 'Cover Letter';
+    if (filter === 'cv') return matchesSearch && doc.type === 'CV';
+    
+    return matchesSearch;
+  });
+
+  const handleDownload = (document: Document) => {
+    // Simulate download
+    console.log('Downloading:', document.fileName);
+    // In real implementation, this would trigger a download
+  };
+
+  const handleView = (document: Document) => {
+    // Simulate viewing
+    console.log('Viewing:', document.fileName);
+    // In real implementation, this would open a preview modal
+  };
+
+  const handleDelete = (documentId: number) => {
+    if (window.confirm('Are you sure you want to delete this document?')) {
+      setDocuments(documents.map(doc => 
+        doc.id === documentId ? { ...doc, status: 'deleted' } : doc
+      ));
     }
   };
 
-  const handleFilterChange = (key: keyof DocumentFilters, value: any) => {
-    setFilters(prev => ({
-      ...prev,
-      [key]: value,
-      page: 1 // Reset to first page when filters change
-    }));
-  };
-
-  const handlePageChange = (page: number) => {
-    setFilters(prev => ({ ...prev, page }));
-  };
-
-  const handleViewDocument = (document: Document) => {
-    setSelectedDocument(document);
-    setShowViewer(true);
-  };
-
-  const handleDownloadDocument = async (reference: string) => {
-    try {
-      const blob = await adminService.downloadDocument(reference);
-      adminService.downloadFile(blob, `document_${reference}.pdf`);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to download document');
-    }
-  };
-
-  const columns = [
-    {
-      key: 'reference',
-      label: 'Reference',
-      sortable: true,
-      render: (value: string, row: Document) => (
-        <div className="flex items-center">
-          <DocumentTextIcon className="h-5 w-5 text-gray-400 mr-2" />
-          <span className="font-mono text-sm">{value}</span>
-        </div>
-      )
-    },
-    {
-      key: 'documentType',
-      label: 'Type',
-      render: (value: string) => (
-        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-          value === 'resume' 
-            ? 'bg-blue-100 text-blue-800' 
-            : 'bg-green-100 text-green-800'
-        }`}>
-          {value === 'resume' ? 'Resume' : 'Cover Letter'}
-        </span>
-      )
-    },
-    {
-      key: 'user',
-      label: 'User',
-      render: (value: any) => (
-        <div className="flex items-center">
-          <UserIcon className="h-4 w-4 text-gray-400 mr-2" />
-          <div>
-            <div className="text-sm font-medium text-gray-900">
-              {value.firstName} {value.lastName}
-            </div>
-            <div className="text-sm text-gray-500">{value.email}</div>
-          </div>
-        </div>
-      )
-    },
-    {
-      key: 'createdAt',
-      label: 'Created',
-      sortable: true,
-      render: (value: string) => (
-        <div className="flex items-center text-sm text-gray-900">
-          <CalendarIcon className="h-4 w-4 text-gray-400 mr-2" />
-          {new Date(value).toLocaleDateString()}
-        </div>
-      )
-    },
-    {
-      key: 'downloadCount',
-      label: 'Downloads',
-      render: (value: number) => (
-        <span className="text-sm text-gray-900">{value}</span>
-      )
-    },
-    {
-      key: 'status',
-      label: 'Status',
-      render: (value: string) => (
-        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-          value === 'generated' 
-            ? 'bg-green-100 text-green-800' 
-            : value === 'processing'
-            ? 'bg-yellow-100 text-yellow-800'
-            : 'bg-red-100 text-red-800'
-        }`}>
-          {value}
-        </span>
-      )
-    }
-  ];
-
-  const actions = (document: Document) => (
-    <div className="flex items-center space-x-2">
-      <button
-        onClick={() => handleViewDocument(document)}
-        className="text-blue-600 hover:text-blue-900"
-        title="View Document"
-      >
-        <EyeIcon className="h-4 w-4" />
-      </button>
-      <button
-        onClick={() => handleDownloadDocument(document.reference)}
-        className="text-gray-600 hover:text-gray-900"
-        title="Download Document"
-      >
-        <ArrowDownTrayIcon className="h-4 w-4" />
-      </button>
-    </div>
-  );
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      {/* Page Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Documents</h1>
         <p className="mt-1 text-sm text-gray-500">
-          View and manage all generated documents
+          View and manage all user documents
         </p>
       </div>
 
-      {/* Filters */}
-      <div className="bg-white shadow rounded-lg p-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Search
-            </label>
+      {/* Search and Filter */}
+      <div className="bg-white p-4 rounded-lg shadow">
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex-1">
             <div className="relative">
-              <MagnifyingGlassIcon className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search by reference or user..."
-                value={filters.search || ''}
-                onChange={(e) => handleFilterChange('search', e.target.value)}
-                className="pl-10 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                placeholder="Search documents..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
           </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Document Type
-            </label>
+          <div className="flex gap-2">
             <select
-              value={filters.type || ''}
-              onChange={(e) => handleFilterChange('type', e.target.value)}
-              className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
             >
-              <option value="">All Types</option>
-              <option value="resume">Resume</option>
-              <option value="cover_letter">Cover Letter</option>
+              <option value="all">All Documents</option>
+              <option value="resume">Resumes</option>
+              <option value="cover-letter">Cover Letters</option>
+              <option value="cv">CVs</option>
             </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              From Date
-            </label>
-            <input
-              type="date"
-              value={filters.date_from || ''}
-              onChange={(e) => handleFilterChange('date_from', e.target.value)}
-              className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              To Date
-            </label>
-            <input
-              type="date"
-              value={filters.date_to || ''}
-              onChange={(e) => handleFilterChange('date_to', e.target.value)}
-              className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-            />
+            <button className="px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50">
+              <FunnelIcon className="h-5 w-5" />
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Error Display */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-md p-4">
-          <div className="text-sm text-red-700">{error}</div>
-        </div>
-      )}
-
       {/* Documents Table */}
-      <DataTable
-        data={documents}
-        columns={columns}
-        pagination={pagination}
-        onPageChange={handlePageChange}
-        loading={loading}
-        actions={actions}
-      />
+      <div className="bg-white shadow overflow-hidden sm:rounded-md">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Document
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  User
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Type
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Size
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Created
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {filteredDocuments.map((document) => (
+                <tr key={document.id} className={document.status === 'deleted' ? 'opacity-50' : ''}>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center">
+                      <DocumentTextIcon className="h-8 w-8 text-gray-400 mr-3" />
+                      <div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {document.fileName}
+                        </div>
+                        {document.status === 'deleted' && (
+                          <div className="text-xs text-red-500">Deleted</div>
+                        )}
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {document.userEmail}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      {document.type}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {document.fileSize}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {document.createdAt}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => handleView(document)}
+                        className="text-blue-600 hover:text-blue-900"
+                        title="View"
+                      >
+                        <EyeIcon className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDownload(document)}
+                        className="text-green-600 hover:text-green-900"
+                        title="Download"
+                      >
+                        <ArrowDownTrayIcon className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(document.id)}
+                        className="text-red-600 hover:text-red-900"
+                        title="Delete"
+                      >
+                        <TrashIcon className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
 
-      {/* Document Viewer Modal */}
-      {showViewer && selectedDocument && (
-        <DocumentViewerModal
-          document={selectedDocument}
-          isOpen={showViewer}
-          onClose={() => {
-            setShowViewer(false);
-            setSelectedDocument(null);
-          }}
-          onDownload={handleDownloadDocument}
-        />
+      {filteredDocuments.length === 0 && (
+        <div className="text-center py-12">
+          <DocumentTextIcon className="mx-auto h-12 w-12 text-gray-400" />
+          <h3 className="mt-2 text-sm font-medium text-gray-900">No documents</h3>
+          <p className="mt-1 text-sm text-gray-500">
+            No documents found matching your criteria.
+          </p>
+        </div>
       )}
     </div>
   );

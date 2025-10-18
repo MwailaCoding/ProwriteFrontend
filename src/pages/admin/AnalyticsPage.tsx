@@ -1,66 +1,67 @@
-/**
- * Analytics Page
- * Data insights with interactive charts and reporting
- */
-
 import React, { useState, useEffect } from 'react';
 import { 
   ChartBarIcon,
-  DocumentArrowDownIcon,
-  CalendarIcon,
   UsersIcon,
-  CreditCardIcon,
   DocumentTextIcon,
-  ArrowTrendingUpIcon,
-  ArrowTrendingDownIcon
+  CurrencyDollarIcon,
+  ArrowUpIcon,
+  ArrowDownIcon
 } from '@heroicons/react/24/outline';
-import { adminService } from '../../services/adminService';
-import type { AnalyticsStats, ExportOptions } from '../../types/admin';
 
 const AnalyticsPage: React.FC = () => {
-  const [analytics, setAnalytics] = useState<AnalyticsStats | null>(null);
+  const [analytics, setAnalytics] = useState({
+    totalUsers: 1250,
+    totalDocuments: 3420,
+    totalRevenue: 45600,
+    monthlyGrowth: 12.5,
+    userGrowth: 8.3,
+    documentGrowth: 15.2,
+    revenueGrowth: 22.1
+  });
+
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [selectedPeriod, setSelectedPeriod] = useState('30d');
-  const [exportLoading, setExportLoading] = useState<string | null>(null);
 
   useEffect(() => {
-    loadAnalytics();
-  }, [selectedPeriod]);
-
-  const loadAnalytics = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await adminService.getAnalyticsStats(selectedPeriod);
-      setAnalytics(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load analytics');
-    } finally {
+    // Simulate loading analytics
+    setTimeout(() => {
       setLoading(false);
-    }
-  };
+    }, 1000);
+  }, []);
 
-  const handleExport = async (type: 'users' | 'documents' | 'payments') => {
-    try {
-      setExportLoading(type);
-      const options: ExportOptions = {
-        type,
-        format: 'csv',
-        date_from: analytics?.dateRange.start,
-        date_to: analytics?.dateRange.end
-      };
-      const response = await adminService.exportAnalytics(options);
-      adminService.downloadFile(
-        new Blob([response.data], { type: 'text/csv' }),
-        response.filename
-      );
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to export data');
-    } finally {
-      setExportLoading(null);
+  const stats = [
+    {
+      name: 'Total Users',
+      value: analytics.totalUsers.toLocaleString(),
+      change: analytics.userGrowth,
+      changeType: 'increase',
+      icon: UsersIcon,
+      color: 'bg-blue-500'
+    },
+    {
+      name: 'Total Documents',
+      value: analytics.totalDocuments.toLocaleString(),
+      change: analytics.documentGrowth,
+      changeType: 'increase',
+      icon: DocumentTextIcon,
+      color: 'bg-green-500'
+    },
+    {
+      name: 'Total Revenue',
+      value: `$${analytics.totalRevenue.toLocaleString()}`,
+      change: analytics.revenueGrowth,
+      changeType: 'increase',
+      icon: CurrencyDollarIcon,
+      color: 'bg-yellow-500'
+    },
+    {
+      name: 'Monthly Growth',
+      value: `${analytics.monthlyGrowth}%`,
+      change: 2.1,
+      changeType: 'increase',
+      icon: ChartBarIcon,
+      color: 'bg-purple-500'
     }
-  };
+  ];
 
   if (loading) {
     return (
@@ -70,234 +71,138 @@ const AnalyticsPage: React.FC = () => {
     );
   }
 
-  if (error) {
-    return (
-      <div className="bg-red-50 border border-red-200 rounded-md p-4">
-        <div className="text-sm text-red-700">{error}</div>
-      </div>
-    );
-  }
-
-  if (!analytics) return null;
-
   return (
     <div className="space-y-6">
-      {/* Page Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Analytics</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            System performance and user insights
-          </p>
-        </div>
-        
-        {/* Period Selector */}
-        <div className="flex items-center space-x-2">
-          <CalendarIcon className="h-5 w-5 text-gray-400" />
-          <select
-            value={selectedPeriod}
-            onChange={(e) => setSelectedPeriod(e.target.value)}
-            className="border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-          >
-            <option value="7d">Last 7 days</option>
-            <option value="30d">Last 30 days</option>
-            <option value="90d">Last 90 days</option>
-            <option value="1y">Last year</option>
-          </select>
-        </div>
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Analytics</h1>
+        <p className="mt-1 text-sm text-gray-500">
+          Overview of system performance and metrics
+        </p>
       </div>
 
-      {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <UsersIcon className="h-6 w-6 text-blue-500" />
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">Total Users</dt>
-                  <dd className="text-lg font-medium text-gray-900">{analytics.users.total.toLocaleString()}</dd>
-                  <dd className="text-sm text-gray-500">
-                    <span className="text-green-600">+{analytics.users.new}</span> new this period
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <DocumentTextIcon className="h-6 w-6 text-green-500" />
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">Documents Generated</dt>
-                  <dd className="text-lg font-medium text-gray-900">{analytics.documents.total.toLocaleString()}</dd>
-                  <dd className="text-sm text-gray-500">
-                    <span className="text-green-600">+{analytics.documents.new}</span> this period
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <CreditCardIcon className="h-6 w-6 text-purple-500" />
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">Total Revenue</dt>
-                  <dd className="text-lg font-medium text-gray-900">${analytics.payments.revenue.toLocaleString()}</dd>
-                  <dd className="text-sm text-gray-500">
-                    <span className="text-green-600">+{analytics.payments.new}</span> payments
-                  </dd>
-                </dl>
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        {stats.map((stat) => (
+          <div key={stat.name} className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="p-5">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <div className={`p-3 rounded-md ${stat.color}`}>
+                    <stat.icon className="h-6 w-6 text-white" />
+                  </div>
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt className="text-sm font-medium text-gray-500 truncate">
+                      {stat.name}
+                    </dt>
+                    <dd className="flex items-baseline">
+                      <div className="text-2xl font-semibold text-gray-900">
+                        {stat.value}
+                      </div>
+                      <div className={`ml-2 flex items-baseline text-sm font-semibold ${
+                        stat.changeType === 'increase' ? 'text-green-600' : 'text-red-600'
+                      }`}>
+                        {stat.changeType === 'increase' ? (
+                          <ArrowUpIcon className="self-center flex-shrink-0 h-4 w-4 text-green-500" />
+                        ) : (
+                          <ArrowDownIcon className="self-center flex-shrink-0 h-4 w-4 text-red-500" />
+                        )}
+                        <span className="sr-only">
+                          {stat.changeType === 'increase' ? 'Increased' : 'Decreased'} by
+                        </span>
+                        {stat.change}%
+                      </div>
+                    </dd>
+                  </dl>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <ChartBarIcon className="h-6 w-6 text-yellow-500" />
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">Premium Rate</dt>
-                  <dd className="text-lg font-medium text-gray-900">{analytics.users.premiumPercentage}%</dd>
-                  <dd className="text-sm text-gray-500">
-                    {analytics.users.premium} premium users
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
+        ))}
       </div>
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* User Growth Chart */}
-        <div className="bg-white shadow rounded-lg p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-medium text-gray-900">User Growth</h3>
-            <button
-              onClick={() => handleExport('users')}
-              disabled={exportLoading === 'users'}
-              className="inline-flex items-center px-3 py-1 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-            >
-              <DocumentArrowDownIcon className="h-4 w-4 mr-1" />
-              {exportLoading === 'users' ? 'Exporting...' : 'Export'}
-            </button>
-          </div>
-          <div className="h-64 flex items-center justify-center">
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">User Growth</h3>
+          <div className="h-64 flex items-center justify-center bg-gray-50 rounded-lg">
             <div className="text-center">
-              <ChartBarIcon className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-              <p className="text-sm text-gray-500">Chart visualization would go here</p>
-              <p className="text-xs text-gray-400 mt-1">
-                {analytics.charts.dailyRegistrations.length} data points
-              </p>
+              <ChartBarIcon className="mx-auto h-12 w-12 text-gray-400" />
+              <p className="mt-2 text-sm text-gray-500">Chart would be rendered here</p>
             </div>
           </div>
         </div>
 
         {/* Revenue Chart */}
-        <div className="bg-white shadow rounded-lg p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-medium text-gray-900">Revenue Trends</h3>
-            <button
-              onClick={() => handleExport('payments')}
-              disabled={exportLoading === 'payments'}
-              className="inline-flex items-center px-3 py-1 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-            >
-              <DocumentArrowDownIcon className="h-4 w-4 mr-1" />
-              {exportLoading === 'payments' ? 'Exporting...' : 'Export'}
-            </button>
-          </div>
-          <div className="h-64 flex items-center justify-center">
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Revenue Trends</h3>
+          <div className="h-64 flex items-center justify-center bg-gray-50 rounded-lg">
             <div className="text-center">
-              <ChartBarIcon className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-              <p className="text-sm text-gray-500">Chart visualization would go here</p>
-              <p className="text-xs text-gray-400 mt-1">
-                Total: ${analytics.payments.revenue.toLocaleString()}
-              </p>
+              <CurrencyDollarIcon className="mx-auto h-12 w-12 text-gray-400" />
+              <p className="mt-2 text-sm text-gray-500">Chart would be rendered here</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Detailed Breakdowns */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Document Types */}
-        <div className="bg-white shadow rounded-lg p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-medium text-gray-900">Document Types</h3>
-            <button
-              onClick={() => handleExport('documents')}
-              disabled={exportLoading === 'documents'}
-              className="inline-flex items-center px-3 py-1 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-            >
-              <DocumentArrowDownIcon className="h-4 w-4 mr-1" />
-              {exportLoading === 'documents' ? 'Exporting...' : 'Export'}
-            </button>
-          </div>
-          <div className="space-y-3">
-            {Object.entries(analytics.documents.types).map(([type, count]) => (
-              <div key={type} className="flex items-center justify-between">
-                <span className="text-sm text-gray-600 capitalize">{type.replace('_', ' ')}</span>
-                <span className="text-sm font-medium text-gray-900">{count}</span>
+      {/* Recent Activity */}
+      <div className="bg-white shadow rounded-lg">
+        <div className="px-4 py-5 sm:p-6">
+          <h3 className="text-lg leading-6 font-medium text-gray-900">
+            Recent Activity Summary
+          </h3>
+          <div className="mt-5">
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <div className="flex">
+                  <UsersIcon className="h-5 w-5 text-blue-400" />
+                  <div className="ml-3">
+                    <p className="text-sm font-medium text-blue-800">New Users</p>
+                    <p className="text-2xl font-semibold text-blue-900">+24</p>
+                    <p className="text-xs text-blue-600">This week</p>
+                  </div>
+                </div>
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Payment Status */}
-        <div className="bg-white shadow rounded-lg p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Payment Status</h3>
-          <div className="space-y-3">
-            {Object.entries(analytics.payments.statuses).map(([status, count]) => (
-              <div key={status} className="flex items-center justify-between">
-                <span className="text-sm text-gray-600 capitalize">{status}</span>
-                <span className="text-sm font-medium text-gray-900">{count}</span>
+              <div className="bg-green-50 p-4 rounded-lg">
+                <div className="flex">
+                  <DocumentTextIcon className="h-5 w-5 text-green-400" />
+                  <div className="ml-3">
+                    <p className="text-sm font-medium text-green-800">Documents Generated</p>
+                    <p className="text-2xl font-semibold text-green-900">+156</p>
+                    <p className="text-xs text-green-600">This week</p>
+                  </div>
+                </div>
               </div>
-            ))}
+              <div className="bg-yellow-50 p-4 rounded-lg">
+                <div className="flex">
+                  <CurrencyDollarIcon className="h-5 w-5 text-yellow-400" />
+                  <div className="ml-3">
+                    <p className="text-sm font-medium text-yellow-800">Revenue</p>
+                    <p className="text-2xl font-semibold text-yellow-900">+$2,340</p>
+                    <p className="text-xs text-yellow-600">This week</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Summary Stats */}
-      <div className="bg-white shadow rounded-lg p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Period Summary</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-blue-600">
-              {analytics.users.active}
-            </div>
-            <div className="text-sm text-gray-500">Active Users</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-green-600">
-              {analytics.payments.statuses.completed || 0}
-            </div>
-            <div className="text-sm text-gray-500">Completed Payments</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-purple-600">
-              {analytics.users.premium}
-            </div>
-            <div className="text-sm text-gray-500">Premium Users</div>
-          </div>
+      {/* Export Options */}
+      <div className="bg-white p-6 rounded-lg shadow">
+        <h3 className="text-lg font-medium text-gray-900 mb-4">Export Data</h3>
+        <div className="flex flex-wrap gap-3">
+          <button className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+            Export Users (CSV)
+          </button>
+          <button className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+            Export Payments (CSV)
+          </button>
+          <button className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+            Export Analytics (PDF)
+          </button>
         </div>
       </div>
     </div>
