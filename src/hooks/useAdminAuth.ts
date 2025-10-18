@@ -6,8 +6,8 @@ let globalAdminUser: AdminUser | null = null;
 let globalIsAuthenticated = false;
 
 export const useAdminAuth = () => {
-  const [adminUser, setAdminUser] = useState<AdminUser | null>(globalAdminUser);
-  const [isAuthenticated, setIsAuthenticated] = useState(globalIsAuthenticated);
+  const [adminUser, setAdminUser] = useState<AdminUser | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const checkAuth = () => {
@@ -61,10 +61,29 @@ export const useAdminAuth = () => {
     setLoading(false);
   };
 
-  // Check authentication on mount
+  // Check authentication on mount and on every render
   useEffect(() => {
     checkAuth();
-  }, []);
+  });
+
+  // Also check on every render to ensure state is always up to date
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('adminToken');
+      const userStr = localStorage.getItem('adminUser');
+      
+      if (token && userStr && !isAuthenticated) {
+        try {
+          const user = JSON.parse(userStr);
+          setAdminUser(user);
+          setIsAuthenticated(true);
+          console.log('useAdminAuth - restored from localStorage on render');
+        } catch (error) {
+          console.error('Error parsing user on render:', error);
+        }
+      }
+    }
+  });
 
   const login = (user: AdminUser, token: string) => {
     console.log('useAdminAuth - login called with:', { user, token: !!token });
