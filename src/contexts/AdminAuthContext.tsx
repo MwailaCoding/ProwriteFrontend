@@ -28,12 +28,16 @@ export const AdminAuthProvider: React.FC<AdminAuthProviderProps> = ({ children }
   const [adminUser, setAdminUser] = useState<AdminUser | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [initialized, setInitialized] = useState(false);
 
-  // Initialize authentication state
+  // Initialize authentication state only once
   useEffect(() => {
+    if (initialized) return;
+
     const initAuth = () => {
       if (typeof window === 'undefined') {
         setLoading(false);
+        setInitialized(true);
         return;
       }
 
@@ -59,11 +63,12 @@ export const AdminAuthProvider: React.FC<AdminAuthProviderProps> = ({ children }
         setIsAuthenticated(false);
       } finally {
         setLoading(false);
+        setInitialized(true);
       }
     };
 
     initAuth();
-  }, []);
+  }, [initialized]);
 
   const login = (user: AdminUser, token: string) => {
     console.log('AdminAuthProvider - login called with:', { user: user.email, token: !!token });
@@ -74,9 +79,10 @@ export const AdminAuthProvider: React.FC<AdminAuthProviderProps> = ({ children }
     
     console.log('AdminAuthProvider - data stored in localStorage');
     
-    // Update state
+    // Update state immediately
     setAdminUser(user);
     setIsAuthenticated(true);
+    setLoading(false);
     
     console.log('AdminAuthProvider - state updated:', { 
       adminUser: !!user, 
@@ -118,7 +124,8 @@ export const AdminAuthProvider: React.FC<AdminAuthProviderProps> = ({ children }
     adminUser: !!adminUser,
     isAuthenticated,
     loading,
-    userEmail: adminUser?.email
+    userEmail: adminUser?.email,
+    initialized
   });
 
   return (
