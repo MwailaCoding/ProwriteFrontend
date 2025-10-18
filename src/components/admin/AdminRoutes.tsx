@@ -19,39 +19,36 @@ const AdminRoutes: React.FC = () => {
   const { adminUser, isAuthenticated, loading, logout } = useAdminAuth();
   const location = useLocation();
 
-  console.log('🔧 AdminRoutes - Current state:', { 
+  console.log('AdminRoutes - render:', { 
     isAuthenticated, 
     adminUser: !!adminUser, 
     loading, 
-    path: location.pathname,
-    isAdmin: adminUser?.is_admin 
+    path: location.pathname 
   });
 
-  // Show loading while checking authentication
+  // Show loading spinner while checking authentication
   if (loading) {
-    console.log('🔧 AdminRoutes - Showing loading...');
-      return (
+    return (
       <div className="flex items-center justify-center h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        </div>
-      );
-    }
-    
-  // Show login page if not authenticated
+      </div>
+    );
+  }
+
+  // If not authenticated, show login page
   if (!isAuthenticated || !adminUser) {
-    console.log('🔧 AdminRoutes - Not authenticated, showing login');
+    console.log('AdminRoutes - showing login page');
     return <AdminLogin />;
   }
 
-  // Redirect to home if not admin
+  // If user is not admin, redirect to home
   if (!adminUser.is_admin) {
-    console.log('🔧 AdminRoutes - Not admin, redirecting to home');
+    console.log('AdminRoutes - user is not admin, redirecting to home');
     return <Navigate to="/" replace />;
   }
 
-  console.log('🔧 AdminRoutes - Showing admin layout');
-
-  // Show admin dashboard
+  // User is authenticated and is admin - show admin layout
+  console.log('AdminRoutes - showing admin layout');
   return (
     <AdminLayout
       currentPath={location.pathname}

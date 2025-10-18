@@ -1,117 +1,79 @@
 import { useState, useEffect } from 'react';
 import type { AdminUser } from '../types/admin';
 
-// Global state to prevent reset between components
-let globalAdminUser: AdminUser | null = null;
-let globalIsAuthenticated = false;
-
 export const useAdminAuth = () => {
   const [adminUser, setAdminUser] = useState<AdminUser | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const checkAuth = () => {
-    if (typeof window === 'undefined') {
-      setLoading(false);
-      return;
-    }
-
-    const token = localStorage.getItem('adminToken');
-    const userStr = localStorage.getItem('adminUser');
-    
-    console.log('useAdminAuth - checkAuth:', { token: !!token, userStr: !!userStr });
-
-    if (token && userStr) {
-      try {
-        const user = JSON.parse(userStr);
-        console.log('useAdminAuth - parsed user:', user);
-        
-        // Update global state
-        globalAdminUser = user;
-        globalIsAuthenticated = true;
-        
-        // Update local state
-        setAdminUser(user);
-        setIsAuthenticated(true);
-        console.log('useAdminAuth - set authenticated');
-      } catch (error) {
-        console.error('Error parsing admin user:', error);
-        localStorage.removeItem('adminToken');
-        localStorage.removeItem('adminUser');
-        
-        // Update global state
-        globalAdminUser = null;
-        globalIsAuthenticated = false;
-        
-        // Update local state
-        setAdminUser(null);
-        setIsAuthenticated(false);
+  // Initialize state from localStorage on mount
+  useEffect(() => {
+    const initializeAuth = () => {
+      if (typeof window === 'undefined') {
+        setLoading(false);
+        return;
       }
-    } else {
-      console.log('useAdminAuth - no token or user found');
-      
-      // Update global state
-      globalAdminUser = null;
-      globalIsAuthenticated = false;
-      
-      // Update local state
-      setAdminUser(null);
-      setIsAuthenticated(false);
-    }
-    setLoading(false);
-  };
 
-  // Check authentication on mount and on every render
-  useEffect(() => {
-    checkAuth();
-  });
+      try {
+        const token = localStorage.getItem('adminToken');
+        const userStr = localStorage.getItem('adminUser');
+        
+        console.log('useAdminAuth - initialize:', { token: !!token, userStr: !!userStr });
 
-  // Also check on every render to ensure state is always up to date
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('adminToken');
-      const userStr = localStorage.getItem('adminUser');
-      
-      if (token && userStr && !isAuthenticated) {
-        try {
+        if (token && userStr) {
           const user = JSON.parse(userStr);
+          console.log('useAdminAuth - user found:', user);
           setAdminUser(user);
           setIsAuthenticated(true);
-          console.log('useAdminAuth - restored from localStorage on render');
-        } catch (error) {
-          console.error('Error parsing user on render:', error);
+        } else {
+          console.log('useAdminAuth - no auth data found');
+          setAdminUser(null);
+          setIsAuthenticated(false);
         }
+      } catch (error) {
+        console.error('useAdminAuth - error initializing:', error);
+        setAdminUser(null);
+        setIsAuthenticated(false);
+      } finally {
+        setLoading(false);
       }
-    }
-  });
+    };
+
+    initializeAuth();
+  }, []); // Only run once on mount
 
   const login = (user: AdminUser, token: string) => {
-    console.log('useAdminAuth - login called with:', { user, token: !!token });
+    console.log('useAdminAuth - login called');
+    
+    // Store in localStorage
     localStorage.setItem('adminToken', token);
     localStorage.setItem('adminUser', JSON.stringify(user));
     
-    // Update global state
-    globalAdminUser = user;
-    globalIsAuthenticated = true;
-    
-    // Update local state
+    // Update state
     setAdminUser(user);
     setIsAuthenticated(true);
-    console.log('useAdminAuth - state updated');
+    
+    console.log('useAdminAuth - login complete');
   };
 
   const logout = () => {
+    console.log('useAdminAuth - logout called');
+    
+    // Clear localStorage
     localStorage.removeItem('adminToken');
     localStorage.removeItem('adminUser');
     
-    // Update global state
-    globalAdminUser = null;
-    globalIsAuthenticated = false;
-    
-    // Update local state
+    // Update state
     setAdminUser(null);
     setIsAuthenticated(false);
+    
+    // Redirect
     window.location.href = '/admin/login';
+  };
+
+  const hasPermission = (requiredRole: 'super_admin' | 'admin' | 'moderator') => {
+    if (!adminUser) return false;
+    return adminUser.is_admin;
   };
 
   return {
@@ -119,6 +81,7 @@ export const useAdminAuth = () => {
     isAuthenticated,
     loading,
     login,
-    logout
+    logout,
+    hasPermission
   };
 };
