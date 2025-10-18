@@ -1,28 +1,20 @@
-/**
- * Admin Service Layer
- * Comprehensive API service for admin functionality
- */
-
 import adminApi from './adminApi';
-import type {
-  AdminUser,
-  Document,
-  Payment,
-  SystemLog,
-  AdminActivityLog,
+import type { 
+  AdminUser, 
+  Document, 
+  Payment, 
+  SystemLog, 
   Notification,
   AnalyticsStats,
   UsersResponse,
   DocumentsResponse,
   PaymentsResponse,
   SystemLogsResponse,
-  AuditLogsResponse,
   NotificationsResponse,
   UserFilters,
   DocumentFilters,
   PaymentFilters,
   LogFilters,
-  AuditFilters,
   UserUpdateForm,
   PaymentApprovalForm,
   NotificationForm,
@@ -32,273 +24,202 @@ import type {
 } from '../types/admin';
 
 class AdminService {
-  private baseUrl = '/api/admin';
-
   // User Management
-  async getUsers(filters: UserFilters = {}): Promise<UsersResponse> {
-    try {
-      const params = new URLSearchParams();
-      
-      if (filters.search) params.append('search', filters.search);
-      if (filters.filter) params.append('filter', filters.filter);
-      if (filters.page) params.append('page', filters.page.toString());
-      if (filters.per_page) params.append('per_page', filters.per_page.toString());
+  async getUsers(filters?: UserFilters): Promise<UsersResponse> {
+    const params = new URLSearchParams();
+    if (filters?.search) params.append('search', filters.search);
+    if (filters?.role) params.append('role', filters.role);
+    if (filters?.status) params.append('status', filters.status);
+    if (filters?.page) params.append('page', filters.page.toString());
+    if (filters?.limit) params.append('limit', filters.limit.toString());
 
-      const response = await adminApi.get(`${this.baseUrl}/users?${params.toString()}`);
-      return response.data;
-    } catch (error) {
-      throw this.handleError(error);
-    }
+    const response = await adminApi.get(`/admin/users?${params.toString()}`);
+    return response.data;
   }
 
-  async getUserDetails(userId: number): Promise<AdminUser> {
-    try {
-      const response = await adminApi.get(`${this.baseUrl}/users/${userId}`);
-      return response.data.user;
-    } catch (error) {
-      throw this.handleError(error);
-    }
+  async getUserById(userId: number): Promise<AdminUser> {
+    const response = await adminApi.get(`/admin/users/${userId}`);
+    return response.data;
   }
 
-  async updateUser(userId: number, updates: UserUpdateForm): Promise<void> {
-    try {
-      await adminApi.put(`${this.baseUrl}/users/${userId}`, updates);
-    } catch (error) {
-      throw this.handleError(error);
-    }
+  async updateUser(userId: number, userData: UserUpdateForm): Promise<AdminUser> {
+    const response = await adminApi.put(`/admin/users/${userId}`, userData);
+    return response.data;
   }
 
   async deleteUser(userId: number): Promise<void> {
-    try {
-      await adminApi.delete(`${this.baseUrl}/users/${userId}`);
-    } catch (error) {
-      throw this.handleError(error);
-    }
+    await adminApi.delete(`/admin/users/${userId}`);
   }
 
-  async getUserDocuments(userId: number, page: number = 1, perPage: number = 20): Promise<DocumentsResponse> {
-    try {
-      const params = new URLSearchParams({
-        page: page.toString(),
-        per_page: perPage.toString()
-      });
+  async suspendUser(userId: number): Promise<void> {
+    await adminApi.post(`/admin/users/${userId}/suspend`);
+  }
 
-      const response = await adminApi.get(`${this.baseUrl}/users/${userId}/documents?${params.toString()}`);
-      return response.data;
-    } catch (error) {
-      throw this.handleError(error);
-    }
+  async activateUser(userId: number): Promise<void> {
+    await adminApi.post(`/admin/users/${userId}/activate`);
+  }
+
+  async promoteToPremium(userId: number): Promise<void> {
+    await adminApi.post(`/admin/users/${userId}/promote`);
+  }
+
+  async demoteFromPremium(userId: number): Promise<void> {
+    await adminApi.post(`/admin/users/${userId}/demote`);
+  }
+
+  async bulkActionUser(userIds: number[], action: string): Promise<void> {
+    await adminApi.post('/admin/users/bulk-action', { userIds, action });
   }
 
   // Document Management
-  async getDocuments(filters: DocumentFilters = {}): Promise<DocumentsResponse> {
-    try {
-      const params = new URLSearchParams();
-      
-      if (filters.search) params.append('search', filters.search);
-      if (filters.type) params.append('type', filters.type);
-      if (filters.date_from) params.append('date_from', filters.date_from);
-      if (filters.date_to) params.append('date_to', filters.date_to);
-      if (filters.page) params.append('page', filters.page.toString());
-      if (filters.per_page) params.append('per_page', filters.per_page.toString());
+  async getDocuments(filters?: DocumentFilters): Promise<DocumentsResponse> {
+    const params = new URLSearchParams();
+    if (filters?.search) params.append('search', filters.search);
+    if (filters?.type) params.append('type', filters.type);
+    if (filters?.userId) params.append('userId', filters.userId.toString());
+    if (filters?.page) params.append('page', filters.page.toString());
+    if (filters?.limit) params.append('limit', filters.limit.toString());
 
-      const response = await adminApi.get(`${this.baseUrl}/documents?${params.toString()}`);
-      return response.data;
-    } catch (error) {
-      throw this.handleError(error);
-    }
+    const response = await adminApi.get(`/admin/documents?${params.toString()}`);
+    return response.data;
   }
 
-  async downloadDocument(reference: string): Promise<Blob> {
-    try {
-      const response = await adminApi.get(`${this.baseUrl}/documents/${reference}/download`, {
-        responseType: 'blob'
-      });
-      return response.data;
-    } catch (error) {
-      throw this.handleError(error);
-    }
+  async getDocumentById(documentId: number): Promise<Document> {
+    const response = await adminApi.get(`/admin/documents/${documentId}`);
+    return response.data;
+  }
+
+  async downloadDocument(documentId: number): Promise<Blob> {
+    const response = await adminApi.get(`/admin/documents/${documentId}/download`, {
+      responseType: 'blob'
+    });
+    return response.data;
+  }
+
+  async deleteDocument(documentId: number): Promise<void> {
+    await adminApi.delete(`/admin/documents/${documentId}`);
   }
 
   // Payment Management
-  async getPayments(filters: PaymentFilters = {}): Promise<PaymentsResponse> {
-    try {
-      const params = new URLSearchParams();
-      
-      if (filters.status) params.append('status', filters.status);
-      if (filters.type) params.append('type', filters.type);
-      if (filters.date_from) params.append('date_from', filters.date_from);
-      if (filters.date_to) params.append('date_to', filters.date_to);
-      if (filters.page) params.append('page', filters.page.toString());
-      if (filters.per_page) params.append('per_page', filters.per_page.toString());
+  async getPayments(filters?: PaymentFilters): Promise<PaymentsResponse> {
+    const params = new URLSearchParams();
+    if (filters?.search) params.append('search', filters.search);
+    if (filters?.status) params.append('status', filters.status);
+    if (filters?.method) params.append('method', filters.method);
+    if (filters?.page) params.append('page', filters.page.toString());
+    if (filters?.limit) params.append('limit', filters.limit.toString());
 
-      const response = await adminApi.get(`${this.baseUrl}/payments?${params.toString()}`);
-      return response.data;
-    } catch (error) {
-      throw this.handleError(error);
-    }
+    const response = await adminApi.get(`/admin/payments?${params.toString()}`);
+    return response.data;
   }
 
-  async approvePayment(paymentId: number, approval: PaymentApprovalForm): Promise<void> {
-    try {
-      await adminApi.put(`${this.baseUrl}/payments/${paymentId}/approve`, approval);
-    } catch (error) {
-      throw this.handleError(error);
-    }
+  async getPaymentById(paymentId: number): Promise<Payment> {
+    const response = await adminApi.get(`/admin/payments/${paymentId}`);
+    return response.data;
   }
 
-  async getPaymentDocument(paymentId: number): Promise<Document> {
-    try {
-      const response = await adminApi.get(`${this.baseUrl}/payments/${paymentId}/document`);
-      return response.data.document;
-    } catch (error) {
-      throw this.handleError(error);
-    }
+  async approvePayment(paymentId: number, approvalData: PaymentApprovalForm): Promise<void> {
+    await adminApi.post(`/admin/payments/${paymentId}/approve`, approvalData);
+  }
+
+  async rejectPayment(paymentId: number, reason: string): Promise<void> {
+    await adminApi.post(`/admin/payments/${paymentId}/reject`, { reason });
+  }
+
+  async refundPayment(paymentId: number, amount: number, reason: string): Promise<void> {
+    await adminApi.post(`/admin/payments/${paymentId}/refund`, { amount, reason });
   }
 
   // System Logs
-  async getSystemLogs(filters: LogFilters = {}): Promise<SystemLogsResponse> {
-    try {
-      const params = new URLSearchParams();
-      
-      if (filters.level) params.append('level', filters.level);
-      if (filters.module) params.append('module', filters.module);
-      if (filters.date_from) params.append('date_from', filters.date_from);
-      if (filters.date_to) params.append('date_to', filters.date_to);
-      if (filters.page) params.append('page', filters.page.toString());
-      if (filters.per_page) params.append('per_page', filters.per_page.toString());
+  async getSystemLogs(filters?: LogFilters): Promise<SystemLogsResponse> {
+    const params = new URLSearchParams();
+    if (filters?.level) params.append('level', filters.level);
+    if (filters?.source) params.append('source', filters.source);
+    if (filters?.search) params.append('search', filters.search);
+    if (filters?.page) params.append('page', filters.page.toString());
+    if (filters?.limit) params.append('limit', filters.limit.toString());
 
-      const response = await adminApi.get(`${this.baseUrl}/system/logs?${params.toString()}`);
-      return response.data;
-    } catch (error) {
-      throw this.handleError(error);
-    }
+    const response = await adminApi.get(`/admin/logs?${params.toString()}`);
+    return response.data;
   }
 
-  async getAuditTrail(filters: AuditFilters = {}): Promise<AuditLogsResponse> {
-    try {
-      const params = new URLSearchParams();
-      
-      if (filters.admin_id) params.append('admin_id', filters.admin_id);
-      if (filters.action) params.append('action', filters.action);
-      if (filters.date_from) params.append('date_from', filters.date_from);
-      if (filters.date_to) params.append('date_to', filters.date_to);
-      if (filters.page) params.append('page', filters.page.toString());
-      if (filters.per_page) params.append('per_page', filters.per_page.toString());
+  async getAuditLogs(filters?: LogFilters): Promise<SystemLogsResponse> {
+    const params = new URLSearchParams();
+    if (filters?.level) params.append('level', filters.level);
+    if (filters?.source) params.append('source', filters.source);
+    if (filters?.search) params.append('search', filters.search);
+    if (filters?.page) params.append('page', filters.page.toString());
+    if (filters?.limit) params.append('limit', filters.limit.toString());
 
-      const response = await adminApi.get(`${this.baseUrl}/system/audit?${params.toString()}`);
-      return response.data;
-    } catch (error) {
-      throw this.handleError(error);
-    }
+    const response = await adminApi.get(`/admin/audit-logs?${params.toString()}`);
+    return response.data;
   }
 
   // Notifications
-  async sendNotification(notification: NotificationForm): Promise<void> {
-    try {
-      await adminApi.post(`${this.baseUrl}/notifications/send`, notification);
-    } catch (error) {
-      throw this.handleError(error);
-    }
+  async getNotifications(): Promise<NotificationsResponse> {
+    const response = await adminApi.get('/admin/notifications');
+    return response.data;
   }
 
-  async getNotifications(page: number = 1, perPage: number = 50, status?: string): Promise<NotificationsResponse> {
-    try {
-      const params = new URLSearchParams({
-        page: page.toString(),
-        per_page: perPage.toString()
-      });
-      
-      if (status) params.append('status', status);
+  async sendNotification(notification: NotificationForm): Promise<void> {
+    await adminApi.post('/admin/notifications', notification);
+  }
 
-      const response = await adminApi.get(`${this.baseUrl}/notifications?${params.toString()}`);
-    return response.data;
-    } catch (error) {
-      throw this.handleError(error);
-    }
+  async markNotificationAsRead(notificationId: number): Promise<void> {
+    await adminApi.post(`/admin/notifications/${notificationId}/read`);
+  }
+
+  async deleteNotification(notificationId: number): Promise<void> {
+    await adminApi.delete(`/admin/notifications/${notificationId}`);
   }
 
   // Analytics
-  async getAnalyticsStats(period: string = '30d'): Promise<AnalyticsStats> {
-    try {
-      const params = new URLSearchParams({ period });
-      const response = await adminApi.get(`${this.baseUrl}/analytics/stats?${params.toString()}`);
+  async getAnalytics(): Promise<AnalyticsStats> {
+    const response = await adminApi.get('/admin/analytics');
     return response.data;
-    } catch (error) {
-      throw this.handleError(error);
-    }
   }
 
-  async exportAnalytics(options: ExportOptions): Promise<ExportResponse> {
-    try {
-      const params = new URLSearchParams({
-        type: options.type,
-        format: options.format
-      });
-      
-      if (options.date_from) params.append('date_from', options.date_from);
-      if (options.date_to) params.append('date_to', options.date_to);
-
-      const response = await adminApi.get(`${this.baseUrl}/analytics/export?${params.toString()}`);
-      return response.data;
-    } catch (error) {
-      throw this.handleError(error);
-    }
+  async getDashboardStats(): Promise<any> {
+    const response = await adminApi.get('/admin/dashboard/stats');
+    return response.data;
   }
 
-  // Utility Methods
-  private handleError(error: any): Error {
-    if (error.response) {
-      // Server responded with error status
-      const apiError: ApiError = error.response.data;
-      return new Error(apiError.error || apiError.message || 'An error occurred');
-    } else if (error.request) {
-      // Request was made but no response received
-      return new Error('Network error - please check your connection');
-    } else {
-      // Something else happened
-      return new Error(error.message || 'An unexpected error occurred');
-    }
+  async getRevenueAnalytics(period: string): Promise<any> {
+    const response = await adminApi.get(`/admin/analytics/revenue?period=${period}`);
+    return response.data;
   }
 
-  // Helper method to download files
-  async downloadFile(blob: Blob, filename: string): Promise<void> {
-    if (typeof window === 'undefined') {
-      throw new Error('Download not available in server environment');
-    }
-    
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
+  async getUserAnalytics(period: string): Promise<any> {
+    const response = await adminApi.get(`/admin/analytics/users?period=${period}`);
+    return response.data;
   }
 
-  // Helper method to format date for API
-  formatDateForAPI(date: Date): string {
-    return date.toISOString().split('T')[0];
+  // Export Functions
+  async exportData(options: ExportOptions): Promise<ExportResponse> {
+    const response = await adminApi.post('/admin/export', options);
+    return response.data;
   }
 
-  // Helper method to build query string
-  buildQueryString(params: Record<string, any>): string {
-    const searchParams = new URLSearchParams();
-    
-    Object.entries(params).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== '') {
-        searchParams.append(key, value.toString());
-      }
+  async downloadExport(exportId: string): Promise<Blob> {
+    const response = await adminApi.get(`/admin/export/${exportId}/download`, {
+      responseType: 'blob'
     });
-    
-    return searchParams.toString();
+    return response.data;
   }
 
+  // Utility function for file downloads
+  downloadFile(blob: Blob, filename: string): void {
+    if (typeof window !== 'undefined') {
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    }
+  }
 }
 
-// Create and export singleton instance
-export const adminService = new AdminService();
-
-// Export class for testing
-export { AdminService };
+export default new AdminService();
