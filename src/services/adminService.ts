@@ -33,42 +33,42 @@ class AdminService {
     if (filters?.page) params.append('page', filters.page.toString());
     if (filters?.limit) params.append('limit', filters.limit.toString());
 
-    const response = await adminApi.get(`/admin/users?${params.toString()}`);
+    const response = await adminApi.get(`/users?${params.toString()}`);
     return response.data;
   }
 
   async getUserById(userId: number): Promise<AdminUser> {
-    const response = await adminApi.get(`/admin/users/${userId}`);
+    const response = await adminApi.get(`/users/${userId}`);
     return response.data;
   }
 
   async updateUser(userId: number, userData: UserUpdateForm): Promise<AdminUser> {
-    const response = await adminApi.put(`/admin/users/${userId}`, userData);
+    const response = await adminApi.put(`/users/${userId}`, userData);
     return response.data;
   }
 
   async deleteUser(userId: number): Promise<void> {
-    await adminApi.delete(`/admin/users/${userId}`);
+    await adminApi.delete(`/users/${userId}`);
   }
 
   async suspendUser(userId: number): Promise<void> {
-    await adminApi.post(`/admin/users/${userId}/suspend`);
+    await adminApi.post(`/users/${userId}/suspend`);
   }
 
   async activateUser(userId: number): Promise<void> {
-    await adminApi.post(`/admin/users/${userId}/activate`);
+    await adminApi.post(`/users/${userId}/activate`);
   }
 
   async promoteToPremium(userId: number): Promise<void> {
-    await adminApi.post(`/admin/users/${userId}/promote`);
+    await adminApi.post(`/users/${userId}/promote`);
   }
 
   async demoteFromPremium(userId: number): Promise<void> {
-    await adminApi.post(`/admin/users/${userId}/demote`);
+    await adminApi.post(`/users/${userId}/demote`);
   }
 
   async bulkActionUser(userIds: number[], action: string): Promise<void> {
-    await adminApi.post('/admin/users/bulk-action', { userIds, action });
+    await adminApi.post('/users/bulk-action', { userIds, action });
   }
 
   // Document Management
@@ -80,24 +80,24 @@ class AdminService {
     if (filters?.page) params.append('page', filters.page.toString());
     if (filters?.limit) params.append('limit', filters.limit.toString());
 
-    const response = await adminApi.get(`/admin/documents?${params.toString()}`);
+    const response = await adminApi.get(`/documents?${params.toString()}`);
     return response.data;
   }
 
   async getDocumentById(documentId: number): Promise<Document> {
-    const response = await adminApi.get(`/admin/documents/${documentId}`);
+    const response = await adminApi.get(`/documents/${documentId}`);
     return response.data;
   }
 
   async downloadDocument(documentId: number): Promise<Blob> {
-    const response = await adminApi.get(`/admin/documents/${documentId}/download`, {
+    const response = await adminApi.get(`/documents/${documentId}/download`, {
       responseType: 'blob'
     });
     return response.data;
   }
 
   async deleteDocument(documentId: number): Promise<void> {
-    await adminApi.delete(`/admin/documents/${documentId}`);
+    await adminApi.delete(`/documents/${documentId}`);
   }
 
   // Payment Management
@@ -109,25 +109,25 @@ class AdminService {
     if (filters?.page) params.append('page', filters.page.toString());
     if (filters?.limit) params.append('limit', filters.limit.toString());
 
-    const response = await adminApi.get(`/admin/payments?${params.toString()}`);
+    const response = await adminApi.get(`/payments?${params.toString()}`);
     return response.data;
   }
 
   async getPaymentById(paymentId: number): Promise<Payment> {
-    const response = await adminApi.get(`/admin/payments/${paymentId}`);
+    const response = await adminApi.get(`/payments/${paymentId}`);
     return response.data;
   }
 
   async approvePayment(paymentId: number, approvalData: PaymentApprovalForm): Promise<void> {
-    await adminApi.post(`/admin/payments/${paymentId}/approve`, approvalData);
+    await adminApi.post(`/payments/${paymentId}/approve`, approvalData);
   }
 
   async rejectPayment(paymentId: number, reason: string): Promise<void> {
-    await adminApi.post(`/admin/payments/${paymentId}/reject`, { reason });
+    await adminApi.post(`/payments/${paymentId}/reject`, { reason });
   }
 
   async refundPayment(paymentId: number, amount: number, reason: string): Promise<void> {
-    await adminApi.post(`/admin/payments/${paymentId}/refund`, { amount, reason });
+    await adminApi.post(`/payments/${paymentId}/refund`, { amount, reason });
   }
 
   // System Logs
@@ -139,7 +139,7 @@ class AdminService {
     if (filters?.page) params.append('page', filters.page.toString());
     if (filters?.limit) params.append('limit', filters.limit.toString());
 
-    const response = await adminApi.get(`/admin/logs?${params.toString()}`);
+    const response = await adminApi.get(`/logs?${params.toString()}`);
     return response.data;
   }
 
@@ -151,57 +151,57 @@ class AdminService {
     if (filters?.page) params.append('page', filters.page.toString());
     if (filters?.limit) params.append('limit', filters.limit.toString());
 
-    const response = await adminApi.get(`/admin/audit-logs?${params.toString()}`);
+    const response = await adminApi.get(`/audit-logs?${params.toString()}`);
     return response.data;
   }
 
   // Notifications
   async getNotifications(): Promise<NotificationsResponse> {
-    const response = await adminApi.get('/admin/notifications');
+    const response = await adminApi.get('/notifications');
     return response.data;
   }
 
   async sendNotification(notification: NotificationForm): Promise<void> {
-    await adminApi.post('/admin/notifications', notification);
+    await adminApi.post('/notifications', notification);
   }
 
   async markNotificationAsRead(notificationId: number): Promise<void> {
-    await adminApi.post(`/admin/notifications/${notificationId}/read`);
+    await adminApi.post(`/notifications/${notificationId}/read`);
   }
 
   async deleteNotification(notificationId: number): Promise<void> {
-    await adminApi.delete(`/admin/notifications/${notificationId}`);
+    await adminApi.delete(`/notifications/${notificationId}`);
   }
 
   // Analytics
   async getAnalytics(): Promise<AnalyticsStats> {
-    const response = await adminApi.get('/admin/analytics');
+    const response = await adminApi.get('/analytics');
     return response.data;
   }
 
   async getDashboardStats(): Promise<any> {
-    const response = await adminApi.get('/admin/dashboard/stats');
+    const response = await adminApi.get('/dashboard/stats');
     return response.data;
   }
 
   async getRevenueAnalytics(period: string): Promise<any> {
-    const response = await adminApi.get(`/admin/analytics/revenue?period=${period}`);
+    const response = await adminApi.get(`/analytics/revenue?period=${period}`);
     return response.data;
   }
 
   async getUserAnalytics(period: string): Promise<any> {
-    const response = await adminApi.get(`/admin/analytics/users?period=${period}`);
+    const response = await adminApi.get(`/analytics/users?period=${period}`);
     return response.data;
   }
 
   // Export Functions
   async exportData(options: ExportOptions): Promise<ExportResponse> {
-    const response = await adminApi.post('/admin/export', options);
+    const response = await adminApi.post('/export', options);
     return response.data;
   }
 
   async downloadExport(exportId: string): Promise<Blob> {
-    const response = await adminApi.get(`/admin/export/${exportId}/download`, {
+    const response = await adminApi.get(`/export/${exportId}/download`, {
       responseType: 'blob'
     });
     return response.data;

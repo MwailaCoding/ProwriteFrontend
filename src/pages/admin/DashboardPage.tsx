@@ -29,13 +29,10 @@ const DashboardPage: React.FC = () => {
       setLoading(true);
       setError(null);
       
-      // Load analytics and dashboard stats in parallel
-      const [analyticsData, dashboardStats] = await Promise.all([
-        adminService.getAnalytics(),
-        adminService.getDashboardStats()
-      ]);
+      // Load dashboard stats
+      const dashboardStats = await adminService.getDashboardStats();
       
-      setStats(analyticsData);
+      setStats(dashboardStats.stats);
       setRecentActivity(dashboardStats.recent_activity || []);
     } catch (err: any) {
       console.error('Error loading dashboard data:', err);
