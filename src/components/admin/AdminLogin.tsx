@@ -13,25 +13,32 @@ const AdminLogin: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Form submitted!');
     setLoading(true);
     setError(null);
 
     try {
+      console.log('Making API call...');
       const response = await fetch('https://prowrite.pythonanywhere.com/api/admin/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
 
+      console.log('Response received:', response.status);
       const data = await response.json();
+      console.log('Response data:', data);
 
       if (response.ok) {
+        console.log('Login successful, redirecting...');
         login(data.user, data.access_token);
         navigate('/admin/dashboard');
       } else {
+        console.log('Login failed:', data);
         setError(data.error || 'Login failed');
       }
     } catch (err) {
+      console.log('Error:', err);
       setError('Network error. Please try again.');
     } finally {
       setLoading(false);
@@ -75,6 +82,7 @@ const AdminLogin: React.FC = () => {
           <button
             type="submit"
             disabled={loading}
+            onClick={() => console.log('Button clicked!')}
             className="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
           >
             {loading ? 'Logging in...' : 'Sign In'}
