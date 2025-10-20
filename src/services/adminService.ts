@@ -9,7 +9,6 @@ import type {
   Document,
   Payment,
   SystemLog,
-  AdminActivityLog,
   Notification,
   AnalyticsStats,
   DashboardStats,
@@ -17,13 +16,11 @@ import type {
   DocumentsResponse,
   PaymentsResponse,
   SystemLogsResponse,
-  AuditLogsResponse,
   NotificationsResponse,
   UserFilters,
   DocumentFilters,
   PaymentFilters,
   LogFilters,
-  AuditFilters,
   UserUpdateForm,
   PaymentApprovalForm,
   NotificationForm,
@@ -187,23 +184,6 @@ class AdminService {
     }
   }
 
-  async getAuditTrail(filters: AuditFilters = {}): Promise<AuditLogsResponse> {
-    try {
-      const params = new URLSearchParams();
-      
-      if (filters.admin_id) params.append('admin_id', filters.admin_id);
-      if (filters.action) params.append('action', filters.action);
-      if (filters.date_from) params.append('date_from', filters.date_from);
-      if (filters.date_to) params.append('date_to', filters.date_to);
-      if (filters.page) params.append('page', filters.page.toString());
-      if (filters.per_page) params.append('per_page', filters.per_page.toString());
-
-      const response = await adminApi.get(`/api/admin/system/audit?${params.toString()}`);
-      return response.data;
-    } catch (error) {
-      throw this.handleError(error);
-    }
-  }
 
   // Notifications
   async sendNotification(notification: NotificationForm): Promise<void> {
