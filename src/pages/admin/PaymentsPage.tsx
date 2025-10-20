@@ -7,88 +7,75 @@ import {
   ClockIcon,
   CurrencyDollarIcon
 } from '@heroicons/react/24/outline';
-
-interface Payment {
-  id: number;
-  userEmail: string;
-  amount: number;
-  status: 'pending' | 'completed' | 'failed' | 'refunded';
-  method: string;
-  createdAt: string;
-  processedAt?: string;
-  reference: string;
-}
+import { adminService } from '../../services/adminService';
+import type { Payment, PaymentFilters } from '../../types/admin';
 
 const PaymentsPage: React.FC = () => {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState('all');
-
-  useEffect(() => {
-    // Simulate loading payments
-    setTimeout(() => {
-      setPayments([
-        {
-          id: 1,
-          userEmail: 'john@example.com',
-          amount: 25.00,
-          status: 'completed',
-          method: 'M-Pesa',
-          createdAt: '2025-01-18',
-          processedAt: '2025-01-18',
-          reference: 'MP-123456789'
-        },
-        {
-          id: 2,
-          userEmail: 'jane@example.com',
-          amount: 15.00,
-          status: 'pending',
-          method: 'Pesapal',
-          createdAt: '2025-01-17',
-          reference: 'PP-987654321'
-        },
-        {
-          id: 3,
-          userEmail: 'admin@example.com',
-          amount: 50.00,
-          status: 'failed',
-          method: 'M-Pesa',
-          createdAt: '2025-01-16',
-          reference: 'MP-456789123'
-        }
-      ]);
-      setLoading(false);
-    }, 1000);
-  }, []);
-
-  const filteredPayments = payments.filter(payment => {
-    const matchesSearch = payment.userEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         payment.reference.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         payment.method.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    if (filter === 'pending') return matchesSearch && payment.status === 'pending';
-    if (filter === 'completed') return matchesSearch && payment.status === 'completed';
-    if (filter === 'failed') return matchesSearch && payment.status === 'failed';
-    if (filter === 'refunded') return matchesSearch && payment.status === 'refunded';
-    
-    return matchesSearch;
+  const [pagination, setPagination] = useState({
+    page: 1,
+    per_page: 20,
+    total: 0,
+    pages: 0
   });
 
-  const handleApprove = (paymentId: number) => {
-    setPayments(payments.map(payment => 
-      payment.id === paymentId 
-        ? { ...payment, status: 'completed', processedAt: new Date().toISOString().split('T')[0] }
-        : payment
-    ));
+  useEffect(() => {
+    loadPayments();
+  }, [searchTerm, filter, pagination.page]);
+
+  const loadPayments = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const filters: PaymentFilters = {
+        search: searchTerm || undefined,
+        status: filter !== 'all' ? filter as any : undefined,
+        page: pagination.page,
+        per_page: pagination.per_page
+      };
+
+      const response = await adminService.getPayments(filters);
+      setPayments(response.payments);
+      setPagination(response.pagination);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load payments');
+      console.error('Error loading payments:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleReject = (paymentId: number) => {
-    setPayments(payments.map(payment => 
-      payment.id === paymentId 
-        ? { ...payment, status: 'failed' }
-        : payment
-    ));
+  const handleApprove = async (paymentId: number) => {
+    try {
+      await adminService.approvePayment(paymentId, {
+        action: 'approve',
+        notes: 'Payment approved by admin'
+      });
+      // Reload payments to get updated data
+      await loadPayments();
+    } catch (err) {
+      console.error('Error approving payment:', err);
+      alert('Failed to approve payment');
+    }
+  };
+
+  const handleReject = async (paymentId: number) => {
+    try {
+      await adminService.approvePayment(paymentId, {
+        action: 'reject',
+        notes: 'Payment rejected by admin'
+      });
+      // Reload payments to get updated data
+      await loadPayments();
+    } catch (err) {
+      console.error('Error rejecting payment:', err);
+      alert('Failed to reject payment');
+    }
   };
 
   const getStatusIcon = (status: string) => {
@@ -131,6 +118,22 @@ const PaymentsPage: React.FC = () => {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <CurrencyDollarIcon className="mx-auto h-12 w-12 text-red-400" />
+        <h3 className="mt-2 text-sm font-medium text-gray-900">Error loading payments</h3>
+        <p className="mt-1 text-sm text-gray-500">{error}</p>
+        <button
+          onClick={loadPayments}
+          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+        >
+          Try Again
+        </button>
       </div>
     );
   }
@@ -257,19 +260,19 @@ const PaymentsPage: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredPayments.map((payment) => (
+              {payments.map((payment) => (
                 <tr key={payment.id}>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {payment.reference}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {payment.userEmail}
+                    {payment.user_email}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     ${payment.amount.toFixed(2)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {payment.method}
+                    {payment.payment_method}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(payment.status)}`}>
@@ -278,7 +281,7 @@ const PaymentsPage: React.FC = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {payment.processedAt || payment.createdAt}
+                    {new Date(payment.created_at).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     {payment.status === 'pending' && (
@@ -305,7 +308,7 @@ const PaymentsPage: React.FC = () => {
         </div>
       </div>
 
-      {filteredPayments.length === 0 && (
+      {payments.length === 0 && (
         <div className="text-center py-12">
           <CurrencyDollarIcon className="mx-auto h-12 w-12 text-gray-400" />
           <h3 className="mt-2 text-sm font-medium text-gray-900">No payments</h3>
