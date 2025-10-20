@@ -7,98 +7,83 @@ import {
   CheckIcon,
   XMarkIcon
 } from '@heroicons/react/24/outline';
-
-interface Notification {
-  id: number;
-  title: string;
-  message: string;
-  type: 'info' | 'success' | 'warning' | 'error';
-  isRead: boolean;
-  createdAt: string;
-  userId?: number;
-}
+import { adminService } from '../../services/adminService';
+import type { Notification, NotificationForm } from '../../types/admin';
 
 const NotificationsPage: React.FC = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [showCompose, setShowCompose] = useState(false);
-  const [newNotification, setNewNotification] = useState({
+  const [newNotification, setNewNotification] = useState<NotificationForm>({
     title: '',
     message: '',
-    type: 'info' as 'info' | 'success' | 'warning' | 'error'
+    type: 'info',
+    target_users: 'all'
   });
 
   useEffect(() => {
-    // Simulate loading notifications
-    setTimeout(() => {
-      setNotifications([
-        {
-          id: 1,
-          title: 'New User Registration',
-          message: 'A new user john@example.com has registered for premium access.',
-          type: 'info',
-          isRead: false,
-          createdAt: '2025-01-18T10:30:00Z',
-          userId: 1
-        },
-        {
-          id: 2,
-          title: 'Payment Received',
-          message: 'Payment of $25.00 has been successfully processed for user jane@example.com.',
-          type: 'success',
-          isRead: true,
-          createdAt: '2025-01-18T09:15:00Z',
-          userId: 2
-        },
-        {
-          id: 3,
-          title: 'System Maintenance',
-          message: 'Scheduled maintenance will occur tonight from 2:00 AM to 4:00 AM.',
-          type: 'warning',
-          isRead: false,
-          createdAt: '2025-01-17T16:45:00Z'
-        },
-        {
-          id: 4,
-          title: 'Failed Payment',
-          message: 'Payment attempt failed for user admin@example.com. Please investigate.',
-          type: 'error',
-          isRead: true,
-          createdAt: '2025-01-17T14:20:00Z',
-          userId: 3
-        }
-      ]);
-      setLoading(false);
-    }, 1000);
+    loadNotifications();
   }, []);
 
-  const handleMarkAsRead = (id: number) => {
-    setNotifications(notifications.map(notif => 
-      notif.id === id ? { ...notif, isRead: true } : notif
-    ));
+  const loadNotifications = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await adminService.getNotifications(1, 50);
+      setNotifications(response.notifications);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load notifications');
+      console.error('Error loading notifications:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleMarkAllAsRead = () => {
-    setNotifications(notifications.map(notif => ({ ...notif, isRead: true })));
+  const handleMarkAsRead = async (id: number) => {
+    try {
+      // TODO: Add mark as read API call
+      // await adminService.markNotificationAsRead(id);
+      setNotifications(notifications.map(notif => 
+        notif.id === id ? { ...notif, is_read: true } : notif
+      ));
+    } catch (err) {
+      console.error('Error marking notification as read:', err);
+    }
   };
 
-  const handleDelete = (id: number) => {
-    setNotifications(notifications.filter(notif => notif.id !== id));
+  const handleMarkAllAsRead = async () => {
+    try {
+      // TODO: Add mark all as read API call
+      // await adminService.markAllNotificationsAsRead();
+      setNotifications(notifications.map(notif => ({ ...notif, is_read: true })));
+    } catch (err) {
+      console.error('Error marking all notifications as read:', err);
+    }
   };
 
-  const handleSendNotification = () => {
+  const handleDelete = async (id: number) => {
+    try {
+      // TODO: Add delete notification API call
+      // await adminService.deleteNotification(id);
+      setNotifications(notifications.filter(notif => notif.id !== id));
+    } catch (err) {
+      console.error('Error deleting notification:', err);
+    }
+  };
+
+  const handleSendNotification = async () => {
     if (newNotification.title && newNotification.message) {
-      const notification: Notification = {
-        id: Date.now(),
-        title: newNotification.title,
-        message: newNotification.message,
-        type: newNotification.type,
-        isRead: false,
-        createdAt: new Date().toISOString()
-      };
-      setNotifications([notification, ...notifications]);
-      setNewNotification({ title: '', message: '', type: 'info' });
-      setShowCompose(false);
+      try {
+        await adminService.sendNotification(newNotification);
+        setNewNotification({ title: '', message: '', type: 'info', target_users: 'all' });
+        setShowCompose(false);
+        // Reload notifications to show the new one
+        await loadNotifications();
+      } catch (err) {
+        console.error('Error sending notification:', err);
+        alert('Failed to send notification');
+      }
     }
   };
 
@@ -115,12 +100,28 @@ const NotificationsPage: React.FC = () => {
     }
   };
 
-  const unreadCount = notifications.filter(n => !n.isRead).length;
+  const unreadCount = notifications.filter(n => !n.is_read).length;
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <BellIcon className="mx-auto h-12 w-12 text-red-400" />
+        <h3 className="mt-2 text-sm font-medium text-gray-900">Error loading notifications</h3>
+        <p className="mt-1 text-sm text-gray-500">{error}</p>
+        <button
+          onClick={loadNotifications}
+          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+        >
+          Try Again
+        </button>
       </div>
     );
   }
@@ -218,36 +219,36 @@ const NotificationsPage: React.FC = () => {
       <div className="bg-white shadow overflow-hidden sm:rounded-md">
         <ul className="divide-y divide-gray-200">
           {notifications.map((notification) => (
-            <li key={notification.id} className={notification.isRead ? 'bg-gray-50' : 'bg-white'}>
+            <li key={notification.id} className={notification.is_read ? 'bg-gray-50' : 'bg-white'}>
               <div className="px-4 py-4 flex items-start justify-between">
                 <div className="flex items-start">
                   <div className="flex-shrink-0">
-                    <BellIcon className={`h-5 w-5 ${notification.isRead ? 'text-gray-400' : 'text-blue-500'}`} />
+                    <BellIcon className={`h-5 w-5 ${notification.is_read ? 'text-gray-400' : 'text-blue-500'}`} />
                   </div>
                   <div className="ml-3 flex-1">
                     <div className="flex items-center">
-                      <p className={`text-sm font-medium ${notification.isRead ? 'text-gray-500' : 'text-gray-900'}`}>
+                      <p className={`text-sm font-medium ${notification.is_read ? 'text-gray-500' : 'text-gray-900'}`}>
                         {notification.title}
                       </p>
                       <span className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getTypeColor(notification.type)}`}>
                         {notification.type}
                       </span>
-                      {!notification.isRead && (
+                      {!notification.is_read && (
                         <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                           New
                         </span>
                       )}
                     </div>
-                    <p className={`mt-1 text-sm ${notification.isRead ? 'text-gray-400' : 'text-gray-600'}`}>
+                    <p className={`mt-1 text-sm ${notification.is_read ? 'text-gray-400' : 'text-gray-600'}`}>
                       {notification.message}
                     </p>
                     <p className="mt-1 text-xs text-gray-400">
-                      {new Date(notification.createdAt).toLocaleString()}
+                      {new Date(notification.created_at).toLocaleString()}
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
-                  {!notification.isRead && (
+                  {!notification.is_read && (
                     <button
                       onClick={() => handleMarkAsRead(notification.id)}
                       className="text-blue-600 hover:text-blue-900"
