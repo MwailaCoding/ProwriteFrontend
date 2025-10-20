@@ -7,66 +7,97 @@ import {
   ArrowUpIcon,
   ArrowDownIcon
 } from '@heroicons/react/24/outline';
+import { adminService } from '../../services/adminService';
+import type { AnalyticsStats } from '../../types/admin';
 
 const AnalyticsPage: React.FC = () => {
-  const [analytics, setAnalytics] = useState({
-    totalUsers: 1250,
-    totalDocuments: 3420,
-    totalRevenue: 45600,
-    monthlyGrowth: 12.5,
-    userGrowth: 8.3,
-    documentGrowth: 15.2,
-    revenueGrowth: 22.1
-  });
-
+  const [analytics, setAnalytics] = useState<AnalyticsStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Simulate loading analytics
-    setTimeout(() => {
-      setLoading(false);
-    }, 1000);
+    loadAnalytics();
   }, []);
 
-  const stats = [
+  const loadAnalytics = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await adminService.getAnalyticsStats('30d');
+      setAnalytics(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load analytics');
+      console.error('Error loading analytics:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const stats = analytics ? [
     {
       name: 'Total Users',
-      value: analytics.totalUsers.toLocaleString(),
-      change: analytics.userGrowth,
-      changeType: 'increase',
+      value: analytics.users.total.toLocaleString(),
+      change: analytics.users.growth || 0,
+      changeType: (analytics.users.growth || 0) >= 0 ? 'increase' : 'decrease',
       icon: UsersIcon,
       color: 'bg-blue-500'
     },
     {
       name: 'Total Documents',
-      value: analytics.totalDocuments.toLocaleString(),
-      change: analytics.documentGrowth,
-      changeType: 'increase',
+      value: analytics.documents.total.toLocaleString(),
+      change: analytics.documents.growth || 0,
+      changeType: (analytics.documents.growth || 0) >= 0 ? 'increase' : 'decrease',
       icon: DocumentTextIcon,
       color: 'bg-green-500'
     },
     {
       name: 'Total Revenue',
-      value: `$${analytics.totalRevenue.toLocaleString()}`,
-      change: analytics.revenueGrowth,
-      changeType: 'increase',
+      value: `$${analytics.payments.total.toLocaleString()}`,
+      change: analytics.payments.growth || 0,
+      changeType: (analytics.payments.growth || 0) >= 0 ? 'increase' : 'decrease',
       icon: CurrencyDollarIcon,
       color: 'bg-yellow-500'
     },
     {
       name: 'Monthly Growth',
-      value: `${analytics.monthlyGrowth}%`,
-      change: 2.1,
-      changeType: 'increase',
+      value: `${analytics.charts.monthly_growth || 0}%`,
+      change: analytics.charts.growth_trend || 0,
+      changeType: (analytics.charts.growth_trend || 0) >= 0 ? 'increase' : 'decrease',
       icon: ChartBarIcon,
       color: 'bg-purple-500'
     }
-  ];
+  ] : [];
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <ChartBarIcon className="mx-auto h-12 w-12 text-red-400" />
+        <h3 className="mt-2 text-sm font-medium text-gray-900">Error loading analytics</h3>
+        <p className="mt-1 text-sm text-gray-500">{error}</p>
+        <button
+          onClick={loadAnalytics}
+          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+        >
+          Try Again
+        </button>
+      </div>
+    );
+  }
+
+  if (!analytics) {
+    return (
+      <div className="text-center py-12">
+        <ChartBarIcon className="mx-auto h-12 w-12 text-gray-400" />
+        <h3 className="mt-2 text-sm font-medium text-gray-900">No analytics data</h3>
+        <p className="mt-1 text-sm text-gray-500">Unable to load analytics data.</p>
       </div>
     );
   }
@@ -160,7 +191,9 @@ const AnalyticsPage: React.FC = () => {
                   <UsersIcon className="h-5 w-5 text-blue-400" />
                   <div className="ml-3">
                     <p className="text-sm font-medium text-blue-800">New Users</p>
-                    <p className="text-2xl font-semibold text-blue-900">+24</p>
+                    <p className="text-2xl font-semibold text-blue-900">
+                      +{analytics.users.this_week || 0}
+                    </p>
                     <p className="text-xs text-blue-600">This week</p>
                   </div>
                 </div>
@@ -170,7 +203,9 @@ const AnalyticsPage: React.FC = () => {
                   <DocumentTextIcon className="h-5 w-5 text-green-400" />
                   <div className="ml-3">
                     <p className="text-sm font-medium text-green-800">Documents Generated</p>
-                    <p className="text-2xl font-semibold text-green-900">+156</p>
+                    <p className="text-2xl font-semibold text-green-900">
+                      +{analytics.documents.this_week || 0}
+                    </p>
                     <p className="text-xs text-green-600">This week</p>
                   </div>
                 </div>
@@ -180,7 +215,9 @@ const AnalyticsPage: React.FC = () => {
                   <CurrencyDollarIcon className="h-5 w-5 text-yellow-400" />
                   <div className="ml-3">
                     <p className="text-sm font-medium text-yellow-800">Revenue</p>
-                    <p className="text-2xl font-semibold text-yellow-900">+$2,340</p>
+                    <p className="text-2xl font-semibold text-yellow-900">
+                      +${analytics.payments.this_week || 0}
+                    </p>
                     <p className="text-xs text-yellow-600">This week</p>
                   </div>
                 </div>

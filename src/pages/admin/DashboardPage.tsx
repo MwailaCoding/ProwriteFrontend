@@ -37,34 +37,9 @@ const DashboardPage: React.FC = () => {
       const analyticsData = await adminService.getAnalyticsStats('30d');
       setAnalytics(analyticsData);
 
-      // Mock recent activity - in real implementation, this would come from an API
-      const mockActivity: RecentActivity[] = [
-        {
-          id: 1,
-          type: 'user_registration',
-          message: 'New user registered: john@example.com',
-          timestamp: '2 hours ago',
-          icon: UsersIcon,
-          color: 'text-blue-500'
-        },
-        {
-          id: 2,
-          type: 'document_generated',
-          message: 'Document generated: Resume_12345.pdf',
-          timestamp: '4 hours ago',
-          icon: DocumentTextIcon,
-          color: 'text-green-500'
-        },
-        {
-          id: 3,
-          type: 'payment_received',
-          message: 'Payment received: $25.00',
-          timestamp: '6 hours ago',
-          icon: CreditCardIcon,
-          color: 'text-yellow-500'
-        }
-      ];
-      setRecentActivity(mockActivity);
+      // TODO: Implement real recent activity API
+      // For now, set empty array until API is available
+      setRecentActivity([]);
     } finally {
       setLoading(false);
     }
