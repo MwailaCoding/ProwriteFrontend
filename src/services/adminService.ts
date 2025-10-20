@@ -236,7 +236,7 @@ class AdminService {
       // First try the simple test endpoint
       const response = await adminApi.get('/api/simple-admin/stats');
       if (response.data.status === 'success') {
-    return {
+        return {
           stats: response.data.stats,
           recent_activity: []
         };
