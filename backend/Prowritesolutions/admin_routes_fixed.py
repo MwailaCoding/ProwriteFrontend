@@ -374,7 +374,7 @@ def get_documents():
         params = []
         
         if search:
-            where_conditions.append("(file_name LIKE %s OR u.email LIKE %s)")
+            where_conditions.append("(file_path LIKE %s OR u.email LIKE %s)")
             search_term = f"%{search}%"
             params.extend([search_term, search_term])
         
@@ -448,7 +448,7 @@ def get_payments():
         params = []
         
         if search:
-            where_conditions.append("(p.reference LIKE %s OR u.email LIKE %s)")
+            where_conditions.append("(p.mpesa_code LIKE %s OR u.email LIKE %s)")
             search_term = f"%{search}%"
             params.extend([search_term, search_term])
         
@@ -621,3 +621,4 @@ def get_system_logs():
         
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+

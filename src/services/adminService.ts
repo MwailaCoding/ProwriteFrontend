@@ -12,6 +12,7 @@ import type {
   AdminActivityLog,
   Notification,
   AnalyticsStats,
+  DashboardStats,
   UsersResponse,
   DocumentsResponse,
   PaymentsResponse,
@@ -216,6 +217,26 @@ class AdminService {
     } catch (error) {
       throw this.handleError(error);
     }
+  }
+
+  // Dashboard
+  async getDashboardStats(): Promise<DashboardStats> {
+    try {
+      // First try the simple test endpoint
+      const response = await adminApi.get('/api/simple-admin/stats');
+      if (response.data.status === 'success') {
+        return {
+          stats: response.data.stats,
+          recent_activity: []
+        };
+      }
+    } catch (error) {
+      console.log('Simple admin endpoint failed, trying main endpoint...');
+    }
+    
+    // Fallback to main endpoint
+    const response = await adminApi.get(`${this.baseUrl}/dashboard/stats`);
+    return response.data;
   }
 
   // Analytics

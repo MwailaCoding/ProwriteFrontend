@@ -36,22 +36,13 @@ const DashboardPage: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      // Load analytics data
+      // Load dashboard stats directly
+      const dashboardData = await adminService.getDashboardStats();
+      setStats(dashboardData.stats);
+
+      // Load analytics data for charts
       const analyticsData = await adminService.getAnalyticsStats('30d');
       setAnalytics(analyticsData);
-
-      // Transform analytics to dashboard stats
-      const dashboardStats: DashboardStats = {
-        totalUsers: analyticsData.users.total,
-        totalDocuments: analyticsData.documents.total,
-        totalPayments: analyticsData.payments.total,
-        totalRevenue: analyticsData.payments.revenue,
-        newUsersToday: analyticsData.users.new,
-        newDocumentsToday: analyticsData.documents.new,
-        pendingPayments: analyticsData.payments.statuses.pending || 0,
-        systemHealth: 'healthy' // This would come from a system health check
-      };
-      setStats(dashboardStats);
 
       // Mock recent activity - in real implementation, this would come from an API
       const mockActivity: RecentActivity[] = [
