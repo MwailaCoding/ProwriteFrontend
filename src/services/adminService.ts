@@ -34,6 +34,7 @@ import type {
 
 class AdminService {
   // Note: Using absolute paths throughout to avoid baseURL conflicts
+  // Updated: Fixed all API paths to use /api/admin prefix
 
   // User Management
   async getUsers(filters: UserFilters = {}): Promise<UsersResponse> {
