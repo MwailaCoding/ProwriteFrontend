@@ -38,18 +38,28 @@ class AdminService {
   // User Management
   async getUsers(filters: UserFilters = {}): Promise<UsersResponse> {
     try {
-      const params = new URLSearchParams();
-      
-      if (filters.search) params.append('search', filters.search);
-      if (filters.filter) params.append('filter', filters.filter);
-      if (filters.page) params.append('page', filters.page.toString());
-      if (filters.per_page) params.append('per_page', filters.per_page.toString());
-
-      const response = await adminApi.get(`${this.baseUrl}/users?${params.toString()}`);
-      return response.data;
+      // First try the simple test endpoint
+      const response = await adminApi.get('/api/simple-admin/users');
+      if (response.data.status === 'success') {
+        return {
+          users: response.data.users,
+          pagination: response.data.pagination
+        };
+      }
     } catch (error) {
-      throw this.handleError(error);
+      console.log('Simple admin users endpoint failed, trying main endpoint...');
     }
+    
+    // Fallback to main endpoint
+    const params = new URLSearchParams();
+    
+    if (filters.search) params.append('search', filters.search);
+    if (filters.filter) params.append('filter', filters.filter);
+    if (filters.page) params.append('page', filters.page.toString());
+    if (filters.per_page) params.append('per_page', filters.per_page.toString());
+
+    const response = await adminApi.get(`${this.baseUrl}/users?${params.toString()}`);
+    return response.data;
   }
 
   async getUserDetails(userId: number): Promise<AdminUser> {

@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify
 import mysql.connector
 import os
+from datetime import datetime
 
 simple_admin_bp = Blueprint('simple_admin', __name__, url_prefix='/api/simple-admin')
 
@@ -126,4 +127,47 @@ def get_simple_stats():
                 'total_payments': 0,
                 'total_revenue': 0.0
             }
+        }), 500
+
+@simple_admin_bp.route('/users', methods=['GET'])
+def test_users():
+    """Test endpoint to verify admin users route is accessible"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        # Get basic user data
+        cursor.execute("""
+            SELECT user_id, first_name, last_name, email, is_premium, is_admin, created_at
+            FROM users 
+            WHERE deleted_at IS NULL
+            ORDER BY created_at DESC
+            LIMIT 10
+        """)
+        users = cursor.fetchall()
+        
+        # Get total count
+        cursor.execute("SELECT COUNT(*) as total FROM users WHERE deleted_at IS NULL")
+        total = cursor.fetchone()['total']
+        
+        cursor.close()
+        conn.close()
+        
+        return jsonify({
+            'status': 'success',
+            'message': 'Admin users endpoint working',
+            'users': users,
+            'pagination': {
+                'total': total,
+                'page': 1,
+                'per_page': 10,
+                'pages': (total + 9) // 10
+            },
+            'timestamp': datetime.now().isoformat()
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': f'Database error: {str(e)}',
+            'timestamp': datetime.now().isoformat()
         }), 500
