@@ -180,6 +180,20 @@ class AdminService {
   }
 
   async getDashboardStats(): Promise<any> {
+    try {
+      // First try the simple test endpoint
+      const response = await adminApi.get('/simple-admin/stats');
+      if (response.data.status === 'success') {
+        return {
+          stats: response.data.stats,
+          recent_activity: []
+        };
+      }
+    } catch (error) {
+      console.log('Simple admin endpoint failed, trying main endpoint...');
+    }
+    
+    // Fallback to main endpoint
     const response = await adminApi.get('/dashboard/stats');
     return response.data;
   }
