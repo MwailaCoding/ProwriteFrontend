@@ -14,7 +14,7 @@ import {
   ShieldCheckIcon,
   ClockIcon
 } from '@heroicons/react/24/outline';
-import adminService from '../../services/adminService';
+import { adminService } from '../../services/adminService';
 import type { AdminUser, UserFilters } from '../../types/admin';
 
 const UsersPage: React.FC = () => {
