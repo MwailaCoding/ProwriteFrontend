@@ -285,3 +285,5 @@ const NotificationsPage: React.FC = () => {
 };
 
 export default NotificationsPage;
+
+// Force Vercel rebuild - notifications mock data removed
