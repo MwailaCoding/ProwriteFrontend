@@ -53,6 +53,7 @@ const ProwriteTemplateTest: React.FC = () => {
 };
 
 function App() {
+  // Force Vercel rebuild - all mock data removed
   return (
     <Provider store={store}>
       <Router>
