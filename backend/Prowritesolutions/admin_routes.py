@@ -56,6 +56,64 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+@admin_bp.route('/login', methods=['POST'])
+def admin_login():
+    try:
+        data = request.get_json()
+        email = data.get('email')
+        password = data.get('password')
+        
+        if not email or not password:
+            return jsonify({'error': 'Email and password required'}), 400
+        
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        # Check if user exists and is admin
+        cursor.execute("""
+            SELECT user_id, first_name, last_name, email, password_hash, is_admin 
+            FROM users 
+            WHERE email = %s AND is_admin = 1 AND deleted_at IS NULL
+        """, (email,))
+        
+        user = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        
+        if not user:
+            return jsonify({'error': 'Invalid credentials or not an admin'}), 401
+        
+        # Check password
+        if not check_password_hash(user['password_hash'], password):
+            return jsonify({'error': 'Invalid credentials'}), 401
+        
+        # Generate JWT token
+        token_payload = {
+            'user_id': user['user_id'],
+            'email': user['email'],
+            'is_admin': True,
+            'exp': datetime.utcnow() + timedelta(days=7)
+        }
+        
+        token = jwt.encode(token_payload, os.getenv('JWT_SECRET_KEY', 'your-secret-key'), algorithm='HS256')
+        
+        # Return user data and token
+        user_data = {
+            'user_id': user['user_id'],
+            'first_name': user['first_name'],
+            'last_name': user['last_name'],
+            'email': user['email'],
+            'is_admin': user['is_admin']
+        }
+        
+        return jsonify({
+            'user': user_data,
+            'access_token': token
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @admin_bp.route('/dashboard/stats', methods=['GET'])
 @admin_required
 def get_dashboard_stats():
@@ -197,10 +255,12 @@ def get_users():
         
         return jsonify({
             'users': users,
-            'total': total,
-            'page': page,
-            'limit': limit,
-            'total_pages': (total + limit - 1) // limit
+            'pagination': {
+                'total': total,
+                'page': page,
+                'per_page': limit,
+                'pages': (total + limit - 1) // limit
+            }
         })
         
     except Exception as e:
@@ -374,7 +434,7 @@ def get_documents():
         params = []
         
         if search:
-            where_conditions.append("(file_name LIKE %s OR u.email LIKE %s)")
+            where_conditions.append("(ud.file_path LIKE %s OR u.email LIKE %s)")
             search_term = f"%{search}%"
             params.extend([search_term, search_term])
         
@@ -422,10 +482,12 @@ def get_documents():
         
         return jsonify({
             'documents': documents,
-            'total': total,
-            'page': page,
-            'limit': limit,
-            'total_pages': (total + limit - 1) // limit
+            'pagination': {
+                'total': total,
+                'page': page,
+                'per_page': limit,
+                'pages': (total + limit - 1) // limit
+            }
         })
         
     except Exception as e:
@@ -501,10 +563,12 @@ def get_payments():
         
         return jsonify({
             'payments': payments,
-            'total': total,
-            'page': page,
-            'limit': limit,
-            'total_pages': (total + limit - 1) // limit,
+            'pagination': {
+                'total': total,
+                'page': page,
+                'per_page': limit,
+                'pages': (total + limit - 1) // limit
+            },
             'total_revenue': float(total_revenue),
             'pending_amount': float(pending_amount)
         })
@@ -535,23 +599,38 @@ def get_analytics():
         cursor.execute("SELECT COALESCE(SUM(COALESCE(amount, 0)), 0) as revenue FROM payments WHERE status = 'completed'")
         total_revenue = cursor.fetchone()['revenue']
         
+        # Get total payments count
+        cursor.execute("SELECT COUNT(*) as total FROM payments")
+        total_payments = cursor.fetchone()['total']
+        
         # Calculate rates
         conversion_rate = (premium_users / total_users * 100) if total_users > 0 else 0
         avg_revenue_per_user = (total_revenue / total_users) if total_users > 0 else 0
         
         analytics = {
-            'total_users': total_users,
-            'active_users': active_users,
-            'premium_users': premium_users,
-            'total_documents': total_documents,
-            'total_payments': 0,  # You can add this query
-            'total_revenue': float(total_revenue),
-            'monthly_growth': 12.5,  # This should be calculated from historical data
-            'user_growth': 8.3,
-            'document_growth': 15.2,
-            'revenue_growth': 22.1,
-            'conversion_rate': round(conversion_rate, 1),
-            'average_revenue_per_user': round(avg_revenue_per_user, 2)
+            'users': {
+                'total': total_users,
+                'active': active_users,
+                'premium': premium_users,
+                'premiumPercentage': round(conversion_rate, 1)
+            },
+            'documents': {
+                'total': total_documents,
+                'types': {}
+            },
+            'payments': {
+                'total': total_payments,
+                'revenue': float(total_revenue),
+                'statuses': {
+                    'completed': 0,
+                    'pending': 0,
+                    'failed': 0
+                }
+            },
+            'charts': {
+                'dailyRegistrations': [],
+                'dailyRevenue': []
+            }
         }
         
         cursor.close()
@@ -613,10 +692,12 @@ def get_system_logs():
         
         return jsonify({
             'logs': logs,
-            'total': total,
-            'page': page,
-            'limit': limit,
-            'total_pages': (total + limit - 1) // limit
+            'pagination': {
+                'total': total,
+                'page': page,
+                'per_page': limit,
+                'pages': (total + limit - 1) // limit
+            }
         })
         
     except Exception as e:
