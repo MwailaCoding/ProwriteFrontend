@@ -83,9 +83,34 @@ def admin_login():
         if not user:
             return jsonify({'error': 'Invalid credentials or not an admin'}), 401
         
-        # Check password
-        if not check_password_hash(user['password_hash'], password):
-            return jsonify({'error': 'Invalid credentials'}), 401
+        # Debug password hash
+        print(f"Password hash for {email}: {user['password_hash'][:20]}...")
+        print(f"Hash length: {len(user['password_hash'])}")
+        
+        # Check password with better error handling
+        try:
+            if not check_password_hash(user['password_hash'], password):
+                return jsonify({'error': 'Invalid credentials'}), 401
+        except Exception as e:
+            print(f"Password hash error: {e}")
+            # If hash format is invalid, try to update it
+            try:
+                from werkzeug.security import generate_password_hash
+                new_hash = generate_password_hash(password)
+                conn = get_db_connection()
+                cursor = conn.cursor()
+                cursor.execute("""
+                    UPDATE users 
+                    SET password_hash = %s 
+                    WHERE user_id = %s
+                """, (new_hash, user['user_id']))
+                conn.commit()
+                cursor.close()
+                conn.close()
+                print("Password hash updated successfully")
+            except Exception as update_error:
+                print(f"Failed to update password hash: {update_error}")
+                return jsonify({'error': 'Invalid credentials'}), 401
         
         # Generate JWT token
         token_payload = {
