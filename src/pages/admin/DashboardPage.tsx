@@ -63,7 +63,8 @@ const DashboardPage: React.FC = () => {
           icon: CreditCardIcon,
           color: 'text-yellow-500'
         }
-      ]);
+      ];
+      setRecentActivity(mockActivity);
     } finally {
       setLoading(false);
     }
