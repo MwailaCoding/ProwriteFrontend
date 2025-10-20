@@ -666,6 +666,136 @@ def get_analytics():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@admin_bp.route('/analytics/stats', methods=['GET'])
+@admin_required
+def get_analytics_stats():
+    try:
+        period = request.args.get('period', '30d')
+        
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        # Calculate date range based on period
+        if period == '7d':
+            days = 7
+        elif period == '30d':
+            days = 30
+        elif period == '90d':
+            days = 90
+        else:
+            days = 30
+        
+        # Get user stats
+        cursor.execute("SELECT COUNT(*) as total FROM users WHERE deleted_at IS NULL")
+        total_users = cursor.fetchone()['total']
+        
+        cursor.execute("""
+            SELECT COUNT(*) as this_week 
+            FROM users 
+            WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY) AND deleted_at IS NULL
+        """)
+        users_this_week = cursor.fetchone()['this_week']
+        
+        cursor.execute("""
+            SELECT COUNT(*) as previous_week 
+            FROM users 
+            WHERE created_at >= DATE_SUB(NOW(), INTERVAL 14 DAY) 
+            AND created_at < DATE_SUB(NOW(), INTERVAL 7 DAY) AND deleted_at IS NULL
+        """)
+        users_previous_week = cursor.fetchone()['previous_week']
+        
+        user_growth = ((users_this_week - users_previous_week) / users_previous_week * 100) if users_previous_week > 0 else 0
+        
+        # Get document stats
+        cursor.execute("SELECT COUNT(*) as total FROM user_documents WHERE status = 'active'")
+        total_documents = cursor.fetchone()['total']
+        
+        cursor.execute("""
+            SELECT COUNT(*) as this_week 
+            FROM user_documents 
+            WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY) AND status = 'active'
+        """)
+        docs_this_week = cursor.fetchone()['this_week']
+        
+        cursor.execute("""
+            SELECT COUNT(*) as previous_week 
+            FROM user_documents 
+            WHERE created_at >= DATE_SUB(NOW(), INTERVAL 14 DAY) 
+            AND created_at < DATE_SUB(NOW(), INTERVAL 7 DAY) AND status = 'active'
+        """)
+        docs_previous_week = cursor.fetchone()['previous_week']
+        
+        doc_growth = ((docs_this_week - docs_previous_week) / docs_previous_week * 100) if docs_previous_week > 0 else 0
+        
+        # Get payment stats
+        cursor.execute("SELECT COALESCE(SUM(COALESCE(amount, 0)), 0) as total FROM payments WHERE status = 'completed'")
+        total_revenue = cursor.fetchone()['total']
+        
+        cursor.execute("""
+            SELECT COALESCE(SUM(COALESCE(amount, 0)), 0) as this_week 
+            FROM payments 
+            WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY) AND status = 'completed'
+        """)
+        revenue_this_week = cursor.fetchone()['this_week']
+        
+        cursor.execute("""
+            SELECT COALESCE(SUM(COALESCE(amount, 0)), 0) as previous_week 
+            FROM payments 
+            WHERE created_at >= DATE_SUB(NOW(), INTERVAL 14 DAY) 
+            AND created_at < DATE_SUB(NOW(), INTERVAL 7 DAY) AND status = 'completed'
+        """)
+        revenue_previous_week = cursor.fetchone()['previous_week']
+        
+        revenue_growth = ((revenue_this_week - revenue_previous_week) / revenue_previous_week * 100) if revenue_previous_week > 0 else 0
+        
+        # Calculate monthly growth
+        cursor.execute("""
+            SELECT COUNT(*) as this_month 
+            FROM users 
+            WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) AND deleted_at IS NULL
+        """)
+        users_this_month = cursor.fetchone()['this_month']
+        
+        cursor.execute("""
+            SELECT COUNT(*) as previous_month 
+            FROM users 
+            WHERE created_at >= DATE_SUB(NOW(), INTERVAL 60 DAY) 
+            AND created_at < DATE_SUB(NOW(), INTERVAL 30 DAY) AND deleted_at IS NULL
+        """)
+        users_previous_month = cursor.fetchone()['previous_month']
+        
+        monthly_growth = ((users_this_month - users_previous_month) / users_previous_month * 100) if users_previous_month > 0 else 0
+        
+        analytics = {
+            'users': {
+                'total': total_users,
+                'growth': round(user_growth, 1),
+                'this_week': users_this_week
+            },
+            'documents': {
+                'total': total_documents,
+                'growth': round(doc_growth, 1),
+                'this_week': docs_this_week
+            },
+            'payments': {
+                'total': float(total_revenue),
+                'growth': round(revenue_growth, 1),
+                'this_week': float(revenue_this_week)
+            },
+            'charts': {
+                'monthly_growth': round(monthly_growth, 1),
+                'growth_trend': round(monthly_growth, 1)
+            }
+        }
+        
+        cursor.close()
+        conn.close()
+        
+        return jsonify(analytics)
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @admin_bp.route('/logs', methods=['GET'])
 @admin_required
 def get_system_logs():
