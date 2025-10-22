@@ -856,4 +856,162 @@ def get_system_logs():
         })
         
     except Exception as e:
+        return jsonify({'error': str(e)}), 500# Admin Notifications Routes
+@admin_bp.route('/notifications', methods=['GET'])
+@admin_required
+def get_admin_notifications():
+    """Get all notifications for admin panel"""
+    try:
+        page = int(request.args.get('page', 1))
+        per_page = int(request.args.get('per_page', 50))
+        status = request.args.get('status')
+        
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        # Build query
+        where_clause = "WHERE 1=1"
+        params = []
+        
+        if status:
+            where_clause += " AND status = %s"
+            params.append(status)
+        
+        # Get total count
+        count_query = f"SELECT COUNT(*) as total FROM notifications {where_clause}"
+        cursor.execute(count_query, params)
+        total = cursor.fetchone()['total']
+        
+        # Get notifications with pagination
+        offset = (page - 1) * per_page
+        query = f"""
+            SELECT 
+                id,
+                title,
+                message,
+                type,
+                status,
+                created_at,
+                updated_at,
+                user_id
+            FROM notifications 
+            {where_clause}
+            ORDER BY created_at DESC
+            LIMIT %s OFFSET %s
+        """
+        params.extend([per_page, offset])
+        cursor.execute(query, params)
+        notifications = cursor.fetchall()
+        
+        # Format notifications
+        formatted_notifications = []
+        for notif in notifications:
+            formatted_notifications.append({
+                'id': notif['id'],
+                'title': notif['title'],
+                'message': notif['message'],
+                'type': notif['type'],
+                'is_read': notif['status'] == 'read',
+                'created_at': notif['created_at'].isoformat() if notif['created_at'] else None,
+                'user_id': notif['user_id']
+            })
+        
+        cursor.close()
+        conn.close()
+        
+        return jsonify({
+            'notifications': formatted_notifications,
+            'pagination': {
+                'total': total,
+                'page': page,
+                'per_page': per_page,
+                'pages': (total + per_page - 1) // per_page
+            }
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@admin_bp.route('/notifications/send', methods=['POST'])
+@admin_required
+def send_admin_notification():
+    """Send a notification to users"""
+    try:
+        data = request.get_json()
+        
+        title = data.get('title')
+        message = data.get('message')
+        notification_type = data.get('type', 'info')
+        target_users = data.get('target_users', 'all')
+        
+        if not title or not message:
+            return jsonify({'error': 'Title and message are required'}), 400
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Create notification
+        cursor.execute("""
+            INSERT INTO notifications (title, message, type, status, created_at, updated_at)
+            VALUES (%s, %s, %s, 'unread', NOW(), NOW())
+        """, (title, message, notification_type))
+        
+        notification_id = cursor.lastrowid
+        
+        # If targeting specific users, you would add user_notifications entries here
+        # For now, we'll create a system-wide notification
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Notification sent successfully',
+            'notification_id': notification_id
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@admin_bp.route('/notifications/<int:notification_id>/read', methods=['POST'])
+@admin_required
+def mark_notification_read(notification_id):
+    """Mark a notification as read"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute("""
+            UPDATE notifications 
+            SET status = 'read', updated_at = NOW()
+            WHERE id = %s
+        """, (notification_id,))
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        return jsonify({'success': True, 'message': 'Notification marked as read'})
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@admin_bp.route('/notifications/<int:notification_id>', methods=['DELETE'])
+@admin_required
+def delete_notification(notification_id):
+    """Delete a notification"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute("DELETE FROM notifications WHERE id = %s", (notification_id,))
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        return jsonify({'success': True, 'message': 'Notification deleted'})
+        
+    except Exception as e:
         return jsonify({'error': str(e)}), 500
