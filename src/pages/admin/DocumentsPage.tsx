@@ -7,82 +7,60 @@ import {
   TrashIcon,
   DocumentTextIcon
 } from '@heroicons/react/24/outline';
-import { adminService } from '../../services/adminService';
-import type { Document, DocumentFilters } from '../../types/admin';
+
+interface Document {
+  id: number;
+  fileName: string;
+  userEmail: string;
+  fileSize: string;
+  createdAt: string;
+  type: string;
+  status: 'active' | 'deleted';
+}
 
 const DocumentsPage: React.FC = () => {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState('all');
-  const [pagination, setPagination] = useState({
-    page: 1,
-    per_page: 20,
-    total: 0,
-    pages: 0
-  });
 
   useEffect(() => {
-    loadDocuments();
-  }, [searchTerm, filter, pagination.page]);
-
-  const loadDocuments = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const filters: DocumentFilters = {
-        search: searchTerm || undefined,
-        type: filter !== 'all' ? filter : undefined,
-        page: pagination.page,
-        per_page: pagination.per_page
-      };
-
-      const response = await adminService.getDocuments(filters);
-      setDocuments(response.documents);
-      setPagination(response.pagination);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load documents');
-      console.error('Error loading documents:', err);
-    } finally {
+    // Simulate loading documents
+    setTimeout(() => {
+      setDocuments([]);
       setLoading(false);
-    }
-  };
+    }, 1000);
+  }, []);
 
-  const handleDownload = async (document: Document) => {
-    try {
-      const blob = await adminService.downloadDocument(document.reference);
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = document.file_name;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error('Error downloading document:', err);
-      alert('Failed to download document');
-    }
+  const filteredDocuments = documents.filter(doc => {
+    const matchesSearch = doc.fileName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         doc.userEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         doc.type.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    if (filter === 'resume') return matchesSearch && doc.type === 'Resume';
+    if (filter === 'cover-letter') return matchesSearch && doc.type === 'Cover Letter';
+    if (filter === 'cv') return matchesSearch && doc.type === 'CV';
+    
+    return matchesSearch;
+  });
+
+  const handleDownload = (document: Document) => {
+    // Simulate download
+    console.log('Downloading:', document.fileName);
+    // In real implementation, this would trigger a download
   };
 
   const handleView = (document: Document) => {
-    // Open document in new tab
-    window.open(`/shared/${document.reference}`, '_blank');
+    // Simulate viewing
+    console.log('Viewing:', document.fileName);
+    // In real implementation, this would open a preview modal
   };
 
-  const handleDelete = async (documentId: number) => {
+  const handleDelete = (documentId: number) => {
     if (window.confirm('Are you sure you want to delete this document?')) {
-      try {
-        // Note: You'll need to add a deleteDocument method to adminService
-        // await adminService.deleteDocument(documentId);
-        // For now, just reload the documents
-        await loadDocuments();
-      } catch (err) {
-        console.error('Error deleting document:', err);
-        alert('Failed to delete document');
-      }
+      setDocuments(documents.map(doc => 
+        doc.id === documentId ? { ...doc, status: 'deleted' } : doc
+      ));
     }
   };
 
@@ -90,22 +68,6 @@ const DocumentsPage: React.FC = () => {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="text-center py-12">
-        <DocumentTextIcon className="mx-auto h-12 w-12 text-red-400" />
-        <h3 className="mt-2 text-sm font-medium text-gray-900">Error loading documents</h3>
-        <p className="mt-1 text-sm text-gray-500">{error}</p>
-        <button
-          onClick={loadDocuments}
-          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-        >
-          Try Again
-        </button>
       </div>
     );
   }
@@ -179,14 +141,14 @@ const DocumentsPage: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {documents.map((document) => (
+              {filteredDocuments.map((document) => (
                 <tr key={document.id} className={document.status === 'deleted' ? 'opacity-50' : ''}>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <DocumentTextIcon className="h-8 w-8 text-gray-400 mr-3" />
                       <div>
                         <div className="text-sm font-medium text-gray-900">
-                          {document.file_name}
+                          {document.fileName}
                         </div>
                         {document.status === 'deleted' && (
                           <div className="text-xs text-red-500">Deleted</div>
@@ -195,18 +157,18 @@ const DocumentsPage: React.FC = () => {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {document.user_email}
+                    {document.userEmail}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                      {document.document_type}
+                      {document.type}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {document.file_size ? `${(document.file_size / 1024 / 1024).toFixed(1)} MB` : 'N/A'}
+                    {document.fileSize}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(document.created_at).toLocaleDateString()}
+                    {document.createdAt}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex space-x-2">
@@ -240,7 +202,7 @@ const DocumentsPage: React.FC = () => {
         </div>
       </div>
 
-      {documents.length === 0 && (
+      {filteredDocuments.length === 0 && (
         <div className="text-center py-12">
           <DocumentTextIcon className="mx-auto h-12 w-12 text-gray-400" />
           <h3 className="mt-2 text-sm font-medium text-gray-900">No documents</h3>

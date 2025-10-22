@@ -59,50 +59,6 @@ const UsersPage: React.FC = () => {
     } catch (err: any) {
       console.error('Error loading users:', err);
       setError('Failed to load users. Please try again.');
-      
-      // Set fallback data for demo purposes
-      setUsers([
-        {
-          user_id: 1,
-          first_name: 'John',
-          last_name: 'Doe',
-          email: 'john@example.com',
-          is_premium: true,
-          is_admin: false,
-          created_at: '2025-01-15T10:30:00Z',
-          last_login: '2025-01-18T14:20:00Z',
-          status: 'active',
-          phone: '+1234567890',
-          country: 'US'
-        },
-        {
-          user_id: 2,
-          first_name: 'Jane',
-          last_name: 'Smith',
-          email: 'jane@example.com',
-          is_premium: false,
-          is_admin: false,
-          created_at: '2025-01-16T09:15:00Z',
-          last_login: '2025-01-17T16:45:00Z',
-          status: 'active',
-          phone: '+1234567891',
-          country: 'CA'
-        },
-        {
-          user_id: 3,
-          first_name: 'Admin',
-          last_name: 'User',
-          email: 'admin@example.com',
-          is_premium: true,
-          is_admin: true,
-          created_at: '2025-01-10T08:00:00Z',
-          last_login: '2025-01-18T12:30:00Z',
-          status: 'active',
-          phone: '+1234567892',
-          country: 'US'
-        }
-      ]);
-      setPagination(prev => ({ ...prev, total: 3, totalPages: 1 }));
     } finally {
       setLoading(false);
     }

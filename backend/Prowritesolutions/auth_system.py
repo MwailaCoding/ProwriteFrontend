@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 from functools import wraps
 from flask import request, jsonify, current_app
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, get_jwt
+from werkzeug.security import check_password_hash, generate_password_hash
 import traceback
 
 # Database configuration
@@ -39,14 +40,12 @@ class AuthSystem:
             return None
     
     def hash_password(self, password: str) -> str:
-        """Hash password using bcrypt"""
-        salt = bcrypt.gensalt()
-        hashed = bcrypt.hashpw(password.encode('utf-8'), salt)
-        return hashed.decode('utf-8')
+        """Hash password using Werkzeug's secure password hashing"""
+        return generate_password_hash(password)
     
     def verify_password(self, password: str, hashed: str) -> bool:
-        """Verify password against hash"""
-        return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
+        """Verify password against hash using Werkzeug's secure password checking"""
+        return check_password_hash(hashed, password)
     
     def create_user(self, email: str, password: str, first_name: str, last_name: str):
         """Create a new user in the database"""

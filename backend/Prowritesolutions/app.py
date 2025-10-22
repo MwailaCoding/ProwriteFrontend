@@ -11,6 +11,7 @@ import os
 import jwt
 import bcrypt
 import mysql.connector
+from werkzeug.security import check_password_hash, generate_password_hash
 from functools import wraps
 import logging
 from logging.handlers import RotatingFileHandler
@@ -592,14 +593,12 @@ class AuthSystem:
             return None
 
     def hash_password(self, password: str) -> str:
-        """Hash password using bcrypt"""
-        salt = bcrypt.gensalt()
-        hashed = bcrypt.hashpw(password.encode('utf-8'), salt)
-        return hashed.decode('utf-8')
+        """Hash password using Werkzeug's secure password hashing"""
+        return generate_password_hash(password)
 
     def verify_password(self, password: str, hashed: str) -> bool:
-        """Verify password against hash"""
-        return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
+        """Verify password against hash using Werkzeug's secure password checking"""
+        return check_password_hash(hashed, password)
 
     def create_user(self, email: str, password: str, first_name: str, last_name: str):
         """Create a new user in the database"""
@@ -1771,7 +1770,7 @@ def setup_database():
         # Create a test admin user if it doesn't exist
         cursor.execute("SELECT id FROM users WHERE email = %s", ('admin@prowrite.com',))
         if not cursor.fetchone():
-            hashed_password = bcrypt.hashpw('admin123'.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+            hashed_password = generate_password_hash('admin123')
             cursor.execute("""
                 INSERT INTO users (email, password, first_name, last_name, is_admin)
                 VALUES (%s, %s, %s, %s, %s)

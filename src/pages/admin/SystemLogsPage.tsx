@@ -26,47 +26,7 @@ const SystemLogsPage: React.FC = () => {
   useEffect(() => {
     // Simulate loading logs
     setTimeout(() => {
-      setLogs([
-        {
-          id: 1,
-          level: 'info',
-          message: 'User john@example.com successfully logged in',
-          timestamp: '2025-01-18T10:30:00Z',
-          source: 'auth',
-          userId: 1
-        },
-        {
-          id: 2,
-          level: 'success',
-          message: 'Payment of $25.00 processed successfully',
-          timestamp: '2025-01-18T09:15:00Z',
-          source: 'payment',
-          userId: 2
-        },
-        {
-          id: 3,
-          level: 'warning',
-          message: 'High memory usage detected on server',
-          timestamp: '2025-01-18T08:45:00Z',
-          source: 'system'
-        },
-        {
-          id: 4,
-          level: 'error',
-          message: 'Failed to process payment for user admin@example.com',
-          timestamp: '2025-01-18T07:20:00Z',
-          source: 'payment',
-          userId: 3
-        },
-        {
-          id: 5,
-          level: 'info',
-          message: 'Document Resume_12345.pdf generated successfully',
-          timestamp: '2025-01-18T06:30:00Z',
-          source: 'document',
-          userId: 1
-        }
-      ]);
+      setLogs([]);
       setLoading(false);
     }, 1000);
   }, []);

@@ -63,22 +63,19 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, user, onLogout }) =
       name: 'Users', 
       href: '/admin/users', 
       icon: UsersIcon,
-      description: 'Manage user accounts',
-      badge: '1,250'
+      description: 'Manage user accounts'
     },
     { 
       name: 'Documents', 
       href: '/admin/documents', 
       icon: DocumentTextIcon,
-      description: 'View and manage documents',
-      badge: '3,420'
+      description: 'View and manage documents'
     },
     { 
       name: 'Payments', 
       href: '/admin/payments', 
       icon: CreditCardIcon,
-      description: 'Payment transactions',
-      badge: '$45.6K'
+      description: 'Payment transactions'
     },
     { 
       name: 'Analytics', 
@@ -90,8 +87,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, user, onLogout }) =
       name: 'Notifications', 
       href: '/admin/notifications', 
       icon: BellIcon,
-      description: 'System notifications',
-      badge: '12'
+      description: 'System notifications'
     },
     { 
       name: 'System Logs', 
