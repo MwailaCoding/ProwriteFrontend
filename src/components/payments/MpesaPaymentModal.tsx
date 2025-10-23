@@ -671,32 +671,6 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
     </AnimatePresence>
   );
 };
-            <span className="text-gray-600">Checkout ID:</span>
-            <div className="flex items-center space-x-2">
-
-              <span className="font-mono text-sm">{paymentData.checkout_request_id}</span>
-              <button
-
-                onClick={() => copyToClipboard(paymentData.checkout_request_id)}
-                className="text-blue-600 hover:text-blue-800 transition-colors"
-
-              >
-
-                <Copy className="w-4 h-4" />
-
-              </button>
-
-            </div>
-
-          </div>
-
-        </div>
-
-      )}
-
-
-
-      <div className="bg-blue-50 rounded-lg p-4">
         <h4 className="font-semibold text-blue-800 mb-2">What to do next:</h4>
         <ol className="list-decimal list-inside text-blue-700 space-y-1 text-sm">
           <li>Check your phone for M-Pesa prompt</li>
