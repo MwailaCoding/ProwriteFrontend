@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { pdfTemplateService } from '../services/pdfTemplateService';
-import { MpesaPaymentModal } from './payments/MpesaPaymentModal';
+import MpesaPaymentModal from './payments/MpesaPaymentModal';
 import ProwriteTemplateFieldEnhancer from './prowrite-template/ProwriteTemplateFieldEnhancer';
 import ProwriteTemplateChatbot from './prowrite-template/ProwriteTemplateChatbot';
 import ProwriteTemplateSmartPromptGenerator from './prowrite-template/ProwriteTemplateSmartPromptGenerator';

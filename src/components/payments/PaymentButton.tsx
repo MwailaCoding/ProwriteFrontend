@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { CreditCard, Lock, Download, Crown } from 'lucide-react';
 import { Button } from '../common/Button';
-import { MpesaPaymentModal } from './MpesaPaymentModal';
+import MpesaPaymentModal from './MpesaPaymentModal';
 import { MpesaPaymentResponse } from '../../types';
 
 interface PaymentButtonProps {

@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Card } from '../common/Card';
 import { Button } from '../common/Button';
 import { LoadingSpinner } from '../common/LoadingSpinner';
-import { MpesaPaymentModal } from '../payments/MpesaPaymentModal';
+import MpesaPaymentModal from '../payments/MpesaPaymentModal';
 import { 
   FileText, 
   User, 
