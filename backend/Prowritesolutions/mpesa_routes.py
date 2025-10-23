@@ -378,8 +378,8 @@ def query_payment_status(checkout_request_id):
         
         last_query = query_payment_status.last_query_time.get(checkout_request_id, 0)
         
-        # Rate limit: max 1 query per 2 seconds per checkout_request_id
-        if current_time - last_query < 2:
+        # Rate limit: max 1 query per 10 seconds per checkout_request_id
+        if current_time - last_query < 10:
             return jsonify({
                 'success': False,
                 'error': 'Rate limited. Please wait before checking again.',
