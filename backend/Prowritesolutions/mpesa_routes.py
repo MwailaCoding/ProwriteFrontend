@@ -77,9 +77,11 @@ def create_payment_record(user_id, amount, checkout_request_id, merchant_request
         payment_id = cursor.lastrowid
         
         # Store form data in JSON format
+        import json
+        form_data_json = json.dumps(form_data) if form_data else None
         cursor.execute("""
             UPDATE payments SET form_data = %s WHERE payment_id = %s
-        """, (form_data, payment_id))
+        """, (form_data_json, payment_id))
         
         conn.commit()
         cursor.close()

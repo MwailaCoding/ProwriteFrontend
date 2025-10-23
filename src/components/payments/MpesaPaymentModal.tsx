@@ -103,9 +103,16 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
         setCurrentStep('stk-push');
         toast.success('STK Push sent to your phone! Please check your phone and enter your M-Pesa PIN.');
       } else {
-        setError(data.error || 'Failed to initiate STK push');
+        // Handle specific M-Pesa errors
+        let errorMessage = data.error || 'Failed to initiate STK push';
+        if (data.error && data.error.includes('No response from user')) {
+          errorMessage = 'Please respond to the STK push on your phone. Check your phone and enter your M-Pesa PIN.';
+        } else if (data.error && data.error.includes('1037')) {
+          errorMessage = 'STK push was sent but you didn\'t respond. Please try again and enter your M-Pesa PIN when prompted.';
+        }
+        setError(errorMessage);
         setCurrentStep('failed');
-        toast.error(data.error || 'Failed to initiate STK push');
+        toast.error(errorMessage);
       }
     } catch (error: any) {
       setError('Failed to initiate STK push');
