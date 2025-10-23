@@ -36,7 +36,7 @@ export interface Payment {
   amount: number;
   currency: string;
   status: 'pending' | 'completed' | 'failed' | 'refunded' | 'cancelled';
-  payment_method: 'mpesa' | 'pesapal' | 'stripe' | 'paypal';
+  payment_method: 'mpesa_stk' | 'manual_admin';
   transaction_id: string;
   reference: string;
   description: string;
@@ -150,7 +150,7 @@ export interface DocumentFilters {
 export interface PaymentFilters {
   search?: string;
   status?: 'all' | 'pending' | 'completed' | 'failed' | 'refunded';
-  method?: 'all' | 'mpesa' | 'pesapal' | 'stripe' | 'paypal';
+  method?: 'all' | 'mpesa_stk' | 'manual_admin';
   page?: number;
   limit?: number;
   sort_by?: string;

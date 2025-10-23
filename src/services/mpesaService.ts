@@ -77,6 +77,29 @@ class MpesaService {
   /**
    * Initiate M-Pesa STK Push payment
    */
+  async initiateSTKPush(data: {
+    phone_number: string;
+    amount: number;
+    document_type: string;
+    form_data: any;
+    user_email: string;
+    user_id?: number;
+  }): Promise<MpesaPaymentResponse> {
+    try {
+      const response = await api.post('/payments/mpesa/initiate', data);
+      return response.data;
+    } catch (error: any) {
+      console.error('M-Pesa STK push initiation error:', error);
+      return {
+        success: false,
+        error: error.response?.data?.message || error.message || 'STK push initiation failed'
+      };
+    }
+  }
+
+  /**
+   * Initiate M-Pesa STK Push payment (legacy method)
+   */
   async initiatePayment(paymentData: MpesaPaymentRequest): Promise<MpesaPaymentResponse> {
     try {
       const response = await api.post('/payments/mpesa/initiate', paymentData);
@@ -131,6 +154,68 @@ class MpesaService {
         error: error.response?.data?.message || error.message || 'Status check failed'
       };
     }
+  }
+
+  /**
+   * Poll STK push status until completion
+   */
+  async pollSTKPushStatus(
+    checkoutRequestId: string,
+    onStatusUpdate: (status: MpesaPaymentStatus) => void,
+    maxAttempts: number = 30, // 1 minute with 2-second intervals
+    intervalMs: number = 2000
+  ): Promise<MpesaPaymentStatus | null> {
+    let attempts = 0;
+    
+    const poll = async (): Promise<MpesaPaymentStatus | null> => {
+      attempts++;
+      
+      try {
+        const response = await this.checkPaymentStatus(checkoutRequestId);
+        
+        if (response.success) {
+          onStatusUpdate(response);
+          
+          // Check if completed or failed
+          if (response.status === 'completed' || 
+              response.status === 'failed' || 
+              attempts >= maxAttempts) {
+            return response;
+          }
+          
+          // Continue polling if still pending
+          if (response.status === 'pending') {
+            setTimeout(poll, intervalMs);
+          }
+          
+          return response;
+        }
+        
+        if (attempts >= maxAttempts) {
+          return {
+            success: false,
+            status: 'failed',
+            error: 'Maximum polling attempts reached'
+          };
+        }
+        
+        setTimeout(poll, intervalMs);
+        return null;
+      } catch (error) {
+        console.error('STK push polling error:', error);
+        if (attempts >= maxAttempts) {
+          return {
+            success: false,
+            status: 'failed',
+            error: 'Polling failed after maximum attempts'
+          };
+        }
+        setTimeout(poll, intervalMs);
+        return null;
+      }
+    };
+    
+    return poll();
   }
 
   /**

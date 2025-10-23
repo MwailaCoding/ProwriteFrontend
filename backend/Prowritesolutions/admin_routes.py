@@ -9,12 +9,12 @@ import jwt
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/api/admin')
 
-# Database configuration
+# Database configuration - uses environment variables from .env
 DB_CONFIG = {
-    'host': os.getenv('DB_HOST', 'localhost'),
-    'user': os.getenv('DB_USER', 'root'),
-    'password': os.getenv('DB_PASSWORD', ''),
-    'database': os.getenv('DB_NAME', 'prowrite_db'),
+    'host': os.getenv('DB_HOST'),
+    'user': os.getenv('DB_USER'),
+    'password': os.getenv('DB_PASSWORD'),
+    'database': os.getenv('DB_NAME'),
     'port': int(os.getenv('DB_PORT', 3306))
 }
 

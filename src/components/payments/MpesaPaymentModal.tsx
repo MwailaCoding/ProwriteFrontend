@@ -44,17 +44,22 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
   documentType,
   onSuccess
 }) => {
-  const [currentStep, setCurrentStep] = useState<'instructions' | 'validation' | 'processing' | 'completed' | 'failed'>('instructions');
-  const [transactionCode, setTransactionCode] = useState('');
+  const [currentStep, setCurrentStep] = useState<'phone' | 'stk-push' | 'processing' | 'completed' | 'failed'>('phone');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [userEmail, setUserEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [submissionData, setSubmissionData] = useState<PaymentSubmission | null>(null);
+  const [paymentData, setPaymentData] = useState<any>(null);
   const [error, setError] = useState('');
 
   const amount = documentType === 'Prowrite Template Resume' ? 500 : 300;
 
-  const initiatePayment = async () => {
-    // Validate email before proceeding
+  const initiateSTKPush = async () => {
+    // Validate phone number and email
+    if (!phoneNumber.trim()) {
+      toast.error('Please enter your phone number');
+      return;
+    }
+    
     if (!userEmail.trim()) {
       toast.error('Please enter your email address for PDF delivery');
       return;
@@ -72,16 +77,18 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
     try {
       // Use absolute URL to ensure it goes to the backend
       const backendURL = 'https://prowrite.pythonanywhere.com/api';
-      const response = await fetch(`${backendURL}/payments/manual/initiate`, {
+      const response = await fetch(`${backendURL}/payments/mpesa/initiate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          form_data: formData,
+          phone_number: phoneNumber.trim(),
+          amount: amount,
           document_type: documentType,
+          form_data: formData,
           user_email: userEmail.trim(),
-          phone_number: userEmail.trim() // Add phone number field that backend might expect
+          user_id: 1 // Default user ID
         })
       });
 
@@ -92,97 +99,42 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
       const data = await response.json();
       
       if (data.success) {
-        setSubmissionData(data);
-        setCurrentStep('validation');
-        toast.success('Payment instructions generated!');
+        setPaymentData(data);
+        setCurrentStep('stk-push');
+        toast.success('STK Push sent to your phone! Please check your phone and enter your M-Pesa PIN.');
       } else {
-        setError(data.error || 'Failed to initiate payment');
+        setError(data.error || 'Failed to initiate STK push');
         setCurrentStep('failed');
-        toast.error(data.error || 'Failed to initiate payment');
+        toast.error(data.error || 'Failed to initiate STK push');
       }
     } catch (error: any) {
-      setError('Failed to initiate payment');
+      setError('Failed to initiate STK push');
       setCurrentStep('failed');
-      toast.error('Failed to initiate payment');
+      toast.error('Failed to initiate STK push');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const validateTransaction = async () => {
-    if (!transactionCode.trim()) {
-      toast.error('Please enter transaction code');
-      return;
-    }
-
-    if (!submissionData) {
+  const startPolling = () => {
+    if (!paymentData?.checkout_request_id) {
       toast.error('No payment session found');
       return;
     }
 
-    setIsLoading(true);
-    setError('');
-    
-    try {
-      // Use absolute URL to ensure it goes to the backend
-      const backendURL = 'https://prowrite.pythonanywhere.com/api';
-      const fullURL = `${backendURL}/payments/manual/validate`;
-      console.log('🚀 ULTRA-FAST VALIDATION - Making API call to:', fullURL);
-      console.log('🚀 ULTRA-FAST VALIDATION - Transaction code:', transactionCode.trim().toUpperCase());
-      console.log('🚀 ULTRA-FAST VALIDATION - Reference:', submissionData.reference);
-      console.log('🚀 ULTRA-FAST VALIDATION - Timestamp:', new Date().toISOString());
-      
-      const response = await fetch(fullURL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache'
-        },
-        body: JSON.stringify({
-          transaction_code: transactionCode.trim().toUpperCase(),
-          reference: submissionData.reference
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      
-      if (data.success) {
-        console.log('🚀 ULTRA-FAST VALIDATION - SUCCESS!', data);
-        setCurrentStep('processing');
-        toast.success('🚀 Payment validated! PDF is being generated in background... Your download interface will appear in 3 seconds!');
-        pollForCompletion();
-      } else {
-        setError(data.error || 'Validation failed');
-        
-        if (data.fallback === 'admin_confirmation') {
-          toast.info('Payment will be confirmed by admin shortly');
-          setCurrentStep('processing');
-          pollForCompletion();
-        } else {
-          toast.error(data.error || 'Validation failed');
-        }
-      }
-    } catch (error: any) {
-      setError('Validation failed');
-      toast.error('Validation failed');
-    } finally {
-      setIsLoading(false);
-    }
+    setCurrentStep('processing');
+    toast.success('Payment initiated! Checking status...');
+    pollForCompletion();
   };
 
   const pollForCompletion = async () => {
-    if (!submissionData) return;
+    if (!paymentData?.checkout_request_id) return;
 
     const poll = async () => {
       try {
         // Use absolute URL to ensure it goes to the backend
         const backendURL = 'https://prowrite.pythonanywhere.com/api';
-        const response = await fetch(`${backendURL}/payments/manual/status/${submissionData.reference}`);
+        const response = await fetch(`${backendURL}/payments/mpesa/status/${paymentData.checkout_request_id}`);
         
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -193,23 +145,23 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
         if (data.success) {
           if (data.status === 'completed') {
             setCurrentStep('completed');
-            toast.success('✅ Document ready for download and sharing!');
+            toast.success('✅ Payment completed! Document ready for download!');
             if (onSuccess) {
-              onSuccess(data.submission_id);
+              onSuccess(data.payment_id);
             }
-          } else if (data.status === 'processing') {
-            // Ultra-fast polling for processing status
-            setTimeout(poll, 1000); // Poll every 1 second instead of 3
-          } else if (data.status === 'paid') {
-            setTimeout(poll, 2000); // Poll every 2 seconds for paid status
-          } else if (data.status === 'pending_admin_confirmation') {
-            setTimeout(poll, 3000); // Reduced from 5 to 3 seconds
+          } else if (data.status === 'pending') {
+            // Poll every 2 seconds for pending status
+            setTimeout(poll, 2000);
+          } else if (data.status === 'failed') {
+            setCurrentStep('failed');
+            setError(data.error || 'Payment failed');
+            toast.error('Payment failed');
           }
         }
       } catch (error) {
         console.error('Polling error:', error);
-        // Retry faster on error
-        setTimeout(poll, 2000);
+        // Retry on error
+        setTimeout(poll, 3000);
       }
     };
     
@@ -232,10 +184,10 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
   };
 
   const resetForm = () => {
-    setTransactionCode('');
+    setPhoneNumber('');
     setUserEmail('');
-    setCurrentStep('instructions');
-    setSubmissionData(null);
+    setCurrentStep('phone');
+    setPaymentData(null);
     setError('');
   };
 
@@ -245,17 +197,35 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
     }
   }, [isOpen]);
 
-  const renderInstructions = () => (
+  const renderPhoneInput = () => (
     <div className="space-y-6">
       <div className="text-center">
         <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
           <Smartphone className="w-8 h-8 text-blue-600" />
         </div>
         <h3 className="text-lg font-semibold text-gray-900 mb-2">
-          Payment Instructions
+          M-Pesa STK Push Payment
         </h3>
         <p className="text-gray-600">
-          Pay with M-Pesa to generate your {documentType}
+          Enter your phone number to receive a payment prompt
+        </p>
+      </div>
+
+      {/* Phone Number Input */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          📱 Phone Number *
+        </label>
+        <input
+          type="tel"
+          value={phoneNumber}
+          onChange={(e) => setPhoneNumber(e.target.value)}
+          placeholder="254XXXXXXXXX (e.g., 254712345678)"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          required
+        />
+        <p className="text-xs text-gray-600 mt-1">
+          Use format: 254XXXXXXXXX (e.g., 254712345678)
         </p>
       </div>
 
@@ -277,33 +247,7 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
         </p>
       </div>
 
-      <div className="bg-gray-50 rounded-lg p-6 space-y-4">
-        <div className="flex justify-between items-center">
-          <span className="text-gray-600">Till Number:</span>
-          <div className="flex items-center space-x-2">
-            <span className="font-mono font-semibold text-lg">6340351</span>
-            <button
-              onClick={() => copyToClipboard('6340351')}
-              className="text-blue-600 hover:text-blue-800 transition-colors"
-            >
-              <Copy className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-        
-        <div className="flex justify-between items-center">
-          <span className="text-gray-600">Till Name:</span>
-          <div className="flex items-center space-x-2">
-            <span className="font-semibold">FRANCISCA MAJALA MWAILA</span>
-            <button
-              onClick={() => copyToClipboard('FRANCISCA MAJALA MWAILA')}
-              className="text-blue-600 hover:text-blue-800 transition-colors"
-            >
-              <Copy className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-        
+      <div className="bg-gray-50 rounded-lg p-4">
         <div className="flex justify-between items-center">
           <span className="text-gray-600">Amount:</span>
           <span className="text-lg font-bold text-green-600">
@@ -312,61 +256,49 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
         </div>
       </div>
 
-      <div className="bg-blue-50 rounded-lg p-4">
-        <h4 className="font-semibold text-blue-800 mb-2">How to Pay:</h4>
-        <ol className="list-decimal list-inside text-blue-700 space-y-1 text-sm">
-          <li>Go to M-Pesa menu on your phone</li>
-          <li>Select "Pay Bill"</li>
-          <li>Enter Till Number: <span className="font-mono font-semibold">6340351</span></li>
-          <li>Enter Amount: <span className="font-semibold">KES {amount}</span></li>
-          <li>Enter your M-Pesa PIN</li>
-          <li>Wait for confirmation SMS</li>
-        </ol>
-      </div>
-
       <Button
-        onClick={initiatePayment}
-        disabled={isLoading}
+        onClick={initiateSTKPush}
+        disabled={isLoading || !phoneNumber.trim() || !userEmail.trim()}
         className="w-full"
         variant="primary"
       >
         {isLoading ? (
           <>
             <LoadingSpinner size="sm" />
-            Generating Instructions...
+            Sending STK Push...
           </>
         ) : (
           <>
-            <CreditCard className="w-5 h-5 mr-2" />
-            Continue to Payment
+            <Smartphone className="w-5 h-5 mr-2" />
+            Send STK Push
           </>
         )}
       </Button>
     </div>
   );
 
-  const renderValidation = () => (
+  const renderSTKPush = () => (
     <div className="space-y-6">
       <div className="text-center">
         <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-          <CheckCircle className="w-8 h-8 text-green-600" />
+          <Smartphone className="w-8 h-8 text-green-600" />
         </div>
         <h3 className="text-lg font-semibold text-gray-900 mb-2">
-          Enter Transaction Code
+          STK Push Sent!
         </h3>
         <p className="text-gray-600">
-          Enter the transaction code from your M-Pesa SMS
+          Check your phone for the M-Pesa payment prompt and enter your PIN
         </p>
       </div>
 
-      {submissionData && (
+      {paymentData && (
         <div className="bg-gray-50 rounded-lg p-4">
           <div className="flex justify-between items-center">
-            <span className="text-gray-600">Reference:</span>
+            <span className="text-gray-600">Checkout ID:</span>
             <div className="flex items-center space-x-2">
-              <span className="font-mono text-sm">{submissionData.reference}</span>
+              <span className="font-mono text-sm">{paymentData.checkout_request_id}</span>
               <button
-                onClick={() => copyToClipboard(submissionData.reference)}
+                onClick={() => copyToClipboard(paymentData.checkout_request_id)}
                 className="text-blue-600 hover:text-blue-800 transition-colors"
               >
                 <Copy className="w-4 h-4" />
@@ -376,38 +308,31 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
         </div>
       )}
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Transaction Code
-        </label>
-        <input
-          type="text"
-          value={transactionCode}
-          onChange={(e) => setTransactionCode(e.target.value.toUpperCase())}
-          placeholder="e.g., QGH7X8K9"
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-center text-lg"
-          disabled={isLoading}
-        />
-        <p className="text-xs text-gray-500 mt-1">
-          Enter the transaction code from your M-Pesa confirmation SMS
-        </p>
+      <div className="bg-blue-50 rounded-lg p-4">
+        <h4 className="font-semibold text-blue-800 mb-2">What to do next:</h4>
+        <ol className="list-decimal list-inside text-blue-700 space-y-1 text-sm">
+          <li>Check your phone for M-Pesa prompt</li>
+          <li>Enter your M-Pesa PIN when prompted</li>
+          <li>Wait for payment confirmation</li>
+          <li>Your document will be generated automatically</li>
+        </ol>
       </div>
 
       <Button
-        onClick={validateTransaction}
-        disabled={isLoading || !transactionCode.trim()}
+        onClick={startPolling}
+        disabled={isLoading}
         className="w-full"
         variant="primary"
       >
         {isLoading ? (
           <>
             <LoadingSpinner size="sm" />
-            Validating Payment...
+            Checking Status...
           </>
         ) : (
           <>
             <CheckCircle className="w-5 h-5 mr-2" />
-            Validate Payment
+            Check Payment Status
           </>
         )}
       </Button>
@@ -529,8 +454,8 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
 
   const renderContent = () => {
     switch (currentStep) {
-      case 'validation':
-        return renderValidation();
+      case 'stk-push':
+        return renderSTKPush();
       case 'processing':
         return renderProcessing();
       case 'completed':
@@ -538,7 +463,7 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
       case 'failed':
         return renderFailed();
       default:
-        return renderInstructions();
+        return renderPhoneInput();
     }
   };
 
@@ -566,8 +491,8 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
               {/* Header */}
               <div className="flex items-center justify-between p-6 border-b border-gray-200">
                 <h2 className="text-xl font-semibold text-gray-900">
-                  {currentStep === 'instructions' ? 'Payment Instructions' : 
-                   currentStep === 'validation' ? 'Validate Payment' :
+                  {currentStep === 'phone' ? 'M-Pesa Payment' : 
+                   currentStep === 'stk-push' ? 'STK Push Sent' :
                    currentStep === 'processing' ? 'Processing' :
                    currentStep === 'completed' ? 'Order Complete' : 'Error'}
                 </h2>
