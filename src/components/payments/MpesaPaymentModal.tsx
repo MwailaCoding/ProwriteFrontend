@@ -49,6 +49,7 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
   const [userEmail, setUserEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [paymentData, setPaymentData] = useState<any>(null);
+  const [submissionData, setSubmissionData] = useState<any>(null);
   const [error, setError] = useState('');
 
   const amount = documentType === 'Prowrite Template Resume' ? 500 : 300;
@@ -129,9 +130,9 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
       return;
     }
 
-    setCurrentStep('processing');
+        setCurrentStep('processing');
     toast.success('Payment initiated! Checking status...');
-    pollForCompletion();
+          pollForCompletion();
   };
 
   const pollForCompletion = async () => {
@@ -152,6 +153,10 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
         if (data.success) {
           if (data.status === 'completed') {
             setCurrentStep('completed');
+            setSubmissionData({
+              reference: data.payment_id || paymentData.checkout_request_id,
+              payment_id: data.payment_id
+            });
             toast.success('✅ Payment completed! Document ready for download!');
             if (onSuccess) {
               onSuccess(data.payment_id);

@@ -9,7 +9,8 @@ ADD COLUMN IF NOT EXISTS phone_number VARCHAR(15) NULL,
 ADD COLUMN IF NOT EXISTS completed_at TIMESTAMP NULL,
 ADD COLUMN IF NOT EXISTS failure_reason TEXT NULL,
 ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-ADD COLUMN IF NOT EXISTS payment_method ENUM('mpesa_stk', 'manual_admin', 'pesapal') DEFAULT 'mpesa_stk';
+ADD COLUMN IF NOT EXISTS payment_method ENUM('mpesa_stk', 'manual_admin', 'pesapal') DEFAULT 'mpesa_stk',
+ADD COLUMN IF NOT EXISTS form_data JSON NULL;
 
 -- 2. Create purchased_resumes table for tracking resume purchases
 CREATE TABLE IF NOT EXISTS purchased_resumes (
