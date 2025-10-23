@@ -303,8 +303,22 @@ class MpesaService:
             
             logger.info(f"Querying STK status for CheckoutRequestID: {checkout_request_id}")
             
-            response = requests.post(self.stk_query_url, json=payload, headers=headers)
-            response.raise_for_status()
+            response = requests.post(self.stk_query_url, json=payload, headers=headers, timeout=30)
+            
+            if response.status_code == 429:
+                logger.error("M-Pesa rate limit exceeded during STK query")
+                return {
+                    'success': False,
+                    'error': 'Rate limited. Please wait before checking again.',
+                    'status': 'pending'
+                }
+            elif response.status_code >= 400:
+                logger.error(f"STK query failed: {response.status_code} - {response.text}")
+                return {
+                    'success': False,
+                    'error': f'STK query failed: {response.status_code}',
+                    'status': 'pending'
+                }
             
             response_data = response.json()
             

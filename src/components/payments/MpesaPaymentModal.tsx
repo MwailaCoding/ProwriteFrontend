@@ -644,3 +644,424 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
     </AnimatePresence>
   );
 };
+            <span className="text-gray-600">Checkout ID:</span>
+            <div className="flex items-center space-x-2">
+
+              <span className="font-mono text-sm">{paymentData.checkout_request_id}</span>
+              <button
+
+                onClick={() => copyToClipboard(paymentData.checkout_request_id)}
+                className="text-blue-600 hover:text-blue-800 transition-colors"
+
+              >
+
+                <Copy className="w-4 h-4" />
+
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      )}
+
+
+
+      <div className="bg-blue-50 rounded-lg p-4">
+        <h4 className="font-semibold text-blue-800 mb-2">What to do next:</h4>
+        <ol className="list-decimal list-inside text-blue-700 space-y-1 text-sm">
+          <li>Check your phone for M-Pesa prompt</li>
+          <li>Enter your M-Pesa PIN when prompted</li>
+          <li>Wait for payment confirmation</li>
+          <li>Your document will be generated automatically</li>
+        </ol>
+      </div>
+
+
+
+      <Button
+
+        onClick={startPolling}
+        disabled={isLoading}
+        className="w-full"
+
+        variant="primary"
+
+      >
+
+        {isLoading ? (
+
+          <>
+
+            <LoadingSpinner size="sm" />
+
+            Checking Status...
+          </>
+
+        ) : (
+
+          <>
+
+            <CheckCircle className="w-5 h-5 mr-2" />
+
+            Check Payment Status
+          </>
+
+        )}
+
+      </Button>
+
+    </div>
+
+  );
+
+
+
+  const renderProcessing = () => (
+
+    <div className="text-center space-y-4">
+
+      <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+
+        <Loader className="w-8 h-8 text-blue-600 animate-spin" />
+
+      </div>
+
+      <h3 className="text-lg font-semibold">Processing Your Order</h3>
+
+      <p className="text-gray-600">
+
+        Payment confirmed! Generating your document...
+
+      </p>
+
+      <div className="bg-blue-50 rounded-lg p-4 text-sm">
+
+        <p className="font-medium text-blue-800">What's happening:</p>
+
+        <ul className="list-disc list-inside text-blue-700 mt-2 space-y-1">
+
+          <li>Generating your {documentType}</li>
+
+          <li>Preparing email delivery</li>
+
+          <li>Almost ready!</li>
+
+        </ul>
+
+      </div>
+
+      
+
+      {/* SIMPLE DOWNLOAD BUTTON - ALWAYS VISIBLE */}
+
+      {submissionData && submissionData.reference && (
+
+        <div className="bg-green-50 border-2 border-green-300 rounded-lg p-6 mt-4">
+
+          <h3 className="text-green-800 font-bold text-center mb-4 text-xl">
+
+            ✅ YOUR PDF IS READY!
+
+          </h3>
+
+          <p className="text-green-700 text-center mb-4">
+
+            Reference: <strong>{submissionData.reference}</strong>
+
+          </p>
+
+          
+
+          <button
+
+            onClick={() => {
+
+              const url = `https://prowrite.pythonanywhere.com/api/downloads/resume_${submissionData.reference}.pdf`;
+
+              console.log('🚀 Downloading PDF:', url);
+
+              
+
+              // Open in new tab
+
+              window.open(url, '_blank');
+
+              
+
+              // Also download
+
+              const link = document.createElement('a');
+
+              link.href = url;
+
+              link.download = `resume_${submissionData.reference}.pdf`;
+
+              link.style.display = 'none';
+
+              document.body.appendChild(link);
+
+              link.click();
+
+              document.body.removeChild(link);
+
+              
+
+              toast.success('🚀 PDF downloaded! Check your downloads folder!');
+
+            }}
+
+            className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-lg transition-colors text-lg"
+
+          >
+
+            📥 DOWNLOAD YOUR PDF NOW
+
+          </button>
+
+          
+
+          <p className="text-green-600 text-sm mt-3 text-center">
+
+            This button works immediately - no waiting!
+
+          </p>
+
+        </div>
+
+      )}
+
+    </div>
+
+  );
+
+
+
+  const renderCompleted = () => (
+
+    <div className="text-center space-y-4">
+
+      <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+
+        <CheckCircle className="w-8 h-8 text-green-600" />
+
+      </div>
+
+      <h3 className="text-lg font-semibold text-green-800">Order Complete!</h3>
+
+      <p className="text-gray-600">
+
+        Your {documentType} has been generated and sent to your email
+
+      </p>
+
+      <div className="bg-green-50 rounded-lg p-4">
+
+        <div className="flex items-center justify-center space-x-2 text-green-700">
+
+          <CheckCircle className="w-5 h-5" />
+
+          <span className="text-sm font-medium">Check your email for the document</span>
+
+        </div>
+
+      </div>
+
+      <Button
+
+        onClick={onClose}
+
+        className="w-full"
+
+        variant="primary"
+
+      >
+
+        Close
+
+      </Button>
+
+    </div>
+
+  );
+
+
+
+  const renderFailed = () => (
+
+    <div className="text-center space-y-4">
+
+      <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
+
+        <AlertCircle className="w-8 h-8 text-red-600" />
+
+      </div>
+
+      <h3 className="text-lg font-semibold text-red-800">Something Went Wrong</h3>
+
+      <p className="text-gray-600">
+
+        {error || 'We encountered an error processing your order'}
+
+      </p>
+
+      <div className="space-y-2">
+
+        <Button
+
+          onClick={() => setCurrentStep('instructions')}
+
+          className="w-full"
+
+          variant="secondary"
+
+        >
+
+          Try Again
+
+        </Button>
+
+        <Button
+
+          onClick={onClose}
+
+          className="w-full"
+
+          variant="outline"
+
+        >
+
+          Close
+
+        </Button>
+
+      </div>
+
+    </div>
+
+  );
+
+
+
+  const renderContent = () => {
+
+    switch (currentStep) {
+
+      case 'stk-push':
+        return renderSTKPush();
+      case 'processing':
+
+        return renderProcessing();
+
+      case 'completed':
+
+        return renderCompleted();
+
+      case 'failed':
+
+        return renderFailed();
+
+      default:
+
+        return renderPhoneInput();
+    }
+
+  };
+
+
+
+  return (
+
+    <AnimatePresence>
+
+      {isOpen && (
+
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+
+          <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+
+            {/* Backdrop */}
+
+            <motion.div
+
+              initial={{ opacity: 0 }}
+
+              animate={{ opacity: 1 }}
+
+              exit={{ opacity: 0 }}
+
+              className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+
+              onClick={handleClose}
+
+            />
+
+
+
+            {/* Modal */}
+
+            <motion.div
+
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+
+              className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg"
+
+            >
+
+              {/* Header */}
+
+              <div className="flex items-center justify-between p-6 border-b border-gray-200">
+
+                <h2 className="text-xl font-semibold text-gray-900">
+
+                  {currentStep === 'phone' ? 'M-Pesa Payment' : 
+                   currentStep === 'stk-push' ? 'STK Push Sent' :
+                   currentStep === 'processing' ? 'Processing' :
+
+                   currentStep === 'completed' ? 'Order Complete' : 'Error'}
+
+                </h2>
+
+                <button
+
+                  onClick={handleClose}
+
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+
+                >
+
+                  <X className="w-6 h-6" />
+
+                </button>
+
+              </div>
+
+
+
+              {/* Content */}
+
+              <div className="p-6">
+
+                {renderContent()}
+
+              </div>
+
+            </motion.div>
+
+          </div>
+
+        </div>
+
+      )}
+
+    </AnimatePresence>
+
+  );
+
+};

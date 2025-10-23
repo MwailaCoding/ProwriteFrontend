@@ -42,10 +42,14 @@ def log_payment_action(payment_id, action, details=None):
         conn = get_db_connection()
         cursor = conn.cursor()
         
+        # Convert details to JSON if it's a dict
+        import json
+        details_json = json.dumps(details) if isinstance(details, dict) else details
+        
         cursor.execute("""
             INSERT INTO payment_logs (payment_id, action, details)
             VALUES (%s, %s, %s)
-        """, (payment_id, action, details))
+        """, (payment_id, action, details_json))
         
         conn.commit()
         cursor.close()
@@ -385,7 +389,15 @@ def query_payment_status(checkout_request_id):
         query_payment_status.last_query_time[checkout_request_id] = current_time
         
         # Query M-Pesa API for status
-        result = mpesa_service.query_stk_status(checkout_request_id)
+        try:
+            result = mpesa_service.query_stk_status(checkout_request_id)
+        except Exception as e:
+            logger.error(f"Error querying STK status: {e}")
+            return jsonify({
+                'success': False,
+                'error': 'Failed to query payment status',
+                'status': 'pending'
+            }), 400
         
         if result['success']:
             # Get payment record from database
