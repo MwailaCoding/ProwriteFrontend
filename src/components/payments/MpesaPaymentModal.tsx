@@ -199,17 +199,16 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
     if (!paymentData?.checkout_request_id) return;
 
     let pollCount = 0;
-    const maxPolls = 3; // Maximum 3 polls (30 seconds total)
-    const pollInterval = 10000; // 10 seconds between polls
-    let isPolling = true; // Flag to control polling
+    const maxPolls = 3;
+    const pollInterval = 10000;
+    let isPolling = true;
 
-    const poll = async () => {
-      if (!isPolling) return; // Stop if polling is disabled
+    const poll = async (): Promise<void> => {
+      if (!isPolling) return;
       
       pollCount++;
       console.log(`Polling attempt ${pollCount}/${maxPolls}`);
       
-      // Stop polling after max attempts
       if (pollCount > maxPolls) {
         isPolling = false;
         setCurrentStep('failed');
@@ -219,13 +218,11 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
       }
 
       try {
-        // Use absolute URL to ensure it goes to the backend
         const backendURL = 'https://prowrite.pythonanywhere.com/api';
         const response = await fetch(`${backendURL}/payments/mpesa/status/${paymentData.checkout_request_id}`);
         
         if (!response.ok) {
           if (response.status === 429) {
-            // Rate limited - stop polling immediately
             console.log('Rate limited, stopping polling...');
             isPolling = false;
             setCurrentStep('failed');
@@ -233,7 +230,6 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
             toast.error('Rate limit exceeded. Please wait 5-10 minutes before trying again.');
             return;
           } else if (response.status === 400) {
-            // Bad request - check if it's rate limited
             try {
               const data = await response.json();
               if (data.error && data.error.includes('Rate limited')) {
@@ -244,7 +240,7 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
                 return;
               }
             } catch (e) {
-              // If we can't parse the response, continue with error
+              // Continue with error handling
             }
           }
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -254,7 +250,7 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
         
         if (data.success) {
           if (data.status === 'completed') {
-            isPolling = false; // Stop polling
+            isPolling = false;
             setCurrentStep('completed');
             setSubmissionData({
               reference: data.payment_id || paymentData.checkout_request_id,
@@ -265,7 +261,6 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
               onSuccess(data.payment_id);
             }
           } else if (data.status === 'pending') {
-            // Continue polling only if we haven't exceeded max attempts
             if (pollCount < maxPolls && isPolling) {
               console.log(`Payment still pending, polling again in ${pollInterval/1000} seconds...`);
               setTimeout(poll, pollInterval);
@@ -276,11 +271,9 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
               toast.error('Payment is taking longer than expected. Please check your payment manually.');
             }
           } else if (data.status === 'failed') {
-            isPolling = false; // Stop polling
-            // Handle specific failure reasons
+            isPolling = false;
             let errorMessage = data.error || 'Payment failed';
             
-            // M-Pesa specific failure codes
             if (data.error && data.error.includes('1032')) {
               errorMessage = 'Payment was cancelled by user. Please try again if you want to proceed.';
             } else if (data.error && data.error.includes('1037')) {
@@ -296,8 +289,7 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
             toast.error(errorMessage);
           }
         } else {
-          isPolling = false; // Stop polling
-          // Handle API response errors
+          isPolling = false;
           let errorMessage = data.error || 'Payment status check failed';
           
           if (data.error && data.error.includes('Rate limited')) {
@@ -313,25 +305,23 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
       } catch (error: any) {
         console.error('Polling error:', error);
         
-        // If it's a network error, try again with longer delay (only once)
         if (error.message.includes('timeout') || error.message.includes('network')) {
-          if (pollCount === 1) { // Only retry once for network errors
+          if (pollCount === 1) {
             console.log('Network error, retrying with longer delay...');
             setTimeout(poll, pollInterval * 2);
             return;
           }
         }
         
-        isPolling = false; // Stop polling on error
+        isPolling = false;
         setCurrentStep('failed');
         setError('Failed to check payment status');
         toast.error('Failed to check payment status');
       }
     };
     
-    // Start polling after a short delay
     console.log('Starting payment status polling...');
-    setTimeout(poll, 5000); // Wait 5 seconds before first poll
+    setTimeout(poll, 5000);
   };
 
   const copyToClipboard = (text: string) => {
