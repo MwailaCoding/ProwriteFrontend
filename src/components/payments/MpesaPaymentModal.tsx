@@ -94,7 +94,20 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        // Handle different HTTP status codes
+        if (response.status === 401) {
+          throw new Error('Authentication failed. Please log in again.');
+        } else if (response.status === 403) {
+          throw new Error('Access denied. Please check your permissions.');
+        } else if (response.status === 429) {
+          throw new Error('Too many requests. Please wait a moment and try again.');
+        } else if (response.status === 500) {
+          throw new Error('Server error. Please try again later.');
+        } else if (response.status === 503) {
+          throw new Error('Service temporarily unavailable. Please try again later.');
+        } else {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
       }
 
       const data = await response.json();
@@ -104,21 +117,68 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
         setCurrentStep('stk-push');
         toast.success('STK Push sent to your phone! Please check your phone and enter your M-Pesa PIN.');
       } else {
-        // Handle specific M-Pesa errors
+        // Handle specific M-Pesa errors with detailed messages
         let errorMessage = data.error || 'Failed to initiate STK push';
+        
+        // M-Pesa specific error codes
         if (data.error && data.error.includes('No response from user')) {
           errorMessage = 'Please respond to the STK push on your phone. Check your phone and enter your M-Pesa PIN.';
         } else if (data.error && data.error.includes('1037')) {
           errorMessage = 'STK push was sent but you didn\'t respond. Please try again and enter your M-Pesa PIN when prompted.';
+        } else if (data.error && data.error.includes('1032')) {
+          errorMessage = 'Payment was cancelled. Please try again if you want to proceed.';
+        } else if (data.error && data.error.includes('1031')) {
+          errorMessage = 'Unable to lock subscriber. Please try again later.';
+        } else if (data.error && data.error.includes('1033')) {
+          errorMessage = 'Transaction failed. Please check your M-Pesa balance and try again.';
+        } else if (data.error && data.error.includes('2001')) {
+          errorMessage = 'Wrong PIN entered. Please try again with the correct PIN.';
+        } else if (data.error && data.error.includes('2002')) {
+          errorMessage = 'Insufficient funds. Please top up your M-Pesa account and try again.';
+        } else if (data.error && data.error.includes('2003')) {
+          errorMessage = 'Less than minimum transaction value. Please check the amount.';
+        } else if (data.error && data.error.includes('2004')) {
+          errorMessage = 'More than maximum transaction value. Please check the amount.';
+        } else if (data.error && data.error.includes('2005')) {
+          errorMessage = 'Would exceed daily transfer limit. Please try again tomorrow.';
+        } else if (data.error && data.error.includes('2006')) {
+          errorMessage = 'Would exceed minimum balance. Please check your account balance.';
+        } else if (data.error && data.error.includes('Network error')) {
+          errorMessage = 'Network connection error. Please check your internet connection and try again.';
+        } else if (data.error && data.error.includes('Rate limited')) {
+          errorMessage = 'Too many requests. Please wait a moment before trying again.';
         }
         setError(errorMessage);
         setCurrentStep('failed');
         toast.error(errorMessage);
       }
     } catch (error: any) {
-      setError('Failed to initiate STK push');
+      console.error('STK Push initiation error:', error);
+      
+      let errorMessage = 'Failed to initiate STK push';
+      
+      // Handle different types of errors
+      if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+        errorMessage = 'Network connection error. Please check your internet connection and try again.';
+      } else if (error.message.includes('timeout')) {
+        errorMessage = 'Request timed out. Please try again.';
+      } else if (error.message.includes('Authentication failed')) {
+        errorMessage = 'Authentication failed. Please log in again.';
+      } else if (error.message.includes('Access denied')) {
+        errorMessage = 'Access denied. Please check your permissions.';
+      } else if (error.message.includes('Too many requests')) {
+        errorMessage = 'Too many requests. Please wait a moment and try again.';
+      } else if (error.message.includes('Server error')) {
+        errorMessage = 'Server error. Please try again later.';
+      } else if (error.message.includes('Service temporarily unavailable')) {
+        errorMessage = 'Service temporarily unavailable. Please try again later.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      setError(errorMessage);
       setCurrentStep('failed');
-      toast.error('Failed to initiate STK push');
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -138,13 +198,33 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
   const pollForCompletion = async () => {
     if (!paymentData?.checkout_request_id) return;
 
+    let pollCount = 0;
+    const maxPolls = 10; // Maximum 10 polls (30 seconds)
+    const pollInterval = 3000; // 3 seconds between polls
+
     const poll = async () => {
+      pollCount++;
+      
+      // Stop polling after max attempts
+      if (pollCount > maxPolls) {
+        setCurrentStep('failed');
+        setError('Payment status check timed out. Please check your payment manually.');
+        toast.error('Payment status check timed out. Please check your payment manually.');
+        return;
+      }
+
       try {
         // Use absolute URL to ensure it goes to the backend
         const backendURL = 'https://prowrite.pythonanywhere.com/api';
         const response = await fetch(`${backendURL}/payments/mpesa/status/${paymentData.checkout_request_id}`);
         
         if (!response.ok) {
+          if (response.status === 429) {
+            // Rate limited - wait longer before next poll
+            console.log('Rate limited, waiting longer...');
+            setTimeout(poll, pollInterval * 2);
+            return;
+          }
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         
@@ -162,22 +242,59 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
               onSuccess(data.payment_id);
             }
           } else if (data.status === 'pending') {
-            // Poll every 2 seconds for pending status
-            setTimeout(poll, 2000);
+            // Continue polling with rate limiting
+            setTimeout(poll, pollInterval);
           } else if (data.status === 'failed') {
+            // Handle specific failure reasons
+            let errorMessage = data.error || 'Payment failed';
+            
+            // M-Pesa specific failure codes
+            if (data.error && data.error.includes('1032')) {
+              errorMessage = 'Payment was cancelled by user. Please try again if you want to proceed.';
+            } else if (data.error && data.error.includes('1037')) {
+              errorMessage = 'No response from user. Please check your phone and respond to the STK push.';
+            } else if (data.error && data.error.includes('2002')) {
+              errorMessage = 'Insufficient funds. Please top up your M-Pesa account and try again.';
+            } else if (data.error && data.error.includes('2001')) {
+              errorMessage = 'Wrong PIN entered. Please try again with the correct PIN.';
+            }
+            
             setCurrentStep('failed');
-            setError(data.error || 'Payment failed');
-            toast.error('Payment failed');
+            setError(errorMessage);
+            toast.error(errorMessage);
           }
+        } else {
+          // Handle API response errors
+          let errorMessage = data.error || 'Payment status check failed';
+          
+          if (data.error && data.error.includes('Rate limited')) {
+            errorMessage = 'Too many status checks. Please wait a moment before trying again.';
+          } else if (data.error && data.error.includes('Payment not found')) {
+            errorMessage = 'Payment record not found. Please try initiating a new payment.';
+          }
+          
+          setCurrentStep('failed');
+          setError(errorMessage);
+          toast.error(errorMessage);
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Polling error:', error);
-        // Retry on error
-        setTimeout(poll, 3000);
+        
+        // If it's a network error, try again with longer delay
+        if (error.message.includes('timeout') || error.message.includes('network')) {
+          console.log('Network error, retrying with longer delay...');
+          setTimeout(poll, pollInterval * 2);
+          return;
+        }
+        
+        setCurrentStep('failed');
+        setError('Failed to check payment status');
+        toast.error('Failed to check payment status');
       }
     };
     
-    poll();
+    // Start polling after a short delay
+    setTimeout(poll, 3000);
   };
 
   const copyToClipboard = (text: string) => {

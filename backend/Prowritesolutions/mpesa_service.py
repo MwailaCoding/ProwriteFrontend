@@ -109,20 +109,41 @@ class MpesaService:
                 'Content-Type': 'application/json'
             }
             
-            response = requests.get(self.oauth_url, headers=headers)
-            response.raise_for_status()
+            response = requests.get(self.oauth_url, headers=headers, timeout=30)
             
-            token_data = response.json()
-            self.access_token = token_data['access_token']
-            # Token expires in 1 hour, set expiry to 50 minutes for safety
-            self.token_expiry = time.time() + (50 * 60)
+            if response.status_code == 200:
+                token_data = response.json()
+                self.access_token = token_data['access_token']
+                # Token expires in 1 hour, set expiry to 50 minutes for safety
+                self.token_expiry = time.time() + (50 * 60)
+                
+                logger.info("M-Pesa access token generated successfully")
+                return self.access_token
+            elif response.status_code == 401:
+                logger.error("M-Pesa authentication failed - check credentials")
+                raise Exception("M-Pesa authentication failed - check credentials")
+            elif response.status_code == 429:
+                logger.error("M-Pesa rate limit exceeded")
+                raise Exception("M-Pesa rate limit exceeded")
+            elif response.status_code >= 500:
+                logger.error(f"M-Pesa server error: {response.status_code}")
+                raise Exception(f"M-Pesa server error: {response.status_code}")
+            else:
+                logger.error(f"Failed to get access token: {response.status_code} - {response.text}")
+                raise Exception(f"Failed to get access token: {response.status_code}")
             
-            logger.info("M-Pesa access token generated successfully")
-            return self.access_token
-            
+        except requests.exceptions.Timeout:
+            logger.error("M-Pesa access token request timed out")
+            raise Exception("M-Pesa request timed out - please try again")
+        except requests.exceptions.ConnectionError:
+            logger.error("M-Pesa connection error - check internet connection")
+            raise Exception("M-Pesa connection error - check internet connection")
         except requests.exceptions.RequestException as e:
             logger.error(f"Failed to get M-Pesa access token: {e}")
             raise Exception("Failed to authenticate with M-Pesa API")
+        except Exception as e:
+            logger.error(f"Unexpected error getting access token: {e}")
+            raise Exception("Unexpected error getting access token")
     
     def _generate_timestamp(self) -> str:
         """Generate M-Pesa timestamp format"""

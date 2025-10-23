@@ -229,14 +229,45 @@ def initiate_stk_push():
                     'message': 'STK push initiated successfully. Check your phone for payment prompt.'
                 })
             else:
+                logger.error(f"Failed to create payment record for user {user_id}")
                 return jsonify({
                     'success': False,
-                    'error': 'Failed to create payment record'
+                    'error': 'Failed to create payment record. Please try again.'
                 }), 500
         else:
+            # Handle specific M-Pesa errors
+            error_message = result.get('error', 'Failed to initiate STK push')
+            
+            # Map M-Pesa error codes to user-friendly messages
+            if '1037' in error_message:
+                error_message = 'No response from user. Please check your phone and respond to the STK push.'
+            elif '1032' in error_message:
+                error_message = 'Payment was cancelled. Please try again if you want to proceed.'
+            elif '1031' in error_message:
+                error_message = 'Unable to lock subscriber. Please try again later.'
+            elif '1033' in error_message:
+                error_message = 'Transaction failed. Please check your M-Pesa balance and try again.'
+            elif '2001' in error_message:
+                error_message = 'Wrong PIN entered. Please try again with the correct PIN.'
+            elif '2002' in error_message:
+                error_message = 'Insufficient funds. Please top up your M-Pesa account and try again.'
+            elif '2003' in error_message:
+                error_message = 'Less than minimum transaction value. Please check the amount.'
+            elif '2004' in error_message:
+                error_message = 'More than maximum transaction value. Please check the amount.'
+            elif '2005' in error_message:
+                error_message = 'Would exceed daily transfer limit. Please try again tomorrow.'
+            elif '2006' in error_message:
+                error_message = 'Would exceed minimum balance. Please check your account balance.'
+            elif 'Network error' in error_message:
+                error_message = 'Network connection error. Please check your internet connection and try again.'
+            elif 'Rate limited' in error_message:
+                error_message = 'Too many requests. Please wait a moment before trying again.'
+            
+            logger.error(f"STK push failed for user {user_id}: {error_message}")
             return jsonify({
                 'success': False,
-                'error': result.get('error', 'Failed to initiate STK push')
+                'error': error_message
             }), 400
             
     except Exception as e:
@@ -333,6 +364,26 @@ def mpesa_callback():
 def query_payment_status(checkout_request_id):
     """Query payment status for frontend polling"""
     try:
+        # Add rate limiting - check if we've queried recently
+        import time
+        current_time = time.time()
+        
+        # Simple in-memory rate limiting (in production, use Redis)
+        if not hasattr(query_payment_status, 'last_query_time'):
+            query_payment_status.last_query_time = {}
+        
+        last_query = query_payment_status.last_query_time.get(checkout_request_id, 0)
+        
+        # Rate limit: max 1 query per 2 seconds per checkout_request_id
+        if current_time - last_query < 2:
+            return jsonify({
+                'success': False,
+                'error': 'Rate limited. Please wait before checking again.',
+                'status': 'pending'
+            }), 429
+        
+        query_payment_status.last_query_time[checkout_request_id] = current_time
+        
         # Query M-Pesa API for status
         result = mpesa_service.query_stk_status(checkout_request_id)
         
