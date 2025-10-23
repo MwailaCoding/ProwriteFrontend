@@ -139,7 +139,8 @@ def test_mpesa_service():
         }
         
         print(f"   ✅ STK Push URL: {stk_push_url}")
-        print(f"   ✅ Test Phone: 254708374149")
+        print(f"   ✅ Test Phone: 
+        254708374149")
         print(f"   ✅ Test Amount: 1 KES")
         print(f"   ✅ Callback URL: {mpesa.callback_url}")
         

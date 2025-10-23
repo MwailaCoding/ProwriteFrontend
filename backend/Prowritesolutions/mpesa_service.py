@@ -112,13 +112,13 @@ class MpesaService:
             response = requests.get(self.oauth_url, headers=headers, timeout=30)
             
             if response.status_code == 200:
-                token_data = response.json()
-                self.access_token = token_data['access_token']
-                # Token expires in 1 hour, set expiry to 50 minutes for safety
-                self.token_expiry = time.time() + (50 * 60)
-                
-                logger.info("M-Pesa access token generated successfully")
-                return self.access_token
+            token_data = response.json()
+            self.access_token = token_data['access_token']
+            # Token expires in 1 hour, set expiry to 50 minutes for safety
+            self.token_expiry = time.time() + (50 * 60)
+            
+            logger.info("M-Pesa access token generated successfully")
+            return self.access_token
             elif response.status_code == 401:
                 logger.error("M-Pesa authentication failed - check credentials")
                 raise Exception("M-Pesa authentication failed - check credentials")
@@ -502,3 +502,472 @@ class MpesaService:
 
 # Create global instance
 mpesa_service = MpesaService()
+
+
+            return {
+
+                'success': False,
+
+                'error': error_msg
+
+            }
+
+        except Exception as e:
+
+            error_msg = f"Unexpected error during STK Push: {str(e)}"
+
+            logger.error(error_msg)
+
+            return {
+
+                'success': False,
+
+                'error': error_msg
+
+            }
+
+    
+
+    def query_stk_status(self, checkout_request_id: str) -> Dict[str, Any]:
+
+        """
+
+        Query STK Push status
+
+        
+
+        Args:
+
+            checkout_request_id: The checkout request ID from STK Push
+
+            
+
+        Returns:
+
+            Dict containing payment status and details
+
+        """
+
+        try:
+
+            # Initialize configuration if not already done
+
+            self._initialize_config()
+
+            
+
+            # Get access token
+
+            access_token = self._get_access_token()
+
+            
+
+            # Generate timestamp and password
+
+            timestamp = self._generate_timestamp()
+
+            password = self._generate_password(timestamp)
+
+            
+
+            # Prepare request payload
+
+            payload = {
+
+                "BusinessShortCode": self.business_short_code,
+
+                "Password": password,
+
+                "Timestamp": timestamp,
+
+                "CheckoutRequestID": checkout_request_id
+
+            }
+
+            
+
+            headers = {
+
+                'Authorization': f'Bearer {access_token}',
+
+                'Content-Type': 'application/json'
+
+            }
+
+            
+
+            logger.info(f"Querying STK status for CheckoutRequestID: {checkout_request_id}")
+
+            
+
+            response = requests.post(self.stk_query_url, json=payload, headers=headers)
+
+            response.raise_for_status()
+
+            
+
+            response_data = response.json()
+
+            
+
+            if response_data.get('ResponseCode') == '0':
+
+                result_code = response_data.get('ResultCode')
+
+                result_desc = response_data.get('ResultDesc')
+
+                
+
+                logger.info(f"STK Query successful. ResultCode: {result_code}, ResultDesc: {result_desc}")
+
+                
+
+                # Map M-Pesa result codes to our status
+
+                if result_code == '0':
+
+                    status = 'completed'
+
+                elif result_code == '1':
+
+                    status = 'pending'
+
+                elif result_code == '2':
+
+                    status = 'failed'
+
+                else:
+
+                    status = 'unknown'
+
+                
+
+                return {
+
+                    'success': True,
+
+                    'status': status,
+
+                    'result_code': result_code,
+
+                    'result_description': result_desc,
+
+                    'merchant_request_id': response_data.get('MerchantRequestID'),
+
+                    'checkout_request_id': response_data.get('CheckoutRequestID'),
+
+                    'amount': response_data.get('Amount'),
+
+                    'mpesa_receipt_number': response_data.get('MpesaReceiptNumber'),
+
+                    'transaction_date': response_data.get('TransactionDate')
+
+                }
+
+            else:
+
+                error_msg = f"STK Query failed: {response_data.get('ResponseDescription', 'Unknown error')}"
+
+                logger.error(error_msg)
+
+                return {
+
+                    'success': False,
+
+                    'error': error_msg,
+
+                    'response_code': response_data.get('ResponseCode'),
+
+                    'response_description': response_data.get('ResponseDescription')
+
+                }
+
+                
+
+        except requests.exceptions.RequestException as e:
+
+            error_msg = f"Network error during STK Query: {str(e)}"
+
+            logger.error(error_msg)
+
+            return {
+
+                'success': False,
+
+                'error': error_msg
+
+            }
+
+        except Exception as e:
+
+            error_msg = f"Unexpected error during STK Query: {str(e)}"
+
+            logger.error(error_msg)
+
+            return {
+
+                'success': False,
+
+                'error': error_msg
+
+            }
+
+    
+
+    def process_callback(self, callback_data: Dict[str, Any]) -> Dict[str, Any]:
+
+        """
+
+        Process M-Pesa callback data
+
+        
+
+        Args:
+
+            callback_data: Raw callback data from M-Pesa
+
+            
+
+        Returns:
+
+            Dict containing processed payment information
+
+        """
+
+        try:
+
+            logger.info("Processing M-Pesa callback data")
+
+            
+
+            # Extract relevant information from callback
+
+            body = callback_data.get('Body', {})
+
+            stk_callback = body.get('stkCallback', {})
+
+            
+
+            result_code = stk_callback.get('ResultCode')
+
+            result_desc = stk_callback.get('ResultDesc')
+
+            checkout_request_id = stk_callback.get('CheckoutRequestID')
+
+            merchant_request_id = stk_callback.get('MerchantRequestID')
+
+            
+
+            # Extract payment details
+
+            payment_details = {}
+
+            if 'CallbackMetadata' in stk_callback:
+
+                metadata = stk_callback['CallbackMetadata'].get('Item', [])
+
+                for item in metadata:
+
+                    name = item.get('Name')
+
+                    value = item.get('Value')
+
+                    if name and value is not None:
+
+                        payment_details[name] = value
+
+            
+
+            # Determine payment status
+
+            if result_code == 0:
+
+                status = 'completed'
+
+                mpesa_receipt = payment_details.get('MpesaReceiptNumber', '')
+
+                amount = payment_details.get('Amount', 0)
+
+                phone_number = payment_details.get('PhoneNumber', '')
+
+                
+
+                logger.info(f"Payment completed successfully. Receipt: {mpesa_receipt}, Amount: {amount}")
+
+                
+
+                return {
+
+                    'success': True,
+
+                    'status': status,
+
+                    'checkout_request_id': checkout_request_id,
+
+                    'merchant_request_id': merchant_request_id,
+
+                    'mpesa_receipt_number': mpesa_receipt,
+
+                    'amount': amount,
+
+                    'phone_number': phone_number,
+
+                    'result_code': result_code,
+
+                    'result_description': result_desc
+
+                }
+
+            else:
+
+                status = 'failed'
+
+                logger.warning(f"Payment failed. ResultCode: {result_code}, Description: {result_desc}")
+
+                
+
+                return {
+
+                    'success': False,
+
+                    'status': status,
+
+                    'checkout_request_id': checkout_request_id,
+
+                    'merchant_request_id': merchant_request_id,
+
+                    'result_code': result_code,
+
+                    'result_description': result_desc,
+
+                    'error': result_desc
+
+                }
+
+                
+
+        except Exception as e:
+
+            error_msg = f"Error processing M-Pesa callback: {str(e)}"
+
+            logger.error(error_msg)
+
+            return {
+
+                'success': False,
+
+                'error': error_msg
+
+            }
+
+    
+
+    def validate_phone_number(self, phone: str) -> bool:
+
+        """
+
+        Validate phone number format for M-Pesa
+
+        
+
+        Args:
+
+            phone: Phone number to validate
+
+            
+
+        Returns:
+
+            True if valid, False otherwise
+
+        """
+
+        try:
+
+            # Initialize configuration if not already done
+
+            self._initialize_config()
+
+            
+
+            formatted = self._format_phone_number(phone)
+
+            return len(formatted) == 12 and formatted.startswith('254')
+
+        except ValueError:
+
+            return False
+
+    
+
+    def get_service_status(self) -> Dict[str, Any]:
+
+        """
+
+        Get M-Pesa service status and configuration
+
+        
+
+        Returns:
+
+            Dict containing service status information
+
+        """
+
+        try:
+
+            # Initialize configuration if not already done
+
+            self._initialize_config()
+
+            
+
+            # Test access token generation
+
+            access_token = self._get_access_token()
+
+            
+
+            return {
+
+                'status': 'operational',
+
+                'environment': self.environment,
+
+                'base_url': self.base_url,
+
+                'business_short_code': self.business_short_code,
+
+                'access_token_available': bool(access_token),
+
+                'configuration_valid': True
+
+            }
+
+        except Exception as e:
+
+            return {
+
+                'status': 'error',
+
+                'environment': self.environment,
+
+                'base_url': self.base_url,
+
+                'business_short_code': self.business_short_code,
+
+                'access_token_available': False,
+
+                'configuration_valid': False,
+
+                'error': str(e)
+
+            }
+
+
+
+# Create global instance
+
+mpesa_service = MpesaService()
+
+

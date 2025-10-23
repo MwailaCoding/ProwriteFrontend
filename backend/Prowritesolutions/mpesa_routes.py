@@ -432,9 +432,15 @@ def query_payment_status(checkout_request_id):
                     'error': 'Payment not found'
                 }), 404
         else:
+            error_code = result.get('result_code', '')
+            error_message = result.get('error', 'Failed to query status')
+            
             return jsonify({
                 'success': False,
-                'error': result.get('error', 'Failed to query status')
+                'error': error_message,
+                'error_code': error_code,
+                'error_category': categorize_error(error_code),
+                'user_message': get_user_friendly_message(error_code)
             }), 400
             
     except Exception as e:
@@ -456,3 +462,30 @@ def service_status():
             'status': 'error',
             'error': str(e)
         }), 500
+
+def categorize_error(error_code):
+    """Categorize M-Pesa error codes"""
+    if error_code in ['1032', '1037']:
+        return 'user_action_required'
+    elif error_code in ['2001', '2002', '2003', '2004', '2005', '2006']:
+        return 'payment_issue'
+    elif error_code in ['1031', '1033']:
+        return 'technical_issue'
+    else:
+        return 'system_error'
+
+def get_user_friendly_message(error_code):
+    """Get user-friendly error messages"""
+    error_messages = {
+        '1032': 'Payment was cancelled by user. You can try again.',
+        '1037': 'No response from user. Please check your phone and respond to the STK push.',
+        '2001': 'Wrong PIN entered. Please try again with the correct PIN.',
+        '2002': 'Insufficient funds. Please top up your M-Pesa account and try again.',
+        '2003': 'Transaction limit exceeded. Please try a smaller amount.',
+        '2004': 'Daily transaction limit exceeded. Please try again tomorrow.',
+        '2005': 'Monthly transaction limit exceeded. Please try again next month.',
+        '2006': 'Transaction limit exceeded for this merchant.',
+        '1031': 'Unable to lock subscriber. Please try again later.',
+        '1033': 'Transaction failed. Please check your M-Pesa balance and try again.'
+    }
+    return error_messages.get(error_code, 'Payment failed. Please try again.')

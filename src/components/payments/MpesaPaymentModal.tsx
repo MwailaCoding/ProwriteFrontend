@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { Button } from '../common/Button';
 import { LoadingSpinner } from '../common/LoadingSpinner';
+import PaymentStatusMessages from './PaymentStatusMessages';
 import { toast } from 'react-hot-toast';
 
 interface MpesaPaymentModalProps {
@@ -53,6 +54,10 @@ const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [paymentData, setPaymentData] = useState<PaymentData | null>(null);
   const [submissionData, setSubmissionData] = useState<SubmissionData | null>(null);
+  const [statusMessage, setStatusMessage] = useState<string>('');
+  const [pollingAttempt, setPollingAttempt] = useState<number>(0);
+  const [paymentCancelled, setPaymentCancelled] = useState<boolean>(false);
+  const [startTime, setStartTime] = useState<number | null>(null);
 
   // Reset state when modal opens
   useEffect(() => {
@@ -63,6 +68,10 @@ const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
       setError(null);
       setPaymentData(null);
       setSubmissionData(null);
+      setStatusMessage('');
+      setPollingAttempt(0);
+      setPaymentCancelled(false);
+      setStartTime(null);
     }
   }, [isOpen]);
 
@@ -85,9 +94,9 @@ const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
 
   const initiateSTKPush = async (phone: string) => {
     try {
-      setIsLoading(true);
+    setIsLoading(true);
       setError(null);
-
+    
       const response = await fetch('https://prowrite.pythonanywhere.com/api/payments/mpesa/initiate', {
         method: 'POST',
         headers: {
@@ -114,12 +123,12 @@ const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
         } else if (response.status === 503) {
           throw new Error('Service temporarily unavailable. Please try again later.');
         } else {
-          throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(`HTTP error! status: ${response.status}`);
         }
       }
 
       const data = await response.json();
-
+      
       if (data.success) {
         setPaymentData({
           checkout_request_id: data.checkout_request_id,
@@ -173,15 +182,26 @@ const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
     const maxPolls = 3;
     const pollInterval = 10000;
     let isPolling = true;
+    setStartTime(Date.now());
 
     const poll = async (): Promise<void> => {
       if (!isPolling) return;
       
       pollCount++;
-      console.log(`Polling attempt ${pollCount}/${maxPolls}`);
+      setPollingAttempt(pollCount);
+      
+      // Update status message based on poll attempt
+      if (pollCount === 1) {
+        setStatusMessage('Checking payment status...');
+      } else if (pollCount === 2) {
+        setStatusMessage('Still waiting for confirmation...');
+      } else if (pollCount === 3) {
+        setStatusMessage('Final check...');
+      }
       
       if (pollCount > maxPolls) {
         isPolling = false;
+        setStatusMessage('Payment verification timed out. Please check your M-Pesa messages.');
         setCurrentStep('failed');
         setError('Payment status check timed out. Please check your payment manually.');
         toast.error('Payment status check timed out. Please check your payment manually.');
@@ -194,7 +214,7 @@ const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
         
         if (!response.ok) {
           if (response.status === 429) {
-            console.log('Rate limited, stopping polling...');
+            setStatusMessage('Rate limit exceeded. Please wait a moment...');
             isPolling = false;
             setCurrentStep('failed');
             setError('Rate limit exceeded. Please wait 5-10 minutes before trying again.');
@@ -204,6 +224,7 @@ const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
             try {
               const data = await response.json();
               if (data.error && data.error.includes('Rate limited')) {
+                setStatusMessage('Rate limit exceeded. Please wait a moment...');
                 isPolling = false;
                 setCurrentStep('failed');
                 setError('Rate limit exceeded. Please wait 5-10 minutes before trying again.');
@@ -214,6 +235,8 @@ const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
               // Continue with error handling
             }
           }
+          // Suppress console logs for user-facing errors
+          setStatusMessage('Unable to check payment status. Please try again.');
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         
@@ -246,9 +269,31 @@ const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
             let errorMessage = data.error || 'Payment failed';
             
             if (data.error && data.error.includes('1032')) {
-              errorMessage = 'Payment was cancelled by user. Please try again if you want to proceed.';
+              errorMessage = 'Payment was cancelled by user. Returning to payment screen...';
+              setPaymentCancelled(true);
+              setStatusMessage('Payment cancelled. Returning to payment screen...');
+              toast.error('Payment was cancelled. You can try again.');
+              // Auto-return to phone input after 3 seconds
+              setTimeout(() => {
+                setCurrentStep('phone');
+                setPaymentCancelled(false);
+                setStatusMessage('');
+                setPollingAttempt(0);
+              }, 3000);
+              return;
             } else if (data.error && data.error.includes('1037')) {
-              errorMessage = 'No response from user. Please check your phone and respond to the STK push.';
+              errorMessage = 'No response from user. Returning to payment screen...';
+              setPaymentCancelled(true);
+              setStatusMessage('No response from user. Returning to payment screen...');
+              toast.error('No response from user. Please check your phone and try again.');
+              // Auto-return to phone input after 3 seconds
+              setTimeout(() => {
+                setCurrentStep('phone');
+                setPaymentCancelled(false);
+                setStatusMessage('');
+                setPollingAttempt(0);
+              }, 3000);
+              return;
             } else if (data.error && data.error.includes('2002')) {
               errorMessage = 'Insufficient funds. Please top up your M-Pesa account and try again.';
             } else if (data.error && data.error.includes('2001')) {
@@ -349,39 +394,39 @@ const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
         <div>
           <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
             Phone Number
-          </label>
-          <input
+        </label>
+        <input
             type="tel"
             id="phone"
             value={phoneNumber}
             onChange={(e) => setPhoneNumber(e.target.value)}
             placeholder="254712345678"
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            required
-          />
+          required
+        />
           <p className="text-xs text-gray-500 mt-1">
             Enter your phone number (e.g., 254712345678)
-          </p>
-        </div>
+        </p>
+      </div>
 
-        <Button
+      <Button
           type="submit"
-          disabled={isLoading}
-          className="w-full"
-          variant="primary"
-        >
-          {isLoading ? (
-            <>
-              <LoadingSpinner size="sm" />
+        disabled={isLoading}
+        className="w-full"
+        variant="primary"
+      >
+        {isLoading ? (
+          <>
+            <LoadingSpinner size="sm" />
               Initiating Payment...
-            </>
-          ) : (
-            <>
-              <CreditCard className="w-5 h-5 mr-2" />
+          </>
+        ) : (
+          <>
+            <CreditCard className="w-5 h-5 mr-2" />
               Pay with M-Pesa
-            </>
-          )}
-        </Button>
+          </>
+        )}
+      </Button>
       </form>
     </div>
   );
@@ -389,11 +434,11 @@ const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
   const renderSTKPush = () => (
     <div className="text-center space-y-4">
       <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-        <CheckCircle className="w-8 h-8 text-green-600" />
-      </div>
+          <CheckCircle className="w-8 h-8 text-green-600" />
+        </div>
       
       <h3 className="text-lg font-semibold">STK Push Sent!</h3>
-      <p className="text-gray-600">
+        <p className="text-gray-600">
         Check your phone for M-Pesa prompt and enter your PIN
       </p>
 
@@ -429,7 +474,7 @@ const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
           setCurrentStep('processing');
           pollForCompletion();
         }}
-        disabled={isLoading}
+          disabled={isLoading}
         className="w-full"
         variant="primary"
       >
@@ -448,7 +493,40 @@ const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
     </div>
   );
 
-  const renderProcessing = () => (
+  const renderProcessing = () => {
+    const elapsedTime = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
+    
+    return (
+      <div className="space-y-4">
+        <PaymentStatusMessages
+          status="processing"
+          message={statusMessage || "Processing Your Order"}
+          pollingAttempt={pollingAttempt}
+          maxPolls={3}
+          elapsedTime={elapsedTime}
+          checkoutRequestId={paymentData?.checkout_request_id}
+          onCancel={() => {
+            setCurrentStep('phone');
+            setStatusMessage('');
+            setPollingAttempt(0);
+            setStartTime(null);
+          }}
+          onCopyReference={(text) => copyToClipboard(text)}
+        />
+
+        <div className="bg-gray-50 rounded-lg p-4 text-sm">
+          <p className="font-medium text-gray-800 mb-2">What's happening:</p>
+          <ul className="list-disc list-inside text-gray-700 space-y-1">
+            <li>Checking payment status with M-Pesa</li>
+            <li>Waiting for payment confirmation</li>
+            <li>Will generate your {documentType} once confirmed</li>
+          </ul>
+        </div>
+      </div>
+    );
+  };
+
+  const renderProcessingWithDownload = () => (
     <div className="text-center space-y-4">
       <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
         <Loader className="w-8 h-8 text-blue-600 animate-spin" />
@@ -535,35 +613,43 @@ const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
     </div>
   );
 
-  const renderFailed = () => (
-    <div className="text-center space-y-4">
-      <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
-        <AlertCircle className="w-8 h-8 text-red-600" />
-      </div>
-      
-      <h3 className="text-lg font-semibold text-red-800">Something Went Wrong</h3>
-      <p className="text-gray-600">
-        {error || 'We encountered an error processing your order'}
-      </p>
+  const renderFailed = () => {
+    // Extract error code from error message if available
+    const errorCode = error?.includes('1032') ? '1032' : 
+                     error?.includes('1037') ? '1037' : 
+                     error?.includes('2001') ? '2001' : 
+                     error?.includes('2002') ? '2002' : undefined;
+    
+    const errorCategory = errorCode ? 
+      (['1032', '1037'].includes(errorCode) ? 'user_action_required' :
+       ['2001', '2002'].includes(errorCode) ? 'payment_issue' : 'system_error') : 
+      'system_error';
 
-      <div className="space-y-2">
-        <Button
-          onClick={() => setCurrentStep('phone')}
-          className="w-full"
-          variant="secondary"
-        >
-          Try Again
-        </Button>
-        <Button
-          onClick={onClose}
-          className="w-full"
-          variant="outline"
-        >
-          Close
-        </Button>
+    return (
+      <div className="space-y-4">
+        <PaymentStatusMessages
+          status="failed"
+          message="Something Went Wrong"
+          errorCode={errorCode}
+          errorCategory={errorCategory}
+          userMessage={error}
+          checkoutRequestId={paymentData?.checkout_request_id}
+          onRetry={() => setCurrentStep('phone')}
+          onCopyReference={(text) => copyToClipboard(text)}
+        />
+
+        <div className="space-y-2">
+          <Button
+            onClick={onClose}
+            className="w-full"
+            variant="outline"
+          >
+            Close
+          </Button>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderContent = () => {
     switch (currentStep) {
